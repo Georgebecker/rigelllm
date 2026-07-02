@@ -1,0 +1,52 @@
+# Ambiente virtual
+.venv/
+venv/
+env/
+
+# Modelos do Ollama (armazenados fora do projeto, mas por segurança)
+ollama/
+
+# Dados processados (txt, json, etc.)
+dados/processed/
+dados/raw/
+dados/backup_antigos/
+dados/gerados/          # <-- NOVO: dados gerados (curtos, longos, completos)
+
+# Logs e gastos
+*.log
+gastos.json
+preparar_dados.log
+logs/
+
+# Checkpoints do modelo
+modelo/
+tokenizer/
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.pyc
+__pycache__/
+
+# Variáveis de ambiente (nunca versionar!)
+.env
+.env.local
+.env.*.local
+
+# Pesos de modelo (caso estejam soltos)
+*.pt
+*.pth
+*.bin
+
+# Configurações locais do VS Code (opcional)
+.vscode/
+*.code-workspace
+
+# Empacotamento (se houver)
+dist/
+build/
+*.egg-info/
