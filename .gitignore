@@ -1,52 +1,116 @@
-# Ambiente virtual
+# ============================================================
+# .gitignore - RigelSLM
+# Ignora arquivos e pastas que NÃO devem ser versionados.
+# ============================================================
+
+# ------------------------------------------------------------
+# 1. Ambientes virtuais
+# ------------------------------------------------------------
 .venv/
 venv/
 env/
+ENV/
+env.bak/
+venv.bak/
 
-# Modelos do Ollama (armazenados fora do projeto, mas por segurança)
-ollama/
+# ------------------------------------------------------------
+# 2. Cache do Python e arquivos compilados
+# ------------------------------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pycache/
+*.pyc
+*.pyo
 
-# Dados processados (txt, json, etc.)
+# ------------------------------------------------------------
+# 3. Dados processados, logs e arquivos gerados (NUNCA versionar!)
+# ------------------------------------------------------------
+# ATENÇÃO: Ignora TODAS as pastas de dados, mas NÃO ignora arquivos .txt
+# que estejam fora dessas pastas (ex: requirements.txt, feeds.txt, etc.)
+dados/
+logs/
+modelo/
+gguf/
+tokenizer/
 dados/processed/
 dados/raw/
 dados/backup_antigos/
-dados/gerados/          # <-- NOVO: dados gerados (curtos, longos, completos)
+dados/gerados/
 
-# Logs e gastos
+# Arquivos de log
 *.log
 gastos.json
 preparar_dados.log
 logs/
 
-# Checkpoints do modelo
-modelo/
-tokenizer/
+# Checkpoints e arquivos temporários do treino
+*checkpoint*.json
+agrupar_checkpoint.json
 
-# Arquivos de sistema
-.DS_Store
-Thumbs.db
-
-# Arquivos temporários
-*.tmp
-*.temp
-*.pyc
-__pycache__/
-
-# Variáveis de ambiente (nunca versionar!)
-.env
-.env.local
-.env.*.local
-
-# Pesos de modelo (caso estejam soltos)
+# ------------------------------------------------------------
+# 4. Modelos e arquivos grandes (NUNCA versionar!)
+# ------------------------------------------------------------
 *.pt
 *.pth
 *.bin
+*.gguf
+*.jsonl
+# NUNCA coloque *.txt aqui! Isso ignoraria arquivos importantes como:
+# requirements.txt, feeds.txt, blacklist.txt, topicos.txt, etc.
+# Se quiser ignorar .txt específicos, use caminhos:
+# dados/**/*.txt    (ignora .txt dentro de dados/)
+# logs/**/*.txt     (ignora .txt dentro de logs/)
 
-# Configurações locais do VS Code (opcional)
+# ------------------------------------------------------------
+# 5. Arquivos de configuração local e segredos
+# ------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+.env.example   # Opcional: se quiser ignorar o exemplo (mas normalmente é versionado)
+*.local
+
+# ------------------------------------------------------------
+# 6. Arquivos do sistema (Windows, macOS, Linux)
+# ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.tmp
+*.temp
+
+# ------------------------------------------------------------
+# 7. Configurações do editor (opcional)
+# ------------------------------------------------------------
 .vscode/
+.idea/
 *.code-workspace
+.vscode/
+.vs/
 
-# Empacotamento (se houver)
+# ------------------------------------------------------------
+# 8. Empacotamento e builds (se houver)
+# ------------------------------------------------------------
 dist/
 build/
 *.egg-info/
+*.egg
+*.whl
+
+# ------------------------------------------------------------
+# 9. Arquivos gerados pelo sistema de treino (específicos)
+# ------------------------------------------------------------
+agrupar_checkpoint.json
+treino.covthon-314.pvc   # Arquivo temporário, NÃO versionar
+**/*.pvc                # Qualquer arquivo .pvc (como o da imagem)
+pvcache/                 # Pasta de cache do .pvc
+
+# ------------------------------------------------------------
+# 10. Ollama (modelos baixados localmente)
+# ------------------------------------------------------------
+# Se você mantém modelos do Ollama dentro do projeto (não recomendado):
+ollama/
+# NOTA: O Ollama normalmente armazena modelos em C:\Users\user\.ollama\models
+# ou na variável OLLAMA_MODELS, então essa pasta provavelmente está vazia.

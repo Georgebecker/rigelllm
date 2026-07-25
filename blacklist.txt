@@ -1,0 +1,96 @@
+# ============================================================
+# BLACKLIST DE PALAVRAS PROIBIDAS (PORTUGUÊS BRASILEIRO)
+# ============================================================
+# Cada palavra deve estar em uma linha, em minúsculas.
+# Linhas começando com '#' são ignoradas (comentários).
+
+# ---- PALAVRÕES E INSULTOS COMUNS ----
+puta
+buceta
+caralho
+cu
+porra
+foda
+porno
+sexo
+transa
+tesão
+peitinho
+bunda
+rabuda
+gostosa
+safada
+pau
+rola
+piroca
+cacete
+boquete
+tarado
+punheta
+
+# ---- CONTEÚDO ADULTO (INGLÊS) ----
+pussy
+sex
+nude
+naked
+onlyfans
+fuck
+dick
+cock
+porn
+xxx
+teen
+girls
+boobs
+tits
+ass
+bitch
+slut
+whore
+cum
+orgasm
+erotic
+fetish
+
+# ---- PALAVRAS RACISTAS E XENOFÓBICAS ----
+macaco
+preto
+crioulo
+nego
+negada
+veado
+bicha
+sapatão
+traveco
+
+# ---- INSULTOS PESADOS ----
+vagabundo
+filho da puta
+arrombado
+viado
+corna
+otário
+idiota
+imbecil
+retardado
+mongo
+trouxa
+babaca
+bocó
+mané
+jacu
+vadia
+prostituta
+meretriz
+putinha
+safada
+devassa
+depravada
+pervertida
+tarada
+aberração
+doente
+nojento
+repugnante
+asqueroso
+fedorento

@@ -1,0 +1,84 @@
+# ============================================================================
+# FEEDS RSS – Adicione ou remova quantos quiser (um por linha)
+# Linhas começando com # são ignoradas
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# ICL Notícias (funcionou com fallback – scraping falhou, mas RSS via curl)
+# ----------------------------------------------------------------------------
+https://iclnoticias.com.br/feed/
+
+# ----------------------------------------------------------------------------
+# Agência Pública (funcionou – scraping OK)
+# ----------------------------------------------------------------------------
+https://apublica.org/feed/
+
+# ----------------------------------------------------------------------------
+# Nexo Jornal (funcionou – RSS lido, scraping não testado)
+# ----------------------------------------------------------------------------
+https://www.nexojornal.com.br/rss.xml
+
+# ----------------------------------------------------------------------------
+# Agência Brasil – vários feeds (funcionaram com fallback)
+# ----------------------------------------------------------------------------
+https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml
+https://agenciabrasil.ebc.com.br/rss/direitos-humanos/feed.xml
+https://agenciabrasil.ebc.com.br/rss/economia/feed.xml
+https://agenciabrasil.ebc.com.br/rss/educacao/feed.xml
+https://agenciabrasil.ebc.com.br/rss/geral/feed.xml
+https://agenciabrasil.ebc.com.br/rss/internacional/feed.xml
+https://agenciabrasil.ebc.com.br/rss/justica/feed.xml
+https://agenciabrasil.ebc.com.br/rss/politica/feed.xml
+https://agenciabrasil.ebc.com.br/rss/saude/feed.xml
+https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/parceiros/feed.xml
+# ----------------------------------------------------------------------------
+https://g1.globo.com/dynamo/brasil/rss2.xml
+# ----------------------------------------------------------------------------
+https://noticias.saudepublica.bvs.br/feed/
+https://agenciasebrae.com.br/feed/
+https://jornal.usp.br/feed/
+https://www.gov.br/pt-br/campanhas/brasil-na-cop/materias/box-fato-ou-fake/rss.xml
+https://www.gov.br/pt-br/campanhas/brasil-na-cop/materias/box-dados-e-fatos/rss.xml
+https://www.gov.br/pt-br/campanhas/brasil-na-cop/materias/box-voce-sabia/rss.xml
+https://agenciagov.ebc.com.br/rss.xml
+https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/ultimasnoticias/feed.xml
+https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/cultura/feed.xml
+https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/direitos-humanos/feed.xml
+https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/internacional/feed.xml
+https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/justica/feed.xml
+https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/meio-ambiente/feed.xml
+https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/politica/feed.xml
+https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/seguranca/feed.xml
+https://jornal.usp.br/feed/
+# ----------------------------------------------------------------------------
+# BBC News Brasil (funcionou – RSS lido)
+# ----------------------------------------------------------------------------
+https://www.bbc.com/portuguese/index.xml
+# ----------------------------------------------------------------------------
+# Brasil de Fato (funcionou – RSS lido)
+# ----------------------------------------------------------------------------
+https://www.brasildefato.com.br/feed/
+# ----------------------------------------------------------------------------
+# Opera Mundi (funcionou – RSS lido)
+# ----------------------------------------------------------------------------
+https://operamundi.uol.com.br/feed/
+# ----------------------------------------------------------------------------
+# Outras Palavras (funcionou – RSS lido)
+# ----------------------------------------------------------------------------
+https://outraspalavras.net/feed/
+
+# ----------------------------------------------------------------------------
+# Revista Fórum (funcionou – RSS lido)
+# ----------------------------------------------------------------------------
+https://revistaforum.com.br/feed/
+
+# ----------------------------------------------------------------------------
+# CartaCapital (funcionou – RSS lido)
+# ----------------------------------------------------------------------------
+https://www.cartacapital.com.br/feed/
+
+# ----------------------------------------------------------------------------
+# DICA: Você pode adicionar mais feeds no futuro!
+# Basta colocar a URL do RSS em uma nova linha.
+# Exemplo: https://www.exemplo.com.br/feed/
+# ----------------------------------------------------------------------------
