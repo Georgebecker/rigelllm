@@ -5,14 +5,27 @@
   "files.watcherExclude": {
     "**/.venv/**": true,
     "**/dados/**": true,
+    "**/gguf/**": true,
     "**/modelo/**": true,
     "**/logs/**": true,
-    "**/__pycache__/**": true
+    "**/estado/**": true,
+    "**/tokenizer/**": true,
+    "**/__pycache__/**": true,
+    "**/node_modules/**": true,
+    "**/.git/**": true
   },
   "python.analysis.exclude": [
     "**/.venv/**",
     "**/dados/**",
+    "**/gguf/**",
     "**/modelo/**",
-    "**/logs/**"
-  ]
+    "**/logs/**",
+    "**/estado/**",
+    "**/tokenizer/**",
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*"
+  ],
+  "python.analysis.diagnosticMode": "openFilesOnly",
+  "python.analysis.autoSearchPaths": false
 }

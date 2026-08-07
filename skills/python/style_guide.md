@@ -6,6 +6,41 @@ O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 
 ---
 
+## [1.0.0] - 2026-07-31
+
+### 🚀 Adicionado
+- **Reinício da numeração de versões** do projeto para **1.0.0**.
+- Todos os cabeçalhos dos scripts atualizados para `Versão: 1.0.0 | Data: 31/07/2026`.
+- Histórico de versões com incrementos planejados no `README.md` (1.0.1, 1.0.2, ...).
+
+---
+
+## [6.5.1] - 2026-07-30
+
+### 🚀 Adicionado
+- **Detecção automática GPU/CPU no `treino.py` e `treinov2.py`**
+  - `BATCH_SIZE`: 16 (GPU) / 4 (CPU)
+  - `GRADIENT_ACCUMULATION`: 2 (GPU) / 4 (CPU)
+  - `LEARNING_RATE`: 5e-4 (GPU) / 3e-4 (CPU)
+  - `num_workers`: até 8 (GPU) / 1-4 (CPU)
+  - `torch.set_num_threads`: CPU total (GPU) / CPU-1 (CPU)
+- **`converter_para_gguf.py` v4.0** — estrutura de tensores compatível com Ollama 0.32.5+
+  - 75 tensores estilo Llama (sem biases)
+  - `output_norm.weight` adicionado como identidade
+  - `ffn_up.weight` copiado de `ffn_gate` (modelo usa GELU, não SwiGLU)
+  - Merges do tokenizer serializados como STRING única (não ARRAY)
+  - Embedding e Output mantidos sem transposição
+- **Pasta `dados/descartados`** criada (separada de `dados/gerados/`)
+
+### 🔧 Corrigido
+- **Ollama atualizado** de 0.20.7 → 0.32.5 (necessário para suporte a arrays GGUF)
+- **GGUF convertido com sucesso** para rodar no Ollama (`ollama ps` confirma modelo ativo)
+- **Chat funciona** tanto via `chat.py` (PyTorch direto) quanto `ollama run rigelslm`
+
+### 📚 Documentação
+- README.md atualizado com seção detalhada de problemas e soluções GGUF/Ollama
+- Instruções de conversão GGUF e uso no Ollama adicionadas ao README
+
 ## [6.4.4] - 2026-07-15
 
 ### 🚀 Adicionado

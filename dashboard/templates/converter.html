@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+{% block title %}Converter GGUF{% endblock %}
+{% block content %}
+<div x-data="converterState()" x-cloak>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">🔄 GGUF</h2>
+  <p class="text-zinc-500 text-sm mb-6">Converta <code class="text-emerald-400">modelo/*.pt</code> para GGUF</p>
+
+  <!-- Cards de Status -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="bg-zinc-900 p-4 rounded-2xl"><p class="text-zinc-500 text-xs">Modelos .pt</p><p class="text-xl md:text-2xl font-bold mt-1" x-text="(dados?.modelos_disponiveis||[]).length"></p></div>
+    <div class="bg-zinc-900 p-4 rounded-2xl"><p class="text-zinc-500 text-xs">GGUF</p><p class="text-xl md:text-2xl font-bold mt-1" x-text="(dados?.ggufs_existentes||[]).length"></p></div>
+    <div class="bg-zinc-900 p-4 rounded-2xl"><p class="text-zinc-500 text-xs">Conversão</p>
+      <p class="text-xl md:text-2xl font-bold mt-1" :class="progress.status=='running'?'text-yellow-400':progress.status=='completed'?'text-emerald-400':progress.status=='failed'?'text-red-400':'text-zinc-400'">
+        <span x-text="progress.status=='running'?'▶ Rodando':progress.status=='completed'?'✅ OK':progress.status=='failed'?'❌ Falha':'—'"></span>
+      </p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl"><p class="text-zinc-500 text-xs">Ollama</p>
+      <p class="text-xl md:text-2xl font-bold mt-1" :class="ollamaStatus.status=='running'?'text-yellow-400':ollamaStatus.status=='completed'?'text-emerald-400':(ollamaLastCreate?'text-emerald-400':'text-zinc-400')">
+        <span x-text="ollamaStatus.status=='running'?'▶ Rodando':ollamaLastCreate?'✅ Criado':'—'"></span>
+      </p>
+    </div>
+  </div>
+
+  <!-- ===== BARRA DE PROGRESSO (aparece quando está rodando ou concluído) ===== -->
+  <div x-show="progress.status=='running' || progress.status=='completed' || progress.status=='failed'" class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6 mb-6">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-base md:text-lg font-semibold">
+        <span x-text="progress.status=='running'?'⏳ Convertendo...':'📋 Resultado da Conversão'"></span>
+      </h3>
+      <span class="text-sm font-mono" :class="progress.status=='running'?'text-yellow-400':'text-emerald-400'" x-text="progress.progress_pct+'%'"></span>
+    </div>
+
+    <!-- Barra de progresso -->
+    <div class="w-full bg-zinc-800 rounded-full h-4 mb-3 overflow-hidden">
+      <div class="h-full rounded-full transition-all duration-500 ease-out"
+           :class="progress.status=='failed'?'bg-red-500':progress.status=='completed'?'bg-emerald-500':'bg-emerald-500 animate-pulse'"
+           :style="'width: '+progress.progress_pct+'%'">
+      </div>
+    </div>
+
+    <!-- Estágio atual -->
+    <p class="text-sm text-zinc-400 mb-1">
+      <span class="text-emerald-400" x-text="progress.stage||'—'"></span>
+      <span x-show="progress.message" class="ml-2 text-zinc-500" x-text="progress.message"></span>
+    </p>
+
+    <!-- Detalhes da conversão concluída -->
+    <div x-show="progress.status=='completed' && progress.gguf_path" class="bg-zinc-800/50 rounded-xl p-3 mt-3 text-sm space-y-1">
+      <p><span class="text-zinc-500">Arquivo:</span> <span class="text-emerald-400 font-mono text-xs" x-text="progress.gguf_path"></span></p>
+      <p x-show="progress.tamanho_mb"><span class="text-zinc-500">Tamanho:</span> <span class="font-medium" x-text="progress.tamanho_mb+' MB'"></span></p>
+      <p><span class="text-zinc-500">Início:</span> <span x-text="progress.start_time ? new Date(progress.start_time).toLocaleString('pt-BR') : '—'"></span></p>
+      <p><span class="text-zinc-500">Término:</span> <span x-text="progress.end_time ? new Date(progress.end_time).toLocaleString('pt-BR') : '—'"></span></p>
+    </div>
+
+    <!-- Log da conversão -->
+    <div x-show="progress.log_lines.length > 0" class="mt-3">
+      <button @click="mostrarLog=!mostrarLog" class="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+        <i class="fa-solid" :class="mostrarLog?'fa-chevron-down':'fa-chevron-right'"></i>
+        <span x-text="mostrarLog?'Ocultar log':'Ver log completo ('+progress.log_lines.length+' linhas)'"></span>
+      </button>
+      <div x-show="mostrarLog" class="bg-black/40 rounded-xl p-3 mt-2 max-h-64 overflow-y-auto text-xs font-mono text-zinc-400 space-y-0.5">
+        <template x-for="(line, i) in progress.log_lines" :key="i">
+          <div class="whitespace-pre-wrap break-all" x-text="line"></div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SEÇÃO MODELOS .pt ===== -->
+  <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6 mb-6">
+    <h3 class="text-base md:text-lg font-semibold mb-4">📦 Modelos .pt</h3>
+    <div class="space-y-2">
+      <template x-for="mod in (dados?.modelos_disponiveis||[])" :key="mod.nome">
+        <div class="flex items-center justify-between bg-zinc-800/50 p-3 md:p-4 rounded-xl">
+          <div class="min-w-0 flex-1">
+            <p class="font-medium text-sm md:text-base truncate">
+              <span x-text="mod.nome"></span>
+              <span x-show="mod.recomendado" class="ml-2 text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">⭐ recomendado</span>
+            </p>
+            <p class="text-xs md:text-sm text-zinc-500" x-text="mod.tamanho_mb+' MB • '+mod.data"></p>
+            <p x-show="mod.descricao" class="text-[11px] text-zinc-600 mt-0.5" x-text="mod.descricao"></p>
+          </div>
+          <button x-show="mod.conversivel" @click="converter(mod.nome, 'Q4_K_M')"
+                  :disabled="progress.status=='running'"
+                  :title="(mod.descricao||'Converter '+mod.nome)+' (Q4_K_M)'"
+                  class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all shrink-0 ml-2"
+                  :class="progress.status=='running'?'opacity-50 cursor-not-allowed':''">
+            <i class="fa-solid" :class="progress.status=='running'?'fa-spinner fa-spin':'fa-file-export'"></i>
+            <span class="ml-1" x-text="progress.status=='running'?'Convertendo...':'Converter'"></span>
+          </button>
+          <span x-show="!mod.conversivel" class="text-[10px] bg-zinc-700/60 text-zinc-400 px-3 py-2 rounded-xl shrink-0 ml-2" title="Checkpoint de retomada — não pode ser convertido">🧊 não conversível</span>
+        </div>
+      </template>
+      <p x-show="!(dados?.modelos_disponiveis||[]).length" class="text-zinc-600 text-center py-6 text-sm">Nenhum .pt em <code class="text-zinc-500">modelo/</code></p>
+    </div>
+  </div>
+
+  <!-- ===== CONVERSÃO RÁPIDA (3 tipos mais usados) ===== -->
+  <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6 mb-6">
+    <h3 class="text-base md:text-lg font-semibold mb-1">⚡ Conversão rápida</h3>
+    <p class="text-xs text-zinc-500 mb-4">Escolha o modelo .pt e um dos 3 tipos mais usados (mesmos do dropdown de treino). O GGUF anterior do mesmo tipo é apagado/sobrescrito.</p>
+    <div class="flex flex-wrap items-end gap-3">
+      <div class="flex-1 min-w-[180px]">
+        <label class="block text-xs text-zinc-500 mb-1">Modelo .pt</label>
+        <select x-model="modeloRapido" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm">
+          <template x-for="mod in (dados?.modelos_disponiveis||[]).filter(m=>m.conversivel)" :key="mod.nome">
+            <option :value="mod.nome" :selected="mod.recomendado" x-text="mod.nome"></option>
+          </template>
+        </select>
+      </div>
+      <template x-for="t in (dados?.tipos_rapidos||[])" :key="t.quant">
+        <button @click="converter(modeloRapido, t.quant)"
+                :disabled="progress.status=='running'"
+                :title="t.desc"
+                class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all"
+                :class="progress.status=='running'?'opacity-50 cursor-not-allowed':''">
+          <i class="fa-solid fa-bolt"></i>
+          <span class="ml-1" x-text="t.quant"></span>
+        </button>
+      </template>
+    </div>
+  </div>
+
+  <!-- ===== SEÇÃO GGUF EXISTENTES ===== -->
+  <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6 mb-6">
+    <div class="flex items-center justify-between mb-4 gap-3">
+      <div class="min-w-0">
+        <h3 class="text-base md:text-lg font-semibold">📜 GGUF Existentes</h3>
+        <p class="text-[11px] text-zinc-600 mt-0.5" x-text="'Ficam em '+(dados?.pasta_gguf||'gguf/')+' e são usados para criar o modelo no Ollama (rigelslm).'"></p>
+      </div>
+      <button @click="apagarTodosGguf()" x-show="(dados?.ggufs_existentes||[]).length" title="Apaga todos os GGUF (libera do Ollama antes)"
+              class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3 py-2 rounded-xl text-xs font-medium transition-all shrink-0">
+        <i class="fa-solid fa-trash"></i> Apagar todos
+      </button>
+    </div>
+    <div class="space-y-2">
+      <template x-for="g in (dados?.ggufs_existentes||[])" :key="g.nome">
+        <div class="flex items-center justify-between bg-zinc-800/50 p-3 md:p-4 rounded-xl">
+          <div class="min-w-0 flex-1">
+            <p class="font-medium text-sm truncate" x-text="g.nome"></p>
+            <p class="text-xs text-zinc-500" x-text="g.tamanho_mb+' MB'"></p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0 ml-2">
+            <button @click="apagarGguf(g.nome)" title="Apagar este GGUF (libera do Ollama antes)"
+                    class="bg-red-600/20 hover:bg-red-600/30 text-red-400 p-2 rounded-xl text-xs transition-all">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+            <button @click="criarOllama()"
+                    :disabled="ollamaStatus.status=='running'"
+                    class="bg-purple-600/20 hover:bg-purple-600/30 text-purple-400 px-4 py-2 rounded-xl text-xs font-medium transition-all"
+                    :class="ollamaStatus.status=='running'?'opacity-50 cursor-not-allowed':''">
+              <i class="fa-solid" :class="ollamaStatus.status=='running'?'fa-spinner fa-spin':'fa-horse-head'"></i>
+              <span class="ml-1" x-text="ollamaStatus.status=='running'?'Criando...':'Criar no Ollama'"></span>
+            </button>
+          </div>
+        </div>
+      </template>
+      <p x-show="!(dados?.ggufs_existentes||[]).length" class="text-zinc-600 text-center py-6 text-sm">Nenhum GGUF convertido.</p>
+    </div>
+  </div>
+
+  <!-- ===== SEÇÃO OLLAMA STATUS / HISTÓRICO ===== -->
+  <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6 mb-6">
+    <h3 class="text-base md:text-lg font-semibold mb-4">🐴 Ollama - Status da Criação</h3>
+
+    <!-- Progresso da criação Ollama -->
+    <div x-show="ollamaStatus.status=='running'" class="mb-3">
+      <div class="flex items-center gap-2 text-yellow-400 mb-2">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span class="text-sm">Criando modelo no Ollama...</span>
+      </div>
+      <div class="w-full bg-zinc-800 rounded-full h-2 mb-2 overflow-hidden">
+        <div class="h-full rounded-full bg-purple-500 animate-pulse" style="width: 60%"></div>
+      </div>
+      <button @click="mostrarLogOllama=!mostrarLogOllama" class="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+        <i class="fa-solid" :class="mostrarLogOllama?'fa-chevron-down':'fa-chevron-right'"></i>
+        <span x-text="mostrarLogOllama?'Ocultar log':'Ver log'"></span>
+      </button>
+      <div x-show="mostrarLogOllama" class="bg-black/40 rounded-xl p-3 mt-2 max-h-48 overflow-y-auto text-xs font-mono text-zinc-400 space-y-0.5">
+        <template x-for="(line, i) in ollamaStatus.log_lines" :key="i">
+          <div class="whitespace-pre-wrap break-all" x-text="line"></div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Resultado da criação -->
+    <div x-show="ollamaStatus.status=='completed'" class="bg-emerald-900/20 border border-emerald-700/30 rounded-xl p-4 mb-3">
+      <p class="text-emerald-400 font-medium mb-2">✅ Modelo criado com sucesso!</p>
+      <div class="text-sm text-zinc-400 space-y-1">
+        <p><span class="text-zinc-500">Modelo:</span> rigelslm</p>
+        <p><span class="text-zinc-500">Término:</span> <span x-text="ollamaStatus.end_time ? new Date(ollamaStatus.end_time).toLocaleString('pt-BR') : '—'"></span></p>
+      </div>
+      <button @click="mostrarLogOllama=!mostrarLogOllama" class="text-xs text-zinc-500 hover:text-zinc-300 transition-colors mt-2">
+        <i class="fa-solid" :class="mostrarLogOllama?'fa-chevron-down':'fa-chevron-right'"></i>
+        <span x-text="mostrarLogOllama?'Ocultar log':'Ver log'"></span>
+      </button>
+      <div x-show="mostrarLogOllama" class="bg-black/40 rounded-xl p-3 mt-2 max-h-48 overflow-y-auto text-xs font-mono text-zinc-400 space-y-0.5">
+        <template x-for="(line, i) in ollamaStatus.log_lines" :key="i">
+          <div class="whitespace-pre-wrap break-all" x-text="line"></div>
+        </template>
+      </div>
+    </div>
+
+    <div x-show="ollamaStatus.status=='failed'" class="bg-red-900/20 border border-red-700/30 rounded-xl p-4 mb-3">
+      <p class="text-red-400 font-medium mb-2">❌ Falha ao criar modelo</p>
+      <p class="text-sm text-zinc-400">Código de saída: <span class="font-mono" x-text="ollamaStatus.exit_code"></span></p>
+      <button @click="mostrarLogOllama=!mostrarLogOllama" class="text-xs text-zinc-500 hover:text-zinc-300 transition-colors mt-2">
+        <i class="fa-solid" :class="mostrarLogOllama?'fa-chevron-down':'fa-chevron-right'"></i>
+        <span x-text="mostrarLogOllama?'Ocultar log':'Ver log'"></span>
+      </button>
+      <div x-show="mostrarLogOllama" class="bg-black/40 rounded-xl p-3 mt-2 max-h-48 overflow-y-auto text-xs font-mono text-zinc-400 space-y-0.5">
+        <template x-for="(line, i) in ollamaStatus.log_lines" :key="i">
+          <div class="whitespace-pre-wrap break-all" x-text="line"></div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Última criação bem-sucedida -->
+    <div x-show="ollamaLastCreate && ollamaStatus.status!='running'" class="bg-zinc-800/50 rounded-xl p-3 text-sm">
+      <h4 class="text-zinc-400 font-medium mb-2">📋 Última criação no Ollama</h4>
+      <div class="space-y-1 text-zinc-500">
+        <p><span class="text-zinc-400">Data:</span> <span x-text="new Date(ollamaLastCreate.data).toLocaleString('pt-BR')"></span></p>
+        <p><span class="text-zinc-400">Modelo:</span> <span x-text="ollamaLastCreate.modelo"></span></p>
+        <p><span class="text-zinc-400">Resultado:</span>
+          <span :class="ollamaLastCreate.status=='success'?'text-emerald-400':'text-red-400'" x-text="ollamaLastCreate.status=='success'?'✅ Sucesso':'❌ Falha'"></span>
+        </p>
+      </div>
+      <div x-show="ollamaLastCreate.log_resumo" class="mt-2">
+        <p class="text-xs text-zinc-600 mb-1">Últimas linhas do log:</p>
+        <div class="bg-black/40 rounded-lg p-2 text-xs font-mono text-zinc-500 space-y-0.5">
+          <template x-for="(line, i) in ollamaLastCreate.log_resumo" :key="i">
+            <div class="whitespace-pre-wrap break-all" x-text="line"></div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <p x-show="!ollamaLastCreate && ollamaStatus.status=='idle'" class="text-zinc-600 text-center py-4 text-sm">
+      Nenhuma criação Ollama registrada ainda.
+    </p>
+  </div>
+
+  <!-- Mensagens de feedback rápido -->
+  <p x-show="msg" class="text-sm mt-3" :class="msg.startsWith('❌')?'text-red-400':'text-emerald-400'" x-text="msg"></p>
+</div>
+
+<script>
+console.log("[CONVERTER] Página carregada");
+function converterState() {
+  return {
+    dados: null,
+    progress: { status: 'idle', progress_pct: 0, stage: '', message: '', log_lines: [] },
+    ollamaStatus: { status: 'idle', log_lines: [], last_create: null },
+    ollamaLastCreate: null,
+    modeloRapido: 'modelo_melhor.pt',
+    mostrarLog: false,
+    mostrarLogOllama: false,
+    msg: '',
+    pollTimer: null,
+    ollamaPollTimer: null,
+
+    init() {
+      console.log("[CONVERTER] Inicializando...");
+      this.poll();
+      this.checkProgress();
+      this.checkOllamaProgress();
+      // Polling periódico
+      this.pollTimer = setInterval(() => this.checkProgress(), 2000);
+      this.ollamaPollTimer = setInterval(() => this.checkOllamaProgress(), 3000);
+    },
+
+    async poll() {
+      try{const r=await fetch('/api/convert/status'); if(r.ok) {
+        this.dados=await r.json();
+        // Define o modelo padrão da conversão rápida como o recomendado
+        const rec=(this.dados.modelos_disponiveis||[]).find(m=>m.recomendado);
+        if(rec && !(this.dados.modelos_disponiveis||[]).some(m=>m.nome===this.modeloRapido && m.conversivel!==false)) this.modeloRapido=rec.nome;
+      }}
+      catch(e){console.error("[CONVERTER] Erro:",e);}
+    },
+
+    async checkProgress() {
+      try {
+        const r=await fetch('/api/convert/progress');
+        if(r.ok) {
+          const data=await r.json();
+          this.progress = data;
+          // Se terminou, faz refresh dos dados
+          if(data.status=='completed' || data.status=='failed') {
+            setTimeout(() => this.poll(), 1000);
+          }
+        }
+      } catch(e){console.error("[CONVERTER] Erro progress:",e);}
+    },
+
+    async checkOllamaProgress() {
+      try {
+        const r=await fetch('/api/convert/ollama-progress');
+        if(r.ok) {
+          const data=await r.json();
+          this.ollamaStatus = data;
+          if(data.last_create) this.ollamaLastCreate = data.last_create;
+          // Se terminou, faz refresh
+          if(data.status=='completed' || data.status=='failed') {
+            setTimeout(() => { this.poll(); }, 2000);
+          }
+        }
+      } catch(e){console.error("[CONVERTER] Erro ollama progress:",e);}
+    },
+
+    async converter(nome, quant) {
+      if(this.progress.status=='running') return;
+      this.msg=''; this.mostrarLog=true;
+      try{
+        const r=await fetch('/api/convert/start',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({modelo:nome, quantizacao: quant||'Q4_K_M'})
+        });
+        const d=await r.json();
+        if(r.ok) {
+          this.msg='✅ Conversão iniciada ('+(quant||'Q4_K_M')+')';
+          // Começa a pollar mais rápido
+          setTimeout(() => this.checkProgress(), 500);
+        } else {
+          this.msg='❌ '+(d.message||'Erro');
+        }
+      } catch(e){this.msg='❌ '+e.message;}
+    },
+
+    async apagarGguf(nome) {
+      if(!confirm('Apagar o GGUF '+nome+'?')) return;
+      try{
+        const r=await fetch('/api/convert/gguf?nome='+encodeURIComponent(nome),{method:'DELETE'});
+        const d=await r.json();
+        this.msg = d.ok ? '🗑️ '+nome+' apagado' : '❌ '+(d.erro||'Erro');
+        setTimeout(()=>this.poll(), 500);
+      } catch(e){this.msg='❌ '+e.message;}
+    },
+
+    async apagarTodosGguf() {
+      const n=(this.dados?.ggufs_existentes||[]).length;
+      if(!n) return;
+      if(!confirm('Apagar TODOS os '+n+' GGUF?')) return;
+      try{
+        const r=await fetch('/api/convert/gguf/todos',{method:'DELETE'});
+        const d=await r.json();
+        this.msg = '🗑️ Apagados: '+(d.apagados||[]).length+(d.erros&&d.erros.length?' | com erro: '+d.erros.length:'');
+        setTimeout(()=>this.poll(), 500);
+      } catch(e){this.msg='❌ '+e.message;}
+    },
+
+    async criarOllama() {
+      if(this.ollamaStatus.status=='running') return;
+      this.msg=''; this.mostrarLogOllama=true;
+      try{
+        const r=await fetch('/api/convert/criar-ollama',{method:'POST'});
+        const d=await r.json();
+        if(r.ok) {
+          this.msg='✅ Criação Ollama iniciada';
+          setTimeout(() => this.checkOllamaProgress(), 500);
+        } else {
+          this.msg='❌ '+(d.message||'Erro');
+        }
+      } catch(e){this.msg='❌ '+e.message;}
+    },
+
+    destroy() {
+      if(this.pollTimer) clearInterval(this.pollTimer);
+      if(this.ollamaPollTimer) clearInterval(this.ollamaPollTimer);
+    }
+  };
+}
+</script>
+{% endblock %}

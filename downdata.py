@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ============================================================================
-# RIGELSLM - TREINO COMPLETO COM AUTO-RECUPERAÇÃO (v6.4.4)
+# RIGELSLM - TREINO COMPLETO COM AUTO-RECUPERAÇÃO (v1.0.0)
+# Data: 31/07/2026 | Arquivos de treino: 1.089
 # ============================================================================
-# CORREÇÕES v6.4.4:
+# CORREÇÕES v1.0.0:
 # - DataLoader com num_workers=1 e timeout=0 para evitar workers mortos
 # - multiprocessing_context='fork' para compatibilidade no Colab
 # - Captura de exceções no dataset para não derrubar worker
@@ -12,7 +13,7 @@
 # - NOVO: Mantém apenas os 5 checkpoints mais recentes (limpeza automática)
 # - NOVO: Checkpoint ao final de cada época (garantia extra)
 # ============================================================================
-# RIGELSLM - TREINO COMPLETO COM AUTO-RECUPERAÇÃO (v6.4.4)
+# RIGELSLM - TREINO COMPLETO COM AUTO-RECUPERAÇÃO (v1.0.0)
 # ============================================================================
 #
 # ⚠️  SE O CHECKPOINT PADRÃO (checkpoint.pt) CORROMPER:
@@ -455,7 +456,7 @@ def criar_tokenizer() -> bool:
         )
         tokenizer.train([temp], trainer)
         tokenizer.post_processor = processors.ByteLevel(trim_offsets=True)
-        tokenizer.decoder = decoders.ByteLevel()
+        tokenizer.decoder = decoders.ByteLevel(add_prefix_space=True)
         tokenizer.save(TOKENIZER_PATH)
         log(f"✅ Tokenizer salvo em {TOKENIZER_PATH}")
         return True
@@ -761,7 +762,7 @@ def main():
         os.makedirs(p, exist_ok=True)
 
     log("=" * 80)
-    log("🚀 RIGELSLM - TREINO COMPLETO v6.4.4 (COM BACKUP INTELIGENTE DE CHECKPOINTS)")
+    log("🚀 RIGELSLM - TREINO COMPLETO v1.0.0 (COM BACKUP INTELIGENTE DE CHECKPOINTS)")
     log(f"📅 Início: {datetime.now()}")
     log(f"💻 Dispositivo: {DISPOSITIVO}")
     log(f"📁 Pastas de dados: {pastas_treino}")

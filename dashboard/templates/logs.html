@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Logs{% endblock %}
+{% block content %}
+<div x-data="logsState()" x-cloak>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">📋 Logs</h2>
+  <p class="text-zinc-500 text-sm mb-4">Visualização de logs do sistema</p>
+
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+      <h3 class="text-sm font-semibold">📂 Arquivos de Log</h3>
+      <button @click="atualizar()" :disabled="carregando"
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-3 py-1.5 rounded-xl text-xs font-medium disabled:opacity-40 flex items-center gap-1.5">
+        <i class="fa-solid" :class="carregando ? 'fa-spinner fa-spin' : 'fa-rotate'"></i>
+        <span>Atualizar</span>
+      </button>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+      <template x-for="arq in arquivos" :key="arq.nome">
+        <button @click="visualizar(arq.nome)" class="text-left bg-zinc-800/50 hover:bg-zinc-800 p-3 rounded-xl text-xs transition-all"
+                :class="arqSelecionado===arq.nome?'ring-2 ring-emerald-500/50':''">
+          <p class="font-medium truncate text-zinc-300" x-text="arq.nome"></p>
+          <p class="text-zinc-600 mt-1" x-text="arq.tamanho_kb+' KB'"></p>
+        </button>
+      </template>
+    </div>
+  </div>
+
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5">
+    <h3 class="text-sm font-semibold mb-3" x-text="'📄 ' + (arqSelecionado || 'Selecione um arquivo')"></h3>
+    <pre class="bg-black/40 rounded-xl p-3 text-xs font-mono text-zinc-400 overflow-auto max-h-96 scrollbar-thin leading-relaxed" x-text="conteudo || 'Clique em um arquivo para ver o conteúdo...'"></pre>
+  </div>
+</div>
+
+<script>
+console.log("[LOGS] Página carregada");
+function logsState() {
+  return { arquivos: [], arqSelecionado: null, conteudo: '', carregando: false,
+    init() {
+      console.log("[LOGS] Inicializando...");
+      this.listar();
+    },
+    async listar() {
+      this.carregando = true;
+      try{const r=await fetch('/api/logs/listar'); if(r.ok) this.arquivos=(await r.json()).arquivos||[]; console.log("[LOGS] Arquivos:", this.arquivos.length);}catch(e){console.error("[LOGS] Erro:",e);}
+      this.carregando = false;
+    },
+    async atualizar() {
+      await this.listar();
+      if (this.arqSelecionado) this.visualizar(this.arqSelecionado);
+    },
+    async visualizar(nome) {
+      this.arqSelecionado = nome; this.conteudo = '⏳ Carregando...';
+      console.log("[LOGS] Visualizando:", nome);
+      try{
+        const r = await fetch('/api/logs/visualizar/' + encodeURIComponent(nome));
+        if (r.ok) {
+          const ct = r.headers.get('content-type') || '';
+          if (ct.includes('application/json')) {
+            const d = await r.json();
+            this.conteudo = d.conteudo || d.logs || '(vazio)';
+          } else {
+            this.conteudo = await r.text() || '(vazio)';
+          }
+        } else { this.conteudo = '❌ Erro ao carregar'; }
+      }catch(e){this.conteudo='❌ '+e.message; console.error("[LOGS] Erro:",e);}
+    }
+  };
+}
+</script>
+{% endblock %}

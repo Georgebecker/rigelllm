@@ -1,0 +1,42 @@
+{
+  "rodando": false,
+  "status": "interrompido",
+  "origem": "dados/raw/dominguesm_brwac",
+  "saida_dir": "D:\\Projetos\\rigelllm\\dados\\sanitizados",
+  "exemplos_por_arquivo": 1000,
+  "inicio": "2026-08-07T11:41:04.311299",
+  "fim": "2026-08-07T14:34:05.214141",
+  "total_lidas": 0,
+  "total_ok": 0,
+  "total_corrigidos": 0,
+  "total_descartados": 0,
+  "total_nao_pt": 0,
+  "total_duplicados": 0,
+  "total_gravados": 0,
+  "arquivos_origem": 1,
+  "arquivo_atual": null,
+  "eventos": [
+    {
+      "data": "2026-08-07T11:41:04.312975",
+      "tipo": "inicio",
+      "msg": "Iniciando sanitização de 'dados/raw/dominguesm_brwac' → D:\\Projetos\\rigelllm\\dados\\sanitizados"
+    },
+    {
+      "data": "2026-08-07T11:41:04.315921",
+      "tipo": "preparando",
+      "msg": "Validando origem e verificando espaço..."
+    },
+    {
+      "data": "2026-08-07T11:41:04.320983",
+      "tipo": "aviso",
+      "msg": "Espaço OK (livre 126.5 GB)"
+    },
+    {
+      "data": "2026-08-07T14:34:05.215134",
+      "tipo": "interrompido",
+      "msg": "Servidor reiniciou e interrompeu a sanitização em andamento. Estado liberado — pode reiniciar."
+    }
+  ],
+  "erro": "Sanitização interrompida (servidor reiniciou — thread de fundo morreu). Retome ou reinicie.",
+  "pid_inicio": 16444
+}

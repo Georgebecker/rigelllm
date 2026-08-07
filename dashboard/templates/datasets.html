@@ -1,0 +1,641 @@
+{% extends "base.html" %}
+{% block title %}Datasets HuggingFace{% endblock %}
+{% block content %}
+<div x-data="datasetsState()" x-cloak>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">🤗 Datasets HuggingFace</h2>
+  <p class="text-zinc-500 text-sm mb-4">Busque, baixe e exploda datasets de <strong class="text-emerald-400">perguntas e respostas em português</strong> para treinar o Rigel</p>
+
+  <!-- Nota informativa (qual treinador usa estes dados) -->
+  <div class="bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-3.5 py-2.5 mb-5 text-xs text-zinc-400 flex items-start gap-2">
+    <i class="fa-solid fa-circle-info mt-0.5 text-zinc-500"></i>
+    <p class="leading-relaxed">Salvos em <code class="text-zinc-300">dados/gerados/jsonl/</code> (formato <code class="text-zinc-300">messages</code>) → treine com <code class="text-zinc-300">treinar_com_jsonl.py --dados dados/gerados/jsonl</code>. Para <code class="text-zinc-300">.txt</code> use <code class="text-zinc-300">treino.py</code>/<code class="text-zinc-300">treinov2.py</code>.</p>
+  </div>
+
+  <!-- Cards de status -->
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5">
+    <div class="bg-zinc-900 p-4 rounded-2xl">
+      <p class="text-zinc-500 text-xs">🗂️ Datasets locais</p>
+      <p class="text-xl font-bold mt-1" x-text="locais?.total||0"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl">
+      <p class="text-zinc-500 text-xs">📄 Arquivos explodidos</p>
+      <p class="text-xl font-bold mt-1" x-text="totalArquivosLocais"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl">
+      <p class="text-zinc-500 text-xs">🔍 Resultados da busca</p>
+      <p class="text-xl font-bold mt-1" x-text="resultados.length"></p>
+    </div>
+  </div>
+
+  <!-- Busca -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+    <h3 class="text-base font-semibold mb-3">🔎 Buscar datasets no HuggingFace</h3>
+    <div class="flex gap-2">
+      <input type="text" x-model="query" @keyup.enter="buscar()" placeholder="Ex: portuguese instruction, pt-br, ou um ID exato (ex.: adalbertojunior/Guara)"
+             class="flex-1 bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+      <button @click="buscar()" :disabled="buscando" class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2">
+        <i class="fa-solid" :class="buscando?'fa-spinner fa-spin':'fa-magnifying-glass'"></i>
+        <span x-text="buscando?'Buscando...':'Buscar'"></span>
+      </button>
+      <button @click="mostrarDicas = !mostrarDicas" :class="mostrarDicas?'bg-emerald-600/30 text-emerald-300':'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'" class="px-3 py-2 rounded-xl text-sm flex items-center gap-1.5" title="Dicas de busca">
+        <i class="fa-solid fa-lightbulb"></i> <span class="hidden sm:inline">Dicas</span>
+      </button>
+    </div>
+    <div class="flex flex-wrap gap-1.5 mt-2">
+      <template x-for="t in termosSugeridos" :key="t">
+        <button @click="query=t; buscar()" class="bg-zinc-800/70 hover:bg-emerald-600/20 hover:text-emerald-300 text-zinc-500 text-[11px] px-2.5 py-1 rounded-full border border-zinc-700/70 transition-colors"># <span x-text="t"></span></button>
+      </template>
+    </div>
+    <div x-show="mostrarDicas" class="mt-3 bg-zinc-800/60 border border-zinc-700 rounded-xl p-3.5 text-xs text-zinc-400 space-y-1.5 leading-relaxed">
+      <p class="font-semibold text-zinc-300">💡 Dicas de busca</p>
+      <p>• A busca é <strong class="text-zinc-300">por palavras-chave</strong> — em inglês costuma achar mais: <code class="text-zinc-300">portuguese instruction</code>, <code class="text-zinc-300">pt-br</code>, <code class="text-zinc-300">alpaca pt</code>, <code class="text-zinc-300">instruct pt-br</code></p>
+      <p>• Dá para colar o <strong class="text-zinc-300">ID exato</strong> de um dataset (ex.: <code class="text-zinc-300">adalbertojunior/Guara</code>) — ele aparece no topo marcado com <span class="text-sky-400">🎯 id exato</span></p>
+      <p>• Prefira resultados com o selo <span class="text-emerald-400">🇧🇷 pt</span> — são os que o Rigel entende melhor</p>
+      <p>• O <span class="text-sky-400">📦 tamanho</span> mostra a faixa de exemplos (ex.: <code class="text-zinc-300">10K&lt;n&lt;100K</code> = entre 10 mil e 100 mil). Comece por datasets pequenos/médios</p>
+      <p>• <span class="text-amber-400">🔒 gated</span> exige login/token do HuggingFace; <span class="text-emerald-500">🔓 público</span> baixa sem conta</p>
+      <p>• Não achou? Troque o termo ou combine com o assunto (ex.: <code class="text-zinc-300">chat pt história</code>)</p>
+    </div>
+    <p x-show="buscaMsg" class="text-xs mt-2" :class="buscaMsg.startsWith('✅')?'text-emerald-400':'text-red-400'" x-text="buscaMsg"></p>
+  </div>
+
+  <!-- Download em andamento -->
+  <div x-show="estado?.rodando" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-emerald-600/30">
+    <h3 class="text-sm font-semibold mb-2">📥 Download em andamento <span class="text-emerald-400" x-text="estado?.repo"></span></h3>
+    <p class="text-xs text-zinc-400" x-text="estado?.mensagem"></p>
+    <div class="mt-2 h-2 bg-zinc-800 rounded-full overflow-hidden">
+      <div x-show="estado?.percentual !== null && estado?.percentual !== undefined"
+           class="h-full bg-emerald-500 transition-all" :style="'width:' + (estado?.percentual||0) + '%'"></div>
+      <div x-show="estado?.percentual === null || estado?.percentual === undefined"
+           class="h-full w-1/3 bg-emerald-500 animate-pulse"></div>
+    </div>
+    <div class="mt-3 flex flex-wrap items-center gap-2">
+      <button @click="cancelarDownload()" :disabled="cancelarBusy"
+              class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3 py-1.5 rounded-xl text-xs font-medium disabled:opacity-50"
+              title="Cancela e apaga a pasta baixada; libera o botão Baixar para recomeçar">
+        <i class="fa-solid" :class="cancelarBusy ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
+        <span class="ml-1" x-text="cancelarBusy ? 'Cancelando...' : 'Cancelar download'"></span>
+      </button>
+      <span class="text-[10px] text-zinc-500">Travou? Cancele e baixe de novo — apaga a pasta parcial e libera o botão Baixar.</span>
+    </div>
+  </div>
+
+  <!-- ⚠️ Download travado/órfão (o processo morreu no meio do caminho) -->
+  <div x-show="estado?.etapa==='travado'" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-amber-600/40">
+    <h3 class="text-sm font-semibold text-amber-400 mb-1">⚠️ Download travado <span class="text-zinc-400 font-normal" x-text="estado?.repo"></span></h3>
+    <p class="text-xs text-zinc-300 mt-1" x-text="estado?.mensagem"></p>
+    <p class="text-[10px] text-zinc-500 mt-1">Parou em <b class="text-amber-300" x-text="(estado?.percentual||0)+'%'"></b> · nenhum processo ativo agora.</p>
+    <div class="mt-3 flex flex-wrap gap-2">
+      <button @click="limparTravado()" :disabled="cancelarBusy"
+              class="bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40"
+              title="Limpa o estado travado e apaga a pasta parcial (se existir) — libera para baixar de novo">
+        <i class="fa-solid" :class="cancelarBusy ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
+        <span class="ml-1" x-text="cancelarBusy ? 'Limpando...' : '🗑️ Limpar estado travado'"></span>
+      </button>
+      <button @click="baixar(estado?.repo)" :disabled="cancelarBusy"
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40"
+              title="Limpa o estado e baixa o dataset novamente do zero">
+        <i class="fa-solid fa-rotate mr-1"></i>🔄 Baixar novamente
+      </button>
+    </div>
+  </div>
+
+  <!-- Resultado do último download (sucesso/erro) -->
+  <div x-show="!estado?.rodando && estado?.repo && estado?.etapa==='concluido'" class="bg-zinc-900 rounded-2xl p-4 mb-5 border border-emerald-600/30">
+    <p class="text-xs text-emerald-400">✅ <span x-text="estado?.repo"></span>: <span x-text="estado?.total_exemplos"></span> exemplos, <span x-text="estado?.total_arquivos"></span> arquivos</p>
+  </div>
+  <!-- 🚀 Painel de explosão controlada (estimativas + começar/pausar/parar + linha do tempo) -->
+  <div x-show="mostrarExplosao || (explosao?.status && explosao.status!=='idle')" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-emerald-600/30">
+    <h3 class="text-sm font-semibold mb-2">🚀 Explosão controlada <span class="text-zinc-500 font-normal" x-text="'— ' + (explosao?.nome || estado?.repo || '')"></span></h3>
+
+    <!-- Estimativas (hardware real da máquina) -->
+    <template x-if="explosao?.estimativa">
+      <div class="bg-zinc-800/50 rounded-xl p-3 mb-3 text-xs space-y-1">
+        <p class="text-zinc-400">Entrada: <b class="text-zinc-100" x-text="explosao?.estimativa?.tamanho_entrada_mb + ' MB'"></b>
+          → Saída estimada: <b class="text-emerald-400" x-text="'~' + explosao?.estimativa?.tamanho_saida_estimado_mb + ' MB'"></b></p>
+        <p class="text-zinc-400">Exemplos estimados: <b class="text-zinc-100" x-text="explosao?.estimativa?.total_exemplos_estimado"></b></p>
+        <p class="text-zinc-400">Tempo estimado (nesta máquina): <b class="text-amber-300" x-text="explosao?.estimativa?.tempo_estimado_texto"></b></p>
+        <p class="text-zinc-400">Espaço livre: <b class="text-zinc-100" x-text="explosao?.estimativa?.espaco_livre_gb + ' GB'"></b>
+          · Necessário: <b class="text-zinc-100" x-text="'~' + explosao?.estimativa?.espaco_necessario_gb + ' GB'"></b></p>
+        <template x-for="a in (explosao?.estimativa?.avisos||[])">
+          <p class="text-amber-300 mt-1" x-text="a"></p>
+        </template>
+      </div>
+    </template>
+
+    <p class="text-xs text-zinc-300" x-show="!explosao?.rodando">Deseja explodir? O resultado vai para dados/gerados/jsonl/ com nome próprio (regra de ouro) e você pode pausar/parar a qualquer momento.</p>
+
+    <div class="mt-3 flex flex-wrap gap-2 items-center">
+      <button x-show="!explosao?.rodando || explosao?.status==='pausado'"
+              @click="explodirAcao('iniciar')" :disabled="explosao?.rodando && explosao?.status!=='pausado'"
+              class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40">
+        <i class="fa-solid fa-play mr-1"></i>
+        <span x-text="explosao?.status==='pausado' ? 'Retomar (continuar)' : 'Começar a explodir'"></span>
+      </button>
+      <button x-show="explosao?.rodando && explosao?.status==='explodindo'" @click="explodirAcao('pausar')"
+              class="bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 px-4 py-2 rounded-xl text-xs font-medium">
+        <i class="fa-solid fa-pause mr-1"></i>Pausar
+      </button>
+      <button x-show="explosao?.rodando && explosao?.status==='explodindo'" @click="explodirAcao('parar')"
+              class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-4 py-2 rounded-xl text-xs font-medium">
+        <i class="fa-solid fa-stop mr-1"></i>Parar
+      </button>
+      <button x-show="!explosao?.rodando && explosao?.status && explosao?.status!=='idle'" @click="esquecer('explosao')"
+              class="bg-zinc-700/30 hover:bg-zinc-600/40 text-zinc-400 px-3 py-2 rounded-xl text-xs font-medium"
+              title="Esquecer este painel (não apaga arquivos)">
+        <i class="fa-solid fa-eraser mr-1"></i>Esquecer
+      </button>
+      <span class="text-xs text-zinc-500 self-center" x-show="explosao?.status" x-text="'Status: ' + (explosao?.status || '')"></span>
+    </div>
+    <p class="text-xs text-zinc-300 mt-2" x-show="explosao?.total_exemplos || explosao?.total_arquivos">
+      <b x-text="explosao?.total_exemplos || 0"></b> exemplos · <b x-text="explosao?.total_arquivos || 0"></b> arquivos criados
+    </p>
+    <p class="text-[10px] text-amber-300 mt-2" x-show="explosao?.status==='pausado'">⏸️ Pausado — pode treinar outro dataset enquanto isso. Retomar continua do ponto parado.</p>
+    <p class="text-[10px] text-red-300 mt-2" x-show="explosao?.status==='parado'">⏹️ Parado. Os dados já gerados ficam em dados/gerados/jsonl/. Para continuar, é só começar de novo (ele salta os arquivos já criados).</p>
+
+    <!-- Diagnóstico de 0 exemplos (formato incompatível, arquivo vazio, etc.) -->
+    <div x-show="explosao?.diagnostico" class="mt-3 bg-red-900/20 border border-red-700/30 rounded-xl p-3 text-xs">
+      <p class="text-red-200"><b>❌ Não explodiu:</b> <span x-text="explosao?.diagnostico?.motivo"></span></p>
+      <p class="text-amber-200 mt-1" x-show="explosao?.diagnostico?.sugestao"><b>💡 Sugestão:</b> <span x-text="explosao?.diagnostico?.sugestao"></span></p>
+      <p class="text-zinc-500 mt-1 text-[10px]" x-show="explosao?.diagnostico?.tipo">Tipo detectado: <span x-text="explosao?.diagnostico?.tipo"></span></p>
+    </div>
+
+    <!-- Linha do tempo -->
+    <div x-show="(explosao?.eventos||[]).length" class="mt-3 border-t border-zinc-800 pt-3">
+      <p class="text-[10px] text-zinc-500 mb-1">📜 Linha do tempo (data · evento):</p>
+      <div class="space-y-1 max-h-48 overflow-auto scrollbar-thin">
+        <template x-for="(ev, i) in (explosao?.eventos || []).slice().reverse()" :key="i">
+          <p class="text-[10px] text-zinc-400"><span class="text-zinc-600" x-text="(ev.data||'').slice(11,19)"></span> · <span x-text="ev.msg"></span></p>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🧼 Painel de sanitização controlada (PT-BR: corrige mojibake, remove inválidos, descarta não-PT, gera rigelsanitizadoNN.jsonl) -->
+  <div x-show="mostrarSanitizar || (sanitizar?.status && sanitizar.status!=='idle')" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-teal-600/30">
+    <h3 class="text-sm font-semibold mb-2">🧼 Sanitização PT-BR <span class="text-zinc-500 font-normal" x-text="'— ' + (sanitizar?.origem || '')"></span></h3>
+
+    <p class="text-xs text-zinc-300">Corrige mojibake, remove caracteres fora do ABNT2, <b>descarta o que não é português brasileiro</b> e grava em <code class="text-teal-300">dados/sanitizados/rigelsanitizadoNN.jsonl</code>. Regra de ouro: só conteúdo limpo e validado vai para o treino.</p>
+
+    <div class="mt-3 flex flex-wrap gap-2 items-center">
+      <button x-show="!sanitizar?.rodando" @click="sanitizarAcao('iniciar')" :disabled="sanitizarAcaoBusy"
+              class="bg-teal-600/20 hover:bg-teal-600/30 text-teal-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40">
+        <i class="fa-solid fa-broom mr-1"></i>
+        <span x-text="sanitizarAcaoBusy ? '...' : '🧼 Sanitizar (gerar limpos)'"></span>
+      </button>
+      <button x-show="sanitizar?.rodando" @click="sanitizarAcao('parar')"
+              class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-4 py-2 rounded-xl text-xs font-medium">
+        <i class="fa-solid fa-stop mr-1"></i>Parar
+      </button>
+      <button x-show="!sanitizar?.rodando && sanitizar?.status && sanitizar?.status!=='idle'" @click="esquecer('sanitizar')"
+              class="bg-zinc-700/30 hover:bg-zinc-600/40 text-zinc-400 px-3 py-2 rounded-xl text-xs font-medium"
+              title="Esquecer este painel (não apaga arquivos)">
+        <i class="fa-solid fa-eraser mr-1"></i>Esquecer
+      </button>
+      <span class="text-xs text-zinc-500 self-center" x-show="sanitizar?.status" x-text="'Status: ' + (sanitizar?.status || '')"></span>
+    </div>
+
+    <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs" x-show="sanitizar?.total_lidas">
+      <div class="bg-zinc-800/50 rounded-xl p-2"><span class="text-zinc-500">Lidas</span><br><b class="text-zinc-100" x-text="sanitizar?.total_lidas||0"></b></div>
+      <div class="bg-zinc-800/50 rounded-xl p-2"><span class="text-zinc-500">Aprovadas</span><br><b class="text-emerald-400" x-text="sanitizar?.total_ok||0"></b></div>
+      <div class="bg-zinc-800/50 rounded-xl p-2"><span class="text-zinc-500">Descartadas</span><br><b class="text-red-400" x-text="sanitizar?.total_descartados||0"></b></div>
+      <div class="bg-zinc-800/50 rounded-xl p-2"><span class="text-zinc-500">Não-PT</span><br><b class="text-amber-400" x-text="sanitizar?.total_nao_pt||0"></b></div>
+    </div>
+    <p class="text-xs text-zinc-300 mt-2" x-show="sanitizar?.total_gravados">
+      ✅ <b class="text-teal-400" x-text="sanitizar?.total_gravados||0"></b> exemplos gravados em <code class="text-teal-300" x-text="sanitizar?.saida_dir||''"></code>
+    </p>
+    <p class="text-xs text-zinc-400 mt-1" x-show="sanitizar?.arquivo_atual">
+      Processando: <span class="text-zinc-200" x-text="sanitizar?.arquivo_atual"></span>
+    </p>
+
+    <!-- Linha do tempo -->
+    <div x-show="(sanitizar?.eventos||[]).length" class="mt-3 border-t border-zinc-800 pt-3">
+      <p class="text-[10px] text-zinc-500 mb-1">📜 Linha do tempo (data · evento):</p>
+      <div class="space-y-1 max-h-48 overflow-auto scrollbar-thin">
+        <template x-for="(ev, i) in (sanitizar?.eventos || []).slice().reverse()" :key="i">
+          <p class="text-[10px] text-zinc-400"><span class="text-zinc-600" x-text="(ev.data||'').slice(11,19)"></span> · <span x-text="ev.msg"></span></p>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <!-- Erro real ao processar download -->
+  <div x-show="!estado?.rodando && estado?.etapa==='erro'" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-red-600/40">
+    <h3 class="text-sm font-semibold text-red-400 mb-1">❌ Falha ao processar <span x-text="estado?.repo"></span></h3>
+    <p class="text-xs text-zinc-300 mt-1"><b>Motivo:</b> <span x-text="estado?.diagnostico?.motivo || estado?.erro"></span></p>
+    <template x-if="estado?.diagnostico?.sugestao">
+      <p class="text-xs text-amber-300 mt-1"><b>💡 Solução:</b> <span x-text="estado.diagnostico.sugestao"></span></p>
+    </template>
+    <div class="mt-3 flex flex-wrap gap-2">
+      <button @click="apagarFalho()" :disabled="apagando"
+              class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40">
+        <i class="fa-solid" :class="apagando ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
+        <span class="ml-1" x-text="apagando ? 'Apagando...' : '🗑️ Apagar do PC'"></span>
+      </button>
+      <button @click="baixar(estado?.repo)" :disabled="estado?.rodando"
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40"
+              title="Baixar este dataset novamente do zero">
+        <i class="fa-solid fa-rotate mr-1"></i>🔄 Baixar novamente
+      </button>
+    </div>
+  </div>
+
+  <!-- 📂 Datasets baixados (área de downloads) -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold">📂 Datasets baixados <span class="text-zinc-500 text-xs" x-text="'('+(baixados.length)+')'"></span></h3>
+      <div class="flex gap-3">
+        <button @click="carregarBaixados()" class="text-[10px] text-sky-400 underline">atualizar</button>
+      </div>
+    </div>
+    <p x-show="!baixados.length" class="text-[11px] text-zinc-600">Nenhum download na área dados/raw. Baixe um dataset acima ou jogue uma pasta/arquivo na área de downloads.</p>
+    <div class="space-y-2 max-h-72 overflow-auto scrollbar-thin">
+      <template x-for="b in baixados" :key="b.nome">
+        <div class="bg-zinc-800/50 p-3 rounded-xl flex items-center gap-3">
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium truncate">
+              <span x-text="b.nome"></span>
+              <span x-show="b.tem_jsonl" class="ml-1 text-[9px] bg-emerald-600/20 text-emerald-400 rounded-full px-1.5 py-0.5">jsonl pronto</span>
+            </p>
+            <p class="text-[10px] text-zinc-600" x-text="(b.tamanho_mb||0) + ' MB'"></p>
+          </div>
+          <button @click="explodirBaixado(b)" :disabled="explodirAcaoBusy"
+                  title="Explodir este dataset: gerar os arquivos de treino (com estimativa, você pode pausar/parar)"
+                  class="shrink-0 bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 px-3 py-2 rounded-xl text-xs font-medium disabled:opacity-50">
+            <i class="fa-solid" :class="explodirAcaoBusy ? 'fa-spinner fa-spin' : 'fa-fire'"></i>
+            <span class="ml-1" x-text="explodirAcaoBusy ? '...' : '🚀 Explodir'"></span>
+          </button>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- Resultados da busca -->
+  <div x-show="resultados.length > 0" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold">📚 Resultados <span class="text-zinc-500 text-xs" x-text="'('+resultados.length+')'"></span></h3>
+      <span class="text-xs text-zinc-600" x-text="'para: ' + query"></span>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 mb-3 text-xs text-zinc-300">
+      <span>🧼 <b>Tratar após baixar</b>:</span>
+      <select x-model="tratamento"
+              class="bg-zinc-800 text-zinc-100 rounded-xl px-2 py-1.5 text-xs border border-zinc-700 outline-none focus:border-teal-500">
+        <option value="auto">🎯 Automático (detecta: jsonl→sanitizar, parquet→limpeza leve)</option>
+        <option value="sanitizar">🧼 Sanitizar (JSONL)</option>
+        <option value="limpeza_leve">🧹 Limpeza leve v2 (parquet)</option>
+        <option value="nenhum">⛔ Nenhum (só baixar/explodir)</option>
+      </select>
+    </div>
+    <div class="space-y-2 max-h-[28rem] overflow-auto scrollbar-thin">
+      <template x-for="(r, i) in resultados" :key="r.id">
+        <div class="bg-zinc-800/50 p-3 rounded-xl flex items-center gap-3">
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium truncate">
+              <span x-text="r.id"></span>
+              <span x-show="r.exato" class="ml-1 text-[9px] bg-sky-600/20 text-sky-400 rounded-full px-1.5 py-0.5" title="Encontrado pelo ID exato">🎯 id exato</span>
+            </p>
+            <p class="text-[10px] text-zinc-500 line-clamp-2" x-text="r.descricao||'Sem descrição'"></p>
+            <p class="text-[10px] text-zinc-600 mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+              <span x-show="r.idioma?.length" class="text-emerald-400" title="Idioma(s) detectado(s)">🇧🇷 <span x-text="r.idioma.join(', ')"></span></span>
+              <span x-show="r.tamanho" class="text-sky-400" title="Tamanho (faixa de nº de exemplos)">📦 <span x-text="r.tamanho"></span></span>
+              <span x-show="r.tamanho_mb" class="text-fuchsia-400" title="Tamanho dos arquivos (MB)">💾 <span x-text="r.tamanho_mb"></span> MB</span>
+              <span x-show="r.formato" class="text-purple-400" title="Formato do arquivo">🧩 <span x-text="r.formato"></span></span>
+              <span x-show="r.gated" class="text-amber-400" title="Exige login/token do HuggingFace">🔒 gated</span>
+              <span x-show="!r.gated" class="text-emerald-500/70" title="Público — baixa sem conta">🔓 público</span>
+              <span title="Downloads">⬇️ <span x-text="r.downloads"></span></span>
+              <span title="Curtidas">❤️ <span x-text="r.likes"></span></span>
+              <span title="Atualizado em">🕓 <span x-text="(r.atualizado||'').slice(0,10)"></span></span>
+            </p>
+          </div>
+          <button @click="baixar(r.id)" :disabled="estado?.rodando"
+                  title="Baixar e explodir para dados/gerados/jsonl/ (formato SFT messages)"
+                  class="shrink-0 bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 disabled:opacity-50 px-3 py-2 rounded-xl text-xs font-medium">
+            <i class="fa-solid fa-download mr-1"></i>Baixar
+          </button>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- Datasets locais -->
+  <div x-show="locais?.datasets?.length > 0" class="bg-zinc-900 rounded-2xl p-4 md:p-5">
+    <h3 class="text-sm font-semibold mb-2">🗂️ Datasets já explodidos (prontos para treino)</h3>
+    <p class="text-[11px] text-zinc-500 mb-3 leading-relaxed">Estes datasets ficam em <code class="text-zinc-400">dados/gerados/jsonl/</code> e já aparecem na aba <a href="/treino_local" class="text-sky-400 underline">Treino Local → 📦 Provisórios</a> — lá você <b class="text-zinc-300">valida e promove</b> para <code class="text-zinc-400">processed</code> (com flags de treinado) antes de treinar. Aqui é só a listagem de referência.</p>
+    <div class="space-y-2">
+      <template x-for="d in locais?.datasets" :key="d.nome">
+        <div class="bg-zinc-800/50 p-3 rounded-xl flex items-center justify-between">
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium truncate" x-text="d.nome"></p>
+            <p class="text-[10px] text-zinc-600" x-text="d.caminho"></p>
+          </div>
+          <p class="text-xs text-zinc-400 shrink-0 ml-2" x-text="d.arquivos + ' arquivos'"></p>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div x-show="toast" class="fixed bottom-6 right-6 z-50 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm shadow-xl">
+    <span x-text="toast"></span>
+  </div>
+</div>
+
+<script>
+console.log("[DATASETS] Página carregada");
+function datasetsState() {
+  return {
+    query: 'portuguese instruction',
+    buscando: false, buscaMsg: '', resultados: [],
+    estado: null, locais: null, toast: '', toastTimer: null,
+    mostrarDicas: false, apagando: false,
+    baixados: [],
+    analisePrincipalCaminho: '', analisePrincipalRepo: '',
+    mostrarExplosao: false, explosao: null, explodirAcaoBusy: false,
+    tratamento: 'auto', // 🧼 tratar após baixar: auto | sanitizar | limpeza_leve | nenhum
+    cancelarBusy: false,
+    mostrarSanitizar: false, sanitizar: null, sanitizarAcaoBusy: false,
+    termosSugeridos: ['portuguese instruction', 'pt-br', 'alpaca pt', 'instruct pt-br'],
+
+    get totalArquivosLocais() {
+      return (this.locais?.datasets||[]).reduce((s,d)=>s+d.arquivos, 0);
+    },
+
+    init() {
+      console.log("[DATASETS] Inicializando...");
+      this.carregarStatus(); this.carregarLocais(); this.carregarBaixados(); this.carregarExplosao();
+      this.carregarSanitizar();
+      setInterval(()=>this.carregarStatus(), 2000);
+      setInterval(()=>this.carregarLocais(), 10000);
+      setInterval(()=>this.carregarExplosao(), 2000);
+      setInterval(()=>this.carregarSanitizar(), 2000);
+    },
+
+    async carregarExplosao() {
+      try {
+        const r = await fetch('/api/datasets/explodir/status');
+        this.explosao = await r.json();
+      } catch(e) { console.warn("[DATASETS] explosão status:", e); }
+    },
+
+    abrirExplosao() {
+      this.mostrarExplosao = true;
+      if (!this.explosao) this.explosao = {status: 'idle', eventos: []};
+      this.carregarExplosao();
+    },
+
+    async explodirAcao(acao) {
+      if (this.explodirAcaoBusy) return;
+      this.explodirAcaoBusy = true;
+      try {
+        const corpo = {acao: acao};
+        // Explode o dataset exibido no painel principal (se houver), senão o último download
+        if (this.analisePrincipalCaminho) corpo.caminho = this.analisePrincipalCaminho;
+        if (this.analisePrincipalRepo) corpo.repo = this.analisePrincipalRepo;
+        else corpo.repo = this.estado?.repo || '';
+        const r = await fetch('/api/datasets/explodir', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(corpo)
+        });
+        const d = await r.json();
+        if (!d.ok) this.mostrarToast('❌ ' + (d.erro||'erro'));
+        else this.mostrarToast(d.mensagem || 'Ação enviada');
+        this.carregarExplosao();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.explodirAcaoBusy = false; }
+    },
+
+    async carregarSanitizar() {
+      try {
+        const r = await fetch('/api/datasets/sanitizar/status');
+        this.sanitizar = await r.json();
+      } catch(e) { console.warn("[DATASETS] sanitizar status:", e); }
+    },
+
+    abrirSanitizar() {
+      this.mostrarSanitizar = true;
+      if (!this.sanitizar) this.sanitizar = {status: 'idle', eventos: []};
+      this.carregarSanitizar();
+    },
+
+    // Sanitiza a origem do painel principal (caminho analisado) OU o último download
+    async sanitizarAcao(acao) {
+      if (this.sanitizarAcaoBusy) return;
+      this.sanitizarAcaoBusy = true;
+      try {
+        const corpo = {acao: acao};
+        if (acao === 'iniciar') {
+          let origem = this.analisePrincipalCaminho || '';
+          if (!origem && this.analisePrincipalRepo) {
+            origem = '/api/datasets/baixados'; // repo sem caminho não resolve aqui — tenta via estado
+          }
+          if (!origem && this.estado?.repo) {
+            origem = 'dados/raw/' + this.estado.repo.replace(/\//g, '_');
+          }
+          if (!origem) { this.mostrarToast('❌ Escolha um dataset primeiro (Analisar) para saber a origem.'); return; }
+          // Ajusta: caminho absoluto do painel principal
+          if (this.analisePrincipalCaminho) {
+            // analisePrincipalCaminho pode ser um caminho absoluto — normaliza p/ relativo de dados/
+            const idx = origem.indexOf('dados');
+            if (idx > 0) origem = origem.slice(idx);
+          }
+          corpo.origem = origem;
+        }
+        const r = await fetch('/api/datasets/sanitizar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(corpo)
+        });
+        const d = await r.json();
+        if (!d.ok) this.mostrarToast('❌ ' + (d.erro||'erro'));
+        else this.mostrarToast(d.mensagem || 'Ação enviada');
+        this.mostrarSanitizar = true;
+        this.carregarSanitizar();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.sanitizarAcaoBusy = false; }
+    },
+
+    async carregarBaixados() {
+      try {
+        const r = await fetch('/api/datasets/baixados');
+        const d = await r.json();
+        this.baixados = d.baixados || [];
+      } catch(e) { console.warn("[DATASETS] baixados:", e); }
+    },
+
+    async explodirBaixado(b) {
+      // Explode ESTE dataset específico (lista de baixados) e abre o painel de controle
+      if (this.explodirAcaoBusy) return;
+      this.explodirAcaoBusy = true;
+      try {
+        const r = await fetch('/api/datasets/explodir', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({acao: 'iniciar', caminho: b.caminho, nome: b.nome})
+        });
+        const d = await r.json();
+        if (!d.ok) { this.mostrarToast('❌ ' + (d.erro||'não iniciou')); }
+        else {
+          this.mostrarToast('🚀 Explosão iniciada: ' + b.nome);
+          this.mostrarExplosao = true;  // abre o painel com estimativas/controles
+          // alinha o alvo da explosão com este dataset (pausar/retomar pelo painel)
+          this.analisePrincipalCaminho = b.caminho;
+          this.analisePrincipalRepo = b.nome;
+        }
+        this.carregarExplosao();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.explodirAcaoBusy = false; }
+    },
+
+    mostrarToast(msg) {
+      this.toast = msg;
+      clearTimeout(this.toastTimer);
+      this.toastTimer = setTimeout(()=>this.toast='', 3500);
+    },
+
+    async carregarStatus() {
+      try {
+        const r = await fetch('/api/datasets/status');
+        this.estado = await r.json();
+        // ✅ PIPELINE 05: após concluir com origens limpas, limpa o dashboard sozinho
+        if (this.estado?.etapa === 'concluido' && this.estado?.limpos_origens && !this._vaiLimpar) {
+          this._vaiLimpar = true;
+          setTimeout(() => { this.esquecer('tudo'); this._vaiLimpar = false; }, 4000);
+        }
+      } catch(e) { console.warn("[DATASETS] status:", e); }
+    },
+
+    async esquecer(alvo) {
+      try {
+        if (alvo === 'explosao' || alvo === 'tudo')
+          await fetch('/api/datasets/explodir', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({acao:'limpar'})});
+        if (alvo === 'sanitizar' || alvo === 'tudo')
+          await fetch('/api/datasets/sanitizar', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({acao:'limpar'})});
+        if (alvo === 'tudo')
+          await fetch('/api/datasets/limpar', {method:'POST'});
+        this.mostrarToast('🧹 Painel esquecido (arquivos intactos).');
+        this.carregarStatus(); this.carregarExplosao(); this.carregarSanitizar();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+    },
+
+    // 🗑️ Cancela um download travado/em andamento: apaga a pasta parcial e
+    // libera o estado (rodando=false) para poder baixar de novo.
+    async cancelarDownload() {
+      if (!confirm('Cancelar o download em andamento?\n\n🗑️ Isso APAGA a pasta baixada (parcial) e libera o botão Baixar para recomeçar.')) return;
+      this.cancelarBusy = true;
+      try {
+        const r = await fetch('/api/datasets/cancelar', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({apagar: true})
+        });
+        const dados = await r.json();
+        this.mostrarToast(dados.ok ? ('🗑️ ' + (dados.mensagem||'Download cancelado.')) : ('❌ ' + (dados.erro||'erro')));
+        this.carregarStatus(); this.carregarLocais();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.cancelarBusy = false; }
+    },
+
+    async carregarLocais() {
+      try {
+        const r = await fetch('/api/datasets/listar');
+        this.locais = await r.json();
+      } catch(e) { console.warn("[DATASETS] listar:", e); }
+    },
+
+    // 🧹 Limpa um download travado/órfão: reseta o estado e apaga a pasta parcial
+    async limparTravado() {
+      if (!confirm('Limpar o download travado?\n\n🗑️ Remove o estado e apaga a pasta parcial (se existir), liberando para baixar de novo.')) return;
+      this.cancelarBusy = true;
+      try {
+        const r = await fetch('/api/datasets/cancelar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({apagar: true})
+        });
+        const d = await r.json();
+        this.mostrarToast(d.ok ? ('🗑️ ' + (d.mensagem||'Estado limpo.')) : ('❌ ' + (d.erro||'erro')));
+        this.carregarStatus(); this.carregarLocais(); this.carregarBaixados();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.cancelarBusy = false; }
+    },
+
+    async buscar() {
+      const q = (this.query||'').trim();
+      if (!q) return;
+      this.buscando = true; this.buscaMsg = '';
+      try {
+        const r = await fetch('/api/datasets/buscar?q=' + encodeURIComponent(q) + '&limite=15');
+        const dados = await r.json();
+        this.resultados = dados.resultados || [];
+        this.carregarTamanhos();   // 💾 busca o tamanho em MB de cada resultado (assíncrono)
+        this.buscaMsg = this.resultados.length
+          ? '✅ ' + this.resultados.length + ' dataset(s) encontrado(s).'
+          : 'Nenhum resultado para "' + q + '".';
+      } catch(e) {
+        this.buscaMsg = '❌ Falha na busca: ' + e.message;
+      } finally {
+        this.buscando = false;
+      }
+    },
+
+    async carregarTamanhos() {
+      const repos = (this.resultados || []).map(r => r.id);
+      await Promise.all(repos.map(async (id) => {
+        try {
+          const resp = await fetch('/api/datasets/tamanho?repo=' + encodeURIComponent(id));
+          const d = await resp.json();
+          const alvo = this.resultados.find(x => x.id === id);
+          if (alvo && d.ok) {
+            alvo.tamanho_mb = d.tamanho_mb;
+            alvo.num_rows = d.num_rows;
+          }
+        } catch(e) { /* sem tamanho — segue sem o badge */ }
+      }));
+    },
+
+    async baixar(repoId) {
+      if (this.estado?.rodando) { this.mostrarToast('Já existe um download em andamento.'); return; }
+      this.mostrarToast('📥 Baixando ' + repoId + '...');
+      try {
+        const r = await fetch('/api/datasets/baixar', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({repo_id: repoId, tratamento: this.tratamento})
+        });
+        const dados = await r.json();
+        this.mostrarToast(dados.ok ? '📥 Download iniciado!' : ('❌ ' + (dados.erro||'erro')));
+        this.carregarStatus();
+      } catch(e) {
+        this.mostrarToast('❌ ' + e.message);
+      }
+    },
+
+    // Falha de explosão: diagnóstico claro + pergunta se o usuário quer apagar
+    async apagarFalho() {
+      const diag = this.estado?.diagnostico || {};
+      const motivo = diag.motivo || this.estado?.erro || 'falha desconhecida';
+      const msg = 'Apagar os arquivos deste dataset que FALHOU?\n\n' +
+        '• Repositório: ' + (this.estado?.repo || '?') + '\n' +
+        '• Motivo: ' + motivo + '\n\n' +
+        'Isso apaga os arquivos baixados (raw) e a pasta explodida vazia. NÃO recuperável.\n' +
+        'Digite APAGAR (maiúsculo) para confirmar.';
+      const confirma = prompt(msg);
+      if (confirma !== 'APAGAR') { this.mostrarToast('❌ Cancelado — digite APAGAR para confirmar.'); return; }
+      this.apagando = true;
+      try {
+        const r = await fetch('/api/datasets/apagar', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({repo_id: this.estado?.repo || '', dataset: diag.dataset || ''})
+        });
+        const dados = await r.json();
+        this.mostrarToast(dados.ok
+          ? ('🗑️ Apagado: ' + ((dados.removidos||[]).join(', ') || 'nada encontrado'))
+          : ('❌ ' + (dados.erro||'erro')));
+        this.carregarStatus(); this.carregarLocais();
+      } catch(e) {
+        this.mostrarToast('❌ ' + e.message);
+      } finally {
+        this.apagando = false;
+      }
+    }
+  };
+}
+</script>
+{% endblock %}

@@ -1,9 +1,10 @@
 # ⭐ RigelSLM – Small Language Model para Português Brasileiro
 
-**Versão:** 3.1  
-**Autor:** George Herman Becker  
-**Licença:** MIT  
-**Última atualização:** Julho de 2026
+**Autor:** George Herman Becker · **Licença:** MIT · **Versão:** 1.0.0 · **Atualização:** 02/08/2026
+
+> 💚 **Gostou do projeto? Apoie o desenvolvimento:**
+> - **PIX:** `a8b68e14-edfe-4450-88f2-c2af4aca2a6c`
+> - **Buy Me a Coffee:** <https://buymeacoffee.com/georgehbecker>
 
 ---
 
@@ -18,7 +19,7 @@ O nome **Rigel** vem da estrela mais brilhante da constelação de Órion.
 
 ---
 
-## 🧠 Arquitetura do Modelo
+## �🧠 Arquitetura do Modelo
 
 | Parâmetro | Valor |
 |-----------|-------|
@@ -47,269 +48,474 @@ O nome **Rigel** vem da estrela mais brilhante da constelação de Órion.
 
 ---
 
-## � Estrutura do Projeto
+## 🗂️ Estrutura do Projeto
 
 ```
 C:\Rigelllm\
-├── dashboard/           # Interface web (FastAPI + Tailwind + Alpine.js)
-│   ├── main.py          # App FastAPI, rotas principais, status do sistema
-│   ├── routes/          # Rotas organizadas por funcionalidade
-│   │   ├── train.py     # Treino: iniciar, parar, progresso, logs
-│   │   ├── chat.py      # Chat: Ollama + Modo Local PyTorch
-│   │   ├── rss.py       # RSS: processar feeds, testar, adicionar
-│   │   ├── convert.py   # GGUF: conversão de .pt para GGUF
-│   │   ├── generate.py  # Dados: gerar diálogos, executar scripts
-│   │   ├── logs.py      # Logs: listar, visualizar, métricas
-│   │   ├── diagnostico.py # Diagnóstico: contagem real de arquivos
-│   │   └── ollama.py    # Ollama: status e reinicialização
-│   ├── services/        # Serviços auxiliares
-│   │   ├── runner.py    # Execução de scripts em background com log
-│   │   └── monitor.py   # Monitoramento do sistema (CPU, RAM, disco)
-│   ├── templates/       # Templates HTML (Alpine.js)
-│   │   └── index.html   # Dashboard completo (SPA)
-│   └── static/          # CSS e assets
-├── modelo/              # Checkpoints do modelo (.pt)
-│   ├── modelo_melhor.pt # Melhor modelo (val_loss mínimo)
-│   ├── modelo.pt        # Último checkpoint
-│   └── checkpoint.pt    # Checkpoint intermediário
+├── dashboard/                 # Interface web (FastAPI + Tailwind + Alpine.js)
+│   ├── main.py                # App FastAPI, rotas principais, status do sistema
+│   ├── routes/                # Rotas organizadas por funcionalidade
+│   │   ├── train.py           # Treino: iniciar, parar, progresso, logs
+│   │   ├── chat.py            # Chat: Ollama + Modo Local PyTorch
+│   │   ├── rss.py             # RSS: processar feeds, testar, adicionar
+│   │   ├── convert.py         # GGUF: conversão .pt → GGUF com progresso
+│   │   ├── generate.py        # Dados: gerar via DeepSeek, executar scripts
+│   │   ├── debate.py          # Debate/Podcast via DeepSeek com pesquisa web
+│   │   ├── debate_local.py    # Debate/Podcast via Ollama (modelo local)
+│   │   ├── topicos.py         # Gerenciamento de tópicos (RSS + DeepSeek)
+│   │   ├── logs.py            # Logs: listar, visualizar, métricas
+│   │   ├── diagnostico.py     # Diagnóstico: contagem real de arquivos
+│   │   ├── ollama.py          # Ollama: status, iniciar, parar, reiniciar
+│   │   └── organizar.py       # Organização de pastas de dados
+│   ├── services/              # Serviços auxiliares
+│   │   ├── runner.py          # Execução de scripts em background com log
+│   │   ├── monitor.py         # Monitoramento (CPU, RAM, disco, Ollama)
+│   │   ├── limpeza.py         # Limpeza de texto, remoção ANSI, espaços
+│   │   ├── pesquisa.py        # Busca na web (DuckDuckGo)
+│   │   ├── converter_state.py # Estado da conversão GGUF em tempo real
+│   │   ├── estrutura_cache.py # 🛡️ Guardião de limites + cache de estrutura
+│   │   ├── recursos.py        # ⚙️ Limites proporcionais ao hardware
+│   │   ├── treino_local.py    # Treino SFT via subprocesso (bandeiras)
+│   │   ├── hf_datasets.py     # Busca/download de datasets HuggingFace
+│   │   └── ollama_deploy.py   # Disponibilizar modelo ao Ollama
+│   ├── templates/             # Templates HTML (Alpine.js)
+│   │   ├── base.html          # Layout base com tema escuro/alegre
+│   │   ├── index.html         # Dashboard principal
+│   │   ├── chat.html          # Chat com Ollama + modelo local
+│   │   ├── treinamento.html   # Controle de treino
+│   │   ├── converter.html     # Conversão GGUF com progresso
+│   │   ├── gerar_dados.html   # Geração via API DeepSeek
+│   │   ├── gerar_local.html   # Geração via Ollama + scripts
+│   │   ├── debate.html        # Debate/Podcast via DeepSeek
+│   │   ├── debate_local.html  # Debate/Podcast via Ollama
+│   │   └── logs.html          # Visualizador de logs
+│   └── static/                # Assets
+├── modelo/                    # Checkpoints do modelo (.pt)
+│   ├── modelo_melhor.pt       # Melhor modelo (val_loss mínimo)
+│   ├── modelo.pt              # Último checkpoint
+│   └── checkpoint.pt          # Checkpoint intermediário
 ├── tokenizer/
-│   └── tokenizer.json   # Tokenizer BPE treinado
+│   └── tokenizer.json         # Tokenizer BPE ByteLevel treinado
 ├── dados/
-│   ├── processed/       # Dados processados para treino (2.16M+ arquivos)
-│   ├── gerados/         # Dados sintéticos gerados
-│   └── raw/             # Dados brutos (fonte original)
-├── logs/                # Logs do sistema
-├── gguf/                # Modelos convertidos para GGUF
-├── treino.py            # Treino do modelo (arquitetura + pipeline)
-├── chat.py              # Chat interativo (modo conversa e one-shot)
-├── dialogos.py          # Geração de dados sintéticos v1 (DeepSeek)
-├── dialogos2.py         # Geração de dados sintéticos v2 (22 tipos)
-├── preparar_dados.py    # Qualificação e preparação dos dados
-├── converter_para_gguf.py# Conversão .pt → GGUF
-├── rss_processor.py     # Coleta de notícias via RSS
-├── agrupar.py           # Agrupa arquivos pequenos em lotes
-├── downdata.py          # Download de datasets públicos
-├── download_datasets.py # Download alternativo de datasets
-├── ultra.py             # Ultra-processamento de dados
-├── limpeza.py           # Limpeza e remoção de ruídos
-├── tradutor.py          # Tradução de textos
-├── traduza.py           # Tradução alternativa
-├── validation.py        # Validação de dados gerados
-├── generation.py        # Geração de texto auxiliar
-├── config.py            # Configurações centralizadas
-├── state.py             # Gerenciamento de estado
-├── categories.py        # Categorias de dados
-├── utils.py             # Utilitários gerais
-├── app.py               # Aplicativo principal (legado)
-├── main.py              # Ponto de entrada (legado)
-└── requirements.txt     # Dependências Python
+│   ├── processed/             # Dados processados para treino
+│   ├── gerados/               # Dados sintéticos (DeepSeek, Ollama, RSS)
+│   │   ├── gerados_local/     # Conteúdo gerado via Ollama
+│   │   ├── debates/           # Debates e podcasts
+│   │   └── feedback_chat/     # Feedback do chat salvo
+│   └── raw/                   # Dados brutos originais
+├── logs/                      # Logs do sistema
+│   ├── conversao.log          # Log de conversões GGUF
+│   ├── ollama_create.log      # Log de criação de modelos Ollama
+│   ├── dashboard.log          # Log geral do dashboard
+│   ├── metricas.json          # Métricas de treino
+│   ├── recursos.log           # Rastro do guardião de limites
+│   └── estrutura_cache/       # Cache persistente da estrutura (scans)
+├── gguf/                      # Modelos convertidos para GGUF
+├── docs/                      # Documentação complementar
+├── images/                    # Ícones e imagens do dashboard
+├── topicos.txt                # Lista de tópicos para geração
+├── feeds.txt                  # Fontes RSS configuradas
+├── requirements.txt           # Dependências Python
+├── config_recursos.json       # 🛡️ Limites proporcionais (gerado na instalação)
+├── setup_env.py               # Configuração inicial do ambiente
+├── run_dashboard.bat          # 🚀 Dashboard com 1 clique (auto-recuperação)
+├── createjsonl.py             # Gerar/baixar/explodir datasets JSONL
+├── treinar_com_jsonl.py       # ✅ Treinador SFT (JSONL messages)
+├── saida_manager.py           # Escritor JSONL unificado (geração→JSONL)
+├── modelo_backup.py           # 💾 Backups automáticos do modelo
+└── converter_txt_jsonl.py     # .txt legados → JSONL SFT
 
 ---
 
-## 📜 Descrição dos Arquivos .py
+## 📜 Descrição de Cada Arquivo .py
 
-### 🧠 Modelo e Treino
+### 🧠 Núcleo do Modelo
 
-| Arquivo | Descrição |
-|---------|-----------|
-| `treino.py` | **Arquivo principal.** Define a arquitetura `RigelSLM` (Transformer decoder), carregamento de dados, pipeline de treino com auto-recuperação, checkpointing, salvamento do melhor modelo e geração de texto. Suporta TXT, PDF, HTML, XML, CSV, JSONL. |
-| `chat.py` | **Chat interativo.** Carrega o modelo treinado e permite conversar. Modo interativo com histórico (últimas 3 trocas) e modo `--one-shot` para integração com o dashboard. Parâmetros: temperatura, top-k, repetition penalty. |
-| `converter_para_gguf.py` | Converte o checkpoint `.pt` para o formato GGUF (compatível com Ollama, llama.cpp, LM Studio). Suporta quantizações: F16, Q8_0, Q4_K, Q5_K. |
+| Arquivo | Função | O que produz |
+|---------|--------|-------------|
+| `treino.py` | Define a arquitetura `RigelSLM` (Transformer decoder), pipeline de treino completo, carregamento de dados (TXT, PDF, HTML, XML, CSV, JSONL), checkpointing, salvamento do melhor modelo | Checkpoints `.pt` em `modelo/`, logs em `logs/`, métricas em `metricas.json` |
+| `chat.py` | Chat interativo via terminal. Modo conversa com histórico (últimas 3 trocas) e modo `--one-shot` para integração com dashboard. Exibe métricas de treino, barra de maturidade, parâmetros | Respostas de texto na tela. Comandos: `/clear`, `/exit`, `/stats` |
+| `converter_para_gguf.py` (v1.0.0) | Converte checkpoint `.pt` para GGUF compatível com Ollama 0.32.5+. Merges como string, 75 tensores estilo Llama (sem biases), output_norm + ffn_up sintéticos. Suporta 13 quantizações | Arquivo `.gguf` em `gguf/` + `Modelfile` para Ollama |
+| `treinar_com_jsonl.py` | ✅ Treinador SFT de datasets JSONL (`messages`), loss só no assistant, checkpoint/early-stop/NaN/OOM/Ctrl+C seguro, bandeiras + barra de % + ETA | `modelo/modelo.pt`, `modelo/modelo_melhor.pt`, `modelo/checkpoint_jsonl.pt` |
+| `converter_txt_jsonl.py` | Converte .txt legados (Pergunta/Resposta + artigos) para JSONL SFT (`messages`), corrige mojibake, dedup | `dados/gerados/jsonl/<saida>/` |
+| `modelo_backup.py` | Backups automáticos/manuais do modelo antes de cada sobrescrita (mantém 20) | `modelo/backups/*.pt` |
+| `rigel.py` | Implementação alternativa/experimental do modelo | Variações do RigelSLM |
 
-### 📊 Dados Sintéticos
+### 📊 Geração de Dados
 
-| Arquivo | Descrição |
-|---------|-----------|
-| `dialogos.py` | Geração de dados sintéticos via API DeepSeek (v1). Gera pares pergunta-resposta sobre cultura brasileira. |
-| `dialogos2.py` | Geração de dados sintéticos (v2) com **22 tipos** de conteúdo: conversa, artigo, conto, poema, carta, entrevista, debate, tutorial, resenha, relatório, ensaio, crônica, receita, dica, auto, etc. Usa DeepSeek ou Ollama. |
-| `preparar_dados.py` | Prepara e qualifica dados brutos para o formato de treino. Remove ruídos, padroniza codificação UTF-8. |
-| `rss_processor.py` | Coleta notícias e artigos de feeds RSS. Alimenta o modelo com conteúdo jornalístico atualizado. |
-| `agrupar.py` | Agrupa arquivos pequenos em lotes maiores para processamento mais eficiente. |
-| `downdata.py` | Download de datasets públicos da internet. |
-| `download_datasets.py` | Método alternativo de download de datasets. |
-| `ultra.py` | Ultra-processamento: sharding, checkpointing e otimização de datasets grandes. |
-| `limpeza.py` | Limpeza de dados: remove duplicatas, corrige encoding, elimina ruídos. |
-| `validation.py` | Validação de dados gerados (qualidade, formato, consistência). |
+| Arquivo | Função | O que produz |
+|---------|--------|-------------|
+| `dialogos.py` | Geração de dados sintéticos v1 via DeepSeek. Pares pergunta-resposta sobre cultura brasileira | Arquivos `.txt` em `dados/gerados/` (~500 diálogos por execução) |
+| `dialogos2.py` | Geração de dados sintéticos v2 com 22 tipos de conteúdo: artigo, conto, poema, entrevista, debate, tutorial, etc. | Arquivos `.txt` nas subpastas de `dados/gerados/` (~200 itens por execução) |
+| `rss_processor.py` | Coleta notícias de 27+ feeds RSS brasileiros. Faz scraping, classifica por tamanho (curto/longo/completo), gera resumos 100% local via Ollama (retry + timeout adaptativo, `--modelo-resumo`). Se o resumo falhar, salva como completo (não descarta) | Notícias em `dados/gerados/curtos/`, `longos/`, `completos/` + títulos em `topicos.txt` |
+| `preparar_dados.py` | Prepara e qualifica dados brutos: valida encoding, classifica por tipo de conteúdo, remove ruídos | Dados organizados em `dados/processed/` com metadados |
+| `agrupar.py` | Agrupa arquivos pequenos em lotes maiores para processamento eficiente | Arquivos agrupados em `dados/gerados/agrupados/` |
+| `ultra.py` | Ultra-processamento: sharding, checkpointing, otimização de datasets grandes | Dados otimizados em `dados/processed/` |
+| `createjsonl.py` | Gera dataset JSONL SFT (`messages`) com pesquisa web, juiz de qualidade, Regra de Ouro, checkpoint/resume, sharding | `dados/gerados/jsonl/jsonlocal/rigel_YYYYMMDD.jsonl` |
+| `saida_manager.py` | Escritor JSONL unificado (sharding 1000/arquivo) — usado por `dialogos2.py`/`rss_processor.py` com `--formato jsonl` | JSONL SFT em `dados/gerados/jsonl/<dataset>/` |
 
-### 🔧 Utilitários
+### 🔄 Coleta de Dados
 
-| Arquivo | Descrição |
-|---------|-----------|
-| `config.py` | Configurações centralizadas do projeto. |
-| `state.py` | Gerenciamento de estado entre execuções. |
-| `categories.py` | Definição das categorias de dados. |
-| `utils.py` | Funções utilitárias gerais. |
-| `generation.py` | Funções auxiliares de geração de texto. |
-| `tradutor.py` | Tradução de textos para português. |
-| `traduza.py` | Método alternativo de tradução. |
-| `app.py` | Aplicativo principal (versão legada). |
-| `main.py` | Ponto de entrada (versão legada). |
-# Conversão automática (busca o melhor modelo)
-python converter_para_gguf.py
+| Arquivo | Função | O que produz |
+|---------|--------|-------------|
+| `downdata.py` | Download de datasets públicos da internet | Dados brutos em `dados/raw/` |
+| `download_datasets.py` | Método alternativo de download de datasets | Dados brutos em `dados/raw/` |
 
-# Especificando modelo e quantização
-python converter_para_gguf.py --model modelo/modelo_melhor.pt --quant Q4_K_M
-Quantizações disponíveis: F16, Q8_0, Q4_K_M, Q5_K_M.
+### 🛠️ Utilitários
 
-Saída: Arquivo .gguf em gguf/ e modelo_info.json com metadados.
+| Arquivo | Função | O que produz |
+|---------|--------|-------------|
+| `config.py` | Configurações centralizadas: chave DeepSeek, modelo, caminhos, tokens | Carregado por todos os módulos |
+| `state.py` | Gerenciamento de estado entre execuções | Arquivo `estado_global.json` |
+| `categories.py` | Definição das categorias de dados e seus prompts | Usado por `generation.py` e `dialogos2.py` |
+| `utils.py` | Funções utilitárias: hash, limpeza, salvamento, descarte | Suporte a outros módulos |
+| `generation.py` | Funções auxiliares de geração: prompts por categoria, detecção de resposta genérica | Prompts prontos para DeepSeek |
+| `validation.py` | Validação de dados gerados: qualidade, formato, consistência | Filtro de qualidade |
+| `limpeza.py` | Limpeza pesada: remove duplicatas, corrige encoding, elimina ruídos | Dados limpos em `dados/processed/` |
+| `verificador.py` | Verificação de integridade dos dados | Relatório de consistência |
+| `log_manager.py` | Gerenciamento centralizado de logs | Arquivos de log rotativos |
 
-4. Chat Interativo (chat.py)
-O que faz: Interface de chat para testar o modelo treinado, com histórico de conversa e parâmetros ajustáveis.
+### 🌐 Tradução
 
-Comando:
+| Arquivo | Função | O que produz |
+|---------|--------|-------------|
+| `tradutor.py` | Tradução de textos para português via API | Textos traduzidos |
+| `traduza.py` | Método alternativo de tradução local | Textos traduzidos |
 
-bash
-python chat.py --temperature 0.8 --max-tokens 200
-Comandos dentro do chat:
+### 🖥️ Aplicações
 
-/clear – Limpa o histórico.
+| Arquivo | Função | O que produz |
+|---------|--------|-------------|
+| `app.py` | Aplicativo legado (Gradio) | Interface web antiga |
+| `main.py` | Ponto de entrada legado | Execução de pipeline |
+| `setup_env.py` | Configuração inicial do ambiente virtual | `.venv/` configurado |
+| `organizar_pastas.py` | Organiza pastas de dados por tipo | Pastas reorganizadas |
+| `treino_cloud.py` | Treino em nuvem (Google Colab) | Notebook + checkpoint |
+| `treinov2.py` | Versão alternativa do treino | Checkpoints experimentais |
 
-/exit ou sair – Sai do programa.
+### 📋 Dashboard (rotas e serviços)
 
-/help – Mostra ajuda.
+| Arquivo | Função | Endpoints |
+|---------|--------|-----------|
+| `dashboard/main.py` | App FastAPI principal + rotas de geração local | `/api/local-generate/*`, páginas HTML |
+| `dashboard/routes/train.py` | Controle de treino: iniciar, parar, progresso | `/api/train/*` |
+| `dashboard/routes/chat.py` | Chat via Ollama + fallback local PyTorch | `/api/chat/*`, `/api/chat/local/*` |
+| `dashboard/routes/generate.py` | Geração via DeepSeek + scripts Python | `/api/generate/*` |
+| `dashboard/routes/convert.py` | Conversão .pt → GGUF com progresso em tempo real | `/api/convert/*` |
+| `dashboard/routes/debate.py` | Debate/Podcast via DeepSeek com pesquisa web | `/api/debate/*` |
+| `dashboard/routes/debate_local.py` | Debate/Podcast via Ollama (modelo local) | `/api/debate-local/*` |
+| `dashboard/routes/topicos.py` | Gerenciamento de tópicos: RSS, DeepSeek, sortear | `/api/topicos/*` |
+| `dashboard/routes/rss.py` | Processamento de feeds RSS | `/api/rss/*` |
+| `dashboard/routes/ollama.py` | Gerenciamento do servidor Ollama | `/api/ollama/*` |
+| `dashboard/routes/logs.py` | Visualização de logs do sistema | `/api/log/*` |
+| `dashboard/routes/diagnostico.py` | Diagnóstico e contagem de arquivos | `/api/diagnostico/*` |
+| `dashboard/routes/organizar.py` | Organização de pastas de dados | `/api/organizar/*` |
+| `dashboard/services/runner.py` | Execução de scripts em background com log | Usado internamente |
+| `dashboard/services/monitor.py` | Monitoramento CPU, RAM, disco, Ollama | Usado internamente |
+| `dashboard/services/limpeza.py` | Limpeza de texto: emojis, ANSI, espaços concatenados | Usado pelo chat e geração |
+| `dashboard/services/converter_state.py` | Estado da conversão GGUF em tempo real | Usado pela rota convert |
+| `dashboard/services/pesquisa.py` | Busca na web via DuckDuckGo | Usado pelo chat e debate |
+| `dashboard/services/estrutura_cache.py` | 🛡️ Guardião de limites + escaneamento em background com cache e barra de % | Usado por treino/treino_local |
+| `dashboard/services/recursos.py` | ⚙️ Detecção de hardware e limites PROPORCIONAIS à máquina | `config_recursos.json` |
+| `dashboard/services/treino_local.py` | Treino SFT via subprocesso + bandeiras por arquivo + progresso | `/api/treino_local/*` |
+| `dashboard/services/hf_datasets.py` | Busca/download/explosão de datasets HuggingFace | `/api/datasets/*` |
+| `dashboard/services/ollama_deploy.py` | Backup→conversão→`ollama create` (legado — o Converter GGUF usa fluxo próprio) | — |
+
+---
 
 ## 🖥️ Dashboard (Interface Web)
 
 O dashboard é uma **SPA (Single Page Application)** construída com:
-
 - **Backend:** FastAPI + Uvicorn (porta 8000)
 - **Frontend:** Tailwind CSS + Alpine.js (client-side reativo)
 - **Monitoramento:** psutil (CPU por núcleo, RAM, disco)
+- **Temas:** Escuro (padrão) + **Alegre** (claro), alternáveis com persistência
 
-### Funcionalidades
+### Funcionalidades por Aba
 
 | Aba | Função |
 |-----|--------|
-| **Dashboard** | Visão geral: status do modelo, CPU, RAM, disco, arquivos processados, log ao vivo, últimas épocas de treino |
-| **Treinamento** | Iniciar/parar treino, selecionar pastas de dados, progresso em tempo real, log |
-| **Chat** | Conversar com o modelo via Ollama **ou** Modo Local (PyTorch direto). Salvar conversas, feedback, teste |
-| **RSS & Web** | Processar feeds RSS, testar URLs, adicionar novos feeds, estatísticas |
-| **Converter GGUF** | Converter modelo .pt para GGUF com quantização |
-| **Gerar Dados** | Gerar dados sintéticos (v1, v2), download de datasets, executar scripts |
-| **Logs** | Visualizar todos os logs do sistema em tempo real |
-
-### 🔄 Modo Local (PyTorch sem Ollama)
-
-O dashboard agora suporta **dois modos** de chat:
-
-1. **Ollama** (requer `ollama serve` rodando) — usa GGUF carregado no Ollama
-2. **Local** (PyTorch direto) — carrega o `.pt` no próprio processo do dashboard
-
-O Modo Local permite usar o modelo **sem depender do Ollama**, ideal para testes e desenvolvimento.
+| **📊 Dashboard** | Visão geral: CPU, RAM, disco, arquivos processados, log ao vivo |
+| **📚 Treinamento** | Iniciar/parar treino, selecionar pastas, progresso em tempo real |
+| **💬 Chat** | Conversar com o modelo via Ollama **ou** modo local PyTorch (fallback automático) |
+| **📡 RSS & Web** | Processar feeds RSS, testar URLs, adicionar novos feeds |
+| **🔄 Converter GGUF** | Converter .pt → GGUF com barra de progresso e log ao vivo |
+| **📝 Gerar Dados** | Gerar conteúdo via DeepSeek (22 tipos). Botão "+ Novos" tópicos via RSS |
+| **🖥️ Gerar Local** | Gerar via Ollama com quantidade, template/style aleatório. Scripts Python |
+| **🎙️ Debate/Podcast** | Debate/podcast via DeepSeek com pesquisa web e perfis |
+| **🎙️ Debate Local** | Debate/podcast via Ollama (modelo local, sem API) |
+| **📋 Logs** | Visualizar logs do sistema em tempo real |
 
 ---
 
-## ⚠️ Desafios e Problemas Encontrados
+## ⚠️ Problemas Enfrentados e Soluções
 
-### 1. 🎯 VOCAB_SIZE vs Tokenizer Real
+### 1. VOCAB_SIZE vs Tokenizer Real
+- **Problema:** Modelo com `VOCAB_SIZE=32000`, tokenizer com 23830 tokens → slots mortos
+- **Solução:** Auto-detectado do `tokenizer.json`. `generate()` zera logits além do vocabulário real
 
-**Problema:** O modelo foi inicialmente configurado com `VOCAB_SIZE=32000`, mas o tokenizer treinado tinha apenas **23830 tokens**. Isso criava:
-- 8170 slots de embedding **nunca utilizados** (peso morto)
-- O `lm_head` podia predizer tokens inválidos (IDs 23830–31999) que o tokenizer não reconhecia
-- Impossibilidade de carregar o checkpoint se o `VOCAB_SIZE` mudasse
+### 2. Repetition Penalty Incorreto
+- **Problema:** Logits negativos tinham penalidade invertida (aumentava repetição)
+- **Solução:** Penalidade verifica sinal do logit antes de aplicar
 
-**Solução:** O `VOCAB_SIZE` agora é **auto-detectado** do `tokenizer.json` em tempo real. O `generate()` também zera as probabilidades de tokens além do vocabulário real.
+### 3. GGUF Incompatível com Ollama (vários problemas)
+- **Problema 1:** `invalid array type: 9` ao carregar GGUF no Ollama
+  - **Causa:** Ollama versão 0.20.7 não suporta GGUF arrays (type 9) para `tokenizer.ggml.merges`
+  - **Solução 1:** Atualizado Ollama de 0.20.7 → **0.32.5**
+- **Problema 2:** `cannot find tokenizer merges in model file` após atualizar Ollama
+  - **Causa:** GGUF sem `tokenizer.ggml.merges` — removido para evitar erro de array
+  - **Solução 2:** Merges serializados como **STRING única** (separada por newline) em vez de ARRAY
+- **Problema 3:** `check_tensor_dims: tensor 'token_embd.weight' has wrong shape`
+  - **Causa:** Tensor `token_embd.weight` transposto incorretamente (esperado `[embed_dim, vocab_size]`)
+  - **Solução 3:** Embedding mantido no formato original sem transposição
+- **Problema 4:** `missing tensor 'output_norm.weight'` e `missing tensor 'blk.*.ffn_up.weight'`
+  - **Causa:** Arquitetura `llama` do GGUF exige `output_norm.weight` (norm final) e `ffn_up.weight` (3ª projeção FFN SwiGLU). O modelo original (TransformerDecoder do PyTorch) não tem esses tensores
+  - **Solução 4:** `output_norm.weight` criado como identidade (valores = 1). `ffn_up.weight` copiado de `ffn_gate` (modelo usa GELU, não SwiGLU)
+- **Problema 5:** `done_getting_tensors: wrong number of tensors; expected X, got Y`
+  - **Causa:** Biases nos tensores (`attn_norm.bias`, `ffn_gate.bias`, etc.) — Llama original não usa biases
+  - **Solução 5:** Todos os biases removidos do mapeamento GGUF. Modelo final com **75 tensores** (estrutura idêntica ao tinyllama/llama.cpp)
+- **Problema 6:** `llama-server process has terminated: exit status 1` (erro genérico ao rodar)
+  - **Causa:** Accumulado de problemas 1-5 acima
+  - **Solução 6:** GGUF agora é gerado pelo `converter_para_gguf.py` (v1.0.0) com: merges como string, 75 tensores sem biases, output_norm + ffn_up sintéticos. Testado com `ollama run` e `ollama ps` confirma modelo ativo
+- **Problema 7 (06/08/2026 — RESOLVIDO): GGUF gera vazio/lixo em TODOS os runtimes (llama-server, Ollama, llama-cli)**
+  - **Causa:** O `tokenizer.json` é BPE **ByteLevel (estilo GPT-2)** e marca espaço com `Ġ` (U+0120). O `converter_para_gguf.py` convertia `Ġ→▁` (U+2581) achando que o llama.cpp esperava `▁` — **invertido!** Com `tokenizer.ggml.model="gpt2"` o llama.cpp faz byte-encoding GPT-2 (espaço 0x20 → `Ġ`) e espera `Ġ` no vocab E nos merges. A conversão quebrava o BPE (IDs errados → saída vazia, lixo, chars geométricos ▹▾▦ e `▁` colando palavras). Confirmado no código-fonte do llama.cpp (`src/llama-vocab.cpp`: `llm_tokenizer_bpe`, `byte_encode=true`).
+  - **Solução 7 (aplicada no `converter_para_gguf.py`, backup: `converter_para_gguf.py.bak_20260806`):**
+    1. REMOVIDA a conversão `Ġ→▁` (tokens E merges) — manter `Ġ`;
+    2. `tokenizer.ggml.pre = "gpt-2"` (pré-tokenizer correto p/ ByteLevel; antes ausente → aviso "GENERATION QUALITY WILL BE DEGRADED");
+    3. `tokenizer.ggml.add_space_prefix = False` (no path BPE o padrão é false; o espaço entra via byte-encoding).
+  - **Resultado:** GGUF novo (reconvertido via página `/converter`) tem 23.830 tokens, 18.380 com `Ġ`, ZERO com `▁`; `llama-cli` gera texto (~291 t/s) e **TODOS os modelos `rigelslm:*` respondem no Ollama**. Saída ainda é "frase solta" porque o modelo está ~33% treinado (esperado).
 
-### 2. 🔁 Repetition Penalty Incorreto
+### 4. Palavras Concatenadas nas Respostas
+- **Problema:** `"Olá!EusouoRigelSLM.Comopossoteajudar?"`
+- **Causa:** Decoder ByteLevel sem `add_prefix_space=True` + tokenizer GGUF como `"llama"`
+- **Solução:** `add_prefix_space=True` nos decoders + função `corrigir_espacos_concatenados()` no chat
+- ⚠️ **Nota (06/08):** a causa raiz no GGUF era o bug do **Problema 7** (conversão `Ġ→▁`). O fix real é reconverter com o `converter_para_gguf.py` corrigido; `corrigir_espacos_concatenados()` e o `limpar_e_aviso` (com `▁`→espaço) são apenas paliativos no chat para modelos antigos.
 
-**Problema:** No `generate()`, a penalidade de repetição era aplicada como `last_logit[idx] /= repetition_penalty` para **todos** os tokens. Para logits **negativos**, isso **aumentava** a probabilidade em vez de diminuí-la — efeito contrário ao desejado, causando repetições.
+### 5. Caracteres ANSI no Conteúdo (`[13D[K`)
+- **Problema:** `ollama run` emite códigos de terminal que vazavam para o texto
+- **Solução:** Função `limpar_ansi()` que remove sequências de escape
 
-**Solução:** Agora aplica a penalidade corretamente:
-```python
-if last_logit[idx] >= 0:
-    last_logit[idx] /= repetition_penalty
-else:
-    last_logit[idx] *= repetition_penalty
-```
+### 6. Conversão sem Feedback Visual
+- **Problema:** Usuário clicava "Converter" e via apenas "Conversão iniciada"
+- **Solução:** State manager `converter_state.py` + barra de progresso + polling a cada 2s
 
-### 3. 🔄 GGUF Incompatível com Ollama
+### 7. Tópicos Dependentes de DeepSeek
+- **Problema:** Botão "+ Novos" só funcionava com chave DeepSeek; travava sem ela
+- **Solução:** `topicos.py` com busca RSS (27+ feeds brasileiros) + fallback manual
 
-**Problema:** O `converter_para_gguf.py` gera arquivos GGUF válidos (verificados com `gguf.GGUFReader`), mas o Ollama **não consegue carregá-los**. O erro é:
-```
-llama runner process has terminated
-```
+### 8. Geração sem Quantidade
+- **Problema:** Só gerava 1 item por vez; sem loop para múltiplos
+- **Solução:** Campo `quantidade` (1-999) + randomização de template/estilo por iteração
 
-**Causa:** A arquitetura `RigelSLM` (definida no `treino.py`) não corresponde a nenhuma arquitetura conhecida pelo `llama.cpp`. O Ollama espera arquiteturas padrão como `llama`, `mistral`, `gemma`, etc. O modelo RigelSLM usa `nn.TransformerDecoder` do PyTorch, que tem nomes de parâmetros diferentes.
+### 9. Contadores Inconsistentes
+- **Problema:** "Arquivos gerados" contava dados de treino, não arquivos gerados
+- **Solução:** Card usa `localArquivosSalvos.length` em vez de `dados.total_arquivos`
 
-**Status:** ⏳ Não resolvido. O modelo pode ser usado via `chat.py` (PyTorch direto) ou pelo Modo Local do dashboard.
+### 10. Travas com Milhões de Arquivos (17M+)
+- **Problema:** Escaneamentos (`rglob`/`glob`) materializavam listas com milhões de arquivos → `MemoryError`, telas travadas
+- **Solução:** `estrutura_cache.py` — scan em THREAD com barra de %, cache persistente em disco, `walk_com_limites()` streaming (nunca materializa listas)
 
-### 4. 📡 Integração Frontend-Backend
+### 11. Hardware Varia — Limites "Fixos" Quebravam a Máquina
+- **Problema:** Scan consumiu 100% de RAM + 100% de SSD (50 GB de pagefile) mesmo com limites
+- **Solução:** `recursos.py` — limites **PROPORCIONAIS** (RAM, CPU, GPU, HD/SSD/NVMe), detectados na instalação e gravados em `config_recursos.json`
 
-**Problemas enfrentados:**
+### 12. Guardião de Limites (memória, disco, CPU, SSD)
+- **Problema:** Scan podia rodar até derrubar o sistema
+- **Solução:** caps de arquivos/pastas (`SCAN_MAX_*`), pausas periódicas (`SCAN_PAUSA_*`), aborta se a memória livre cair (`MEM_MIN_LIVRE_*`), não segue junctions/symlinks (anti-loop), recusa iniciar sem memória
 
-| Problema | Solução |
-|----------|---------|
-| `capture_output=True` descartava saída de subprocessos | Criado `stream_subprocess_to_log()` com `Popen` + streaming |
-| Erros 422 (validação) em endpoints sem Pydantic | Adicionados modelos `BaseModel` para todos os requests |
-| UnicodeEncodeError com emojis no Windows (cp1252) | Forçado `PYTHONIOENCODING=utf-8` + `encoding='utf-8'` |
-| Training progress falsamente preso em 65% | Detectado marcador "TREINO CONCLUÍDO" no log |
-| Tooltips faltando em botões | Adicionados `title` em todos os botões |
-| Sem feedback visual ao executar scripts | Polling automático do `scripts.log` após execução |
+### 13. Loop de Reinício do Dashboard + Cascata de Abas no Chrome
+- **Problema:** `run_dashboard.bat` abria o servidor, ~12s depois "caía", e a cada reinício abria outra aba → cascata + "rodinha"
+- **Causa:** workers órfãos do `--reload` (multiprocessing.spawn) seguravam o socket da porta 8000; o watchdog não conseguia limpar
+- **Solução:** `run_dashboard.bat` **v2.3.1** — navegador abre 1x por sessão, monitor único, limpeza de órfãos `spawn_main`, `--reload-dir dashboard`; servidor estável roda sem `--reload`
 
-### 5. 📐 Arquitetura e Parâmetros
+---
 
-- **Embedding 4D:** Tensor de embedding em formato 4D `[vocab, embed, 1, 1]` em vez de 2D `[embed, vocab]`. Corrigido no conversor GGUF.
-- **Seq Len vs Memória:** Com `SEQ_LEN=512`, RAM ~8-10 GB. Aumentar para 1024 dobra o consumo.
-- **Overfitting:** Com < 1000 arquivos, val_loss ~7.5. Com 20.000+, val_loss cai para ~1.5.
+## 🏆 Estabilidade & Guardião de Limites (02/08/2026)
 
-### 6. 🐌 Treino em CPU Apenas
+### 🛡️ Guardião de Limites (nada de "mostrar tudo")
+O projeto agora **tem limites em tudo que varre o disco**:
+- **Caps:** `SCAN_MAX_ARQUIVOS` / `SCAN_MAX_DIRETORIOS` — o scan **aborta graciosamente** ao atingir (`LimiteEstourado`), sem travar;
+- **Memória:** `MEM_MIN_LIVRE_MB` / `MEM_MIN_LIVRE_PCT` — **recusa iniciar** scan com memória baixa e **aborta no meio** se cair (evita pagefile gigante);
+- **Disco:** `DISCO_MIN_LIVRE_MB` — não grava cache sem disco livre;
+- **CPU:** `CPU_MAX_USO_PCT` — o scan "respira" se o processador saturar;
+- **SSD:** `SCAN_PAUSA_CADA` / `SCAN_PAUSA_SEG` — pausa periódica (evita 100% do disco);
+- **Anti-loop:** nunca desce em junctions/symlinks (`os.path.isjunction`);
+- **Streaming:** `walk_com_limites()` nunca materializa listas.
 
-Hardware: Intel Xeon E5-2699 v3 (18 núcleos, 36 threads), 32 GB RAM, **sem GPU** (GTX 550 Ti sem CUDA moderno). Impactos:
-- Cada época com 20.000 arquivos leva **~9 horas** (aceito pix no meu e-mail  :)
-- PyTorch limitado a 16 threads para estabilidade
-- Use `--max-arquivos` para controlar o tempo de treino
+### ⚙️ Limites Proporcionais à Máquina
+- `dashboard/services/recursos.py` **detecta o hardware na instalação** (RAM, CPU, GPU via nvidia-smi, tipo de disco) e grava limites em **percentuais** em `config_recursos.json`;
+- Precedência: `config_recursos.json` < variáveis de ambiente < cálculo em runtime;
+- Comandos: `python -m dashboard.services.recursos` (ver) · `--salvar` (regenerar); rastro em `logs/recursos.log`.
+
+### ⚡ Dashboard Estável
+- **Scan 100% em background** com barra de % — nunca mais trava o servidor no request;
+- `run_dashboard.bat` **v2.3.1**: navegador abre **1x por sessão**, monitor único, limpeza de órfãos do `--reload`, `--reload-dir dashboard`;
+- Servidor estável **sem `--reload`** (processo único, sem workers órfãos segurando a porta).
 
 ---
 
 ## 🚀 Como Usar
 
-### Treinar o Modelo
+### Dashboard (recomendado)
 
 ```powershell
-# Treino completo (todas as pastas)
-python treino.py
+# Iniciar servidor
+python -m uvicorn dashboard.main:app --host 127.0.0.1 --port 8000
+# Abrir http://127.0.0.1:8000/
 
-# Com limite de arquivos e pastas específicas
-python treino.py --dados tucano,ultrachat --max-arquivos 5000 --epochs 30
+# Ou usar script com auto-recuperação
+.\run_dashboard.bat
+```
 
-# Retomar treino interrompido
+### Treinar o Modelo (SFT com JSONL — recomendado)
+
+```powershell
+# Treinar todos os datasets de trabalho
+python treinar_com_jsonl.py --dados dados/gerados/jsonl
+
+# Treinar somente os datasets promovidos (validados)
+python treinar_com_jsonl.py --dados dados/processed
+
+# Treinar UM arquivo específico
+python treinar_com_jsonl.py --dados dados/gerados/jsonl --arquivo adalbertojunior_Guara_00001.jsonl
+
+# Treinar com limite de arquivos
+python treinar_com_jsonl.py --dados dados/gerados/jsonl --max-arquivos 20
+
+# Continuar de onde parou
+python treinar_com_jsonl.py --dados dados/gerados/jsonl --resume
+
+# FILA de treino: treina todos os .jsonl de uma pasta, UM POR VEZ, salvando o
+# modelo e reiniciando o LR entre cada arquivo. Modos: arquivo/completo (até o
+# fim), tempo (X horas), pause (para ao achar PAUSA_SEGURA.txt).
+python treinar_com_jsonl.py --caminho-pasta dados/gerados/jsonl/meu_dataset --modo-fila arquivo --epocas-por-arquivo 5
+python treinar_com_jsonl.py --caminho-pasta dados/gerados/jsonl/meu_dataset --modo-fila tempo --limite-tempo 8 --epocas-por-arquivo 5
+python treinar_com_jsonl.py --caminho-pasta dados/gerados/jsonl/meu_dataset --modo-fila arquivo --resume   # retoma de onde parou
+
+# Modelo: carregado automaticamente de modelo/ (checkpoint_jsonl.pt > modelo_melhor.pt > modelo.pt)
+# Bandeiras: a cada conclusão o arquivo é marcado em modelo/jsonlogs/ (0x→sem, 1x→branca, 2x→amarela, 3x+→vermelha)
+# No dashboard: Treino Local mostra barra de % + ETA + flag de cada arquivo + botões ⏸️ Pausar/▶️ Retomar na fila
+```
+
+### Treinadores legados (dados .txt — não usam JSONL)
+
+```powershell
+python treino.py                        # treino .txt (pergunta/resposta)
 python treino.py --resume --max-arquivos 20000
+```
 
-# Ajustar threads para CPU (importante!)
-$env:OMP_NUM_THREADS = 16
-python treino.py --max-arquivos 10000
+### Gerar / baixar datasets (createjsonl.py)
 
-# Testar modelo em dados específicos (sem treinar)
-python treino.py --test "dados/processed/longos" --max-arquivos 500
+```powershell
+python createjsonl.py --count 500                     # 500 exemplos (CPU: gemma2:2b)
+python createjsonl.py --count 500 --gpu               # GPU/Colab (qwen2.5:7b)
+python createjsonl.py --count 500 --usar-topicos-txt  # usa topicos.txt (RSS)
+python createjsonl.py --count 100 --dry-run           # testa sem salvar
+python createjsonl.py --hf-dataset adalbertojunior/Guara  # baixa e explode do HuggingFace
+python createjsonl.py --download "https://.../dataset.zip" # baixa de URL e explode
+# Saída: dados/gerados/jsonl/jsonlocal/rigel_YYYYMMDD.jsonl (nunca sobrescreve)
+```
+
+### Converter .txt legados (pergunta/resposta) para JSONL SFT
+
+Seus arquivos `.txt` antigos (ex.: `Pergunta: ...` / `Resposta: ...` e artigos) podem
+ser transformados no formato `messages` — ensinando o modelo a RESPONDER, não só a
+prever a próxima letra:
+
+```powershell
+# Converter uma pasta inteira (detecta Pergunta/Resposta E artigos)
+python converter_txt_jsonl.py --pasta dados/processed --saida txt_convertido
+
+# Só arquivos com marcadores (pula artigos)
+python converter_txt_jsonl.py --pasta dados/processed/canarim --saida canarim_sft --apenas-qna
+
+# Teste rápido (limita a 100 arquivos)
+python converter_txt_jsonl.py --pasta dados/processed --saida txt_convertido --max-arquivos 100
+
+# O que ele faz: adiciona o system prompt do Rigel, corrige mojibake, dedup,
+# e explode em arquivos de 1000 exemplos → dados/gerados/jsonl/<saida>/
+# (aparece automaticamente no dashboard → Treino Local)
 ```
 
 ### Chat com o Modelo
 
 ```powershell
-# Modo interativo
+# Via terminal (modo interativo - PyTorch direto)
 python chat.py --temperature 0.8 --max-tokens 200
 
-# Modo one-shot (para chamadas de programa/dashboard)
+# Modo one-shot (para chamadas de programa)
 python chat.py --one-shot "Qual a capital do Brasil?"
 
-# Com parâmetros personalizados
-python chat.py --temperature 0.7 --top-k 40 --repetition-penalty 1.3 --no-stream
+# Via Ollama (após converter para GGUF)
+ollama run rigelslm "Qual a capital do Brasil?"
+
+# Via dashboard (recomendado)
+# Acesse http://127.0.0.1:8000/chat
 ```
 
-### Dashboard
+### Converter para GGUF e usar no Ollama
 
 ```powershell
-python -m uvicorn dashboard.main:app --host 127.0.0.1 --port 8000
-# Depois abra http://127.0.0.1:8000/
+# 1. Gerar GGUF (F32) com o conversor v1.0.0
+d:/Projetos/rigelllm/.venv/Scripts/python.exe converter_para_gguf.py --quant F32 --output gguf/rigelslm.gguf --no-modelfile
+
+# 2. Criar Modelfile
+echo "FROM D:\Projetos\rigelllm\gguf\rigelslm.gguf" > gguf/Modelfile
+
+# 3. Criar modelo no Ollama
+ollama create rigelslm -f gguf/Modelfile
+
+# 4. Testar
+ollama run rigelslm "Olá"
 ```
+
+**Requisitos:** Ollama >= 0.32.5 (versões anteriores não suportam o formato GGUF gerado).
+
+### 🤖 Disponibilizar ao Ollama (no dashboard)
+
+Abra o dashboard → **Converter GGUF** → botão **"Criar no Ollama"** (por GGUF) ou use a **Conversão rápida**:
+
+1. Converte o modelo .pt escolhido para GGUF
+2. Cria/atualiza o modelo `rigelslm` no Ollama → pronto: `ollama run rigelslm`
+
+Manual (terminal):
+
+```powershell
+python converter_para_gguf.py --model modelo/modelo_melhor.pt --quant Q4_K_M
+ollama create rigelslm -f gguf/Modelfile.rigelslm_Q4_K_M
+ollama run rigelslm
+```
+
+### 💾 Backups do modelo (nunca perca o modelo.pt)
+
+O sistema é cauteloso: antes de **qualquer** sobrescrita de `modelo.pt`/`modelo_melhor.pt`
+(treino, restauração, conversão), uma cópia é guardada em `modelo/backups/` com timestamp.
+
+**Via dashboard:** Treino Local → seção "Backups do modelo" → Fazer backup / Restaurar.
+
+**Via backend:**
+
+```powershell
+python modelo_backup.py listar                  # ver os backups
+python modelo_backup.py criar                   # backup manual agora
+python modelo_backup.py restaurar modelo_20260802_034457.pt   # restaurar (guarda o atual antes)
+```
+
+**Recuperação rápida (se o modelo ficar ruim):**
+
+1. `python modelo_backup.py listar` → escolha o backup anterior
+2. `python modelo_backup.py restaurar <arquivo>`
+3. O modelo atual (ruim) é guardado automaticamente em `backups/pre_restauro_*` antes de ser substituído
 
 ### Gerar Dados Sintéticos
 
 ```powershell
-# v2 (22 tipos de conteúdo)
-python dialogos2.py --quantidade 100 --tipo artigo
+# Via dashboard
+# http://127.0.0.1:8000/gerar_dados (DeepSeek)
+# http://127.0.0.1:8000/gerar_local (Ollama - geração em lote)
 
-# v1 (pergunta-resposta via DeepSeek)
+# Via terminal
+python dialogos2.py --quantidade 100 --tipo artigo
 python dialogos.py --quantidade 500 --tipo auto --limite 5.00
 ```
 
@@ -321,8 +527,6 @@ python dialogos.py --quantidade 500 --tipo auto --limite 5.00
 |-----|----------------------|
 | Entrada (prompt) | $0.14 |
 | Saída (resposta) | $0.28 |
-
-Com US$ 5,00 é possível gerar **~60.000** pares pergunta-resposta.
 
 Configure no `.env`:
 ```env
@@ -344,9 +548,64 @@ Principais: `torch>=2.0.0`, `tokenizers>=0.13.0`, `openai>=1.0.0`, `httpx>=0.24.
 
 ---
 
-## 📋 Atualizações desta Versão (v3.1)
+## 📋 Histórico de Versões
 
-- ✅ `VOCAB_SIZE` auto-detectado do tokenizer (23830)
+### v1.0.5 (05/08/2026) - Planejada
+- 🔜 Próxima versão planejada
+
+### v1.0.4 (04/08/2026) - Planejada
+- 🔜 Próxima versão planejada
+
+### v1.0.3 (03/08/2026) - Planejada
+- 🔜 Próxima versão planejada
+
+### v1.0.2 (02/08/2026) - Planejada
+- 🔜 Próxima versão planejada
+
+### v1.0.1 (01/08/2026) - Lançada
+- ✅ **`createjsonl.py`**: nova fonte de tópicos via `--usar-topicos-txt`
+  - `topicos.txt` (fonte RSS/dashboard) passa a ser usado como assuntos extras: ~25% dos exemplos (`TOPICOS_TXT_CHANCE`)
+  - Filtragem automática de manchetes (`_filtrar_topico_externo`): aspas, `título: subtítulo`, separador ` - `, começo numérico, `, segundo`, verbos de notícia (`VERBOS_MANCHETE`), >90 caracteres e já-perguntas; + sanitização (`TOPICOS_BLOQUEADOS`) e dedup
+  - Templates próprios (`TEMPLATES_TOPICOS_EXTERNOS`) + artigo inicial minúsculo na pergunta; categoria virtual `topicos_externos` nos contadores/resumo
+  - Validado: **520 tópicos aproveitáveis** do `topicos.txt` atual
+- ✅ Correção: `argparse` quebrava com `%` no help do `--usar-topicos-txt` (escapado como `%%`)
+- ✅ **Geração de dataset JSONL com `llama3.2:3b`** (substituiu `gemma2:2b`, que descartava 100% por não cumprir a Regra de Ouro)
+  - Primeiros exemplos aprovados com **nota 10.0** (regra de ouro + uso de contexto)
+  - `--max-tokens 1000` para evitar respostas truncadas
+  - ETA estimado ~12h para 500 exemplos na CPU (2 chamadas por exemplo)
+
+### v1.0.0 (31/07/2026) - Última
+- ✅ Reinício da numeração de versões (6.5.1 → 1.0.0)
+- ✅ Todos os arquivos do projeto padronizados para a versão 1.0.0
+- ✅ Histórico de versões reescrito com incrementos planejados (1.0.1, 1.0.2, ...)
+
+### v6.5.0 (29/07/2026)
+- ✅ **Debate Local**: nova aba de debate/podcast via Ollama
+- ✅ **Gerenciamento de Tópicos**: API própria com RSS + DeepSeek (independe de chave)
+- ✅ **Geração em Lote**: campo quantidade (1-999) com loop + random template/estilo
+- ✅ **Tema "Alegre"**: tema claro alternável com persistência (localStorage)
+- ✅ **Fallback Local**: chat usa modelo PyTorch direto se Ollama falhar
+- ✅ **Barra de Progresso GGUF**: percentual, estágio, log ao vivo, polling 2s
+- ✅ **Lista de Arquivos**: feedback visual com nome, caminho, tamanho, link clicável
+- ✅ **Limpeza ANSI**: remoção de códigos de escape do `ollama run`
+- ✅ **Correção de Espaços**: palavras concatenadas corrigidas automaticamente
+- ✅ **chat.py melhorado**: métricas de treino, barra de maturidade, comando `/stats`
+- ✅ **Salvamento Automático**: arquivos gerados via Ollama salvos em `gerados_local/`
+- ✅ **Timeout Aumentado**: 300s para geração de múltiplos itens
+
+### v6.4.6 (25/07/2026)
+- ✅ `VOCAB_SIZE` auto-detectado do tokenizer
+- ✅ Repetition penalty corrigido para logits negativos
+- ✅ Dashboard com FastAPI + Tailwind + Alpine.js
+- ✅ Chat com Ollama + modo local
+- ✅ Conversão GGUF com suporte a 13 quantizações
+- ✅ RSS com 27+ feeds brasileiros
+
+### v6.0.0 (Junho/2026)
+- ✅ Primeira versão estável do modelo
+- ✅ Tokenizer BPE ByteLevel treinado do zero
+- ✅ Pipeline de treino completo
+- ✅ Geração de dados sintéticos via DeepSeek
 - ✅ `repetition_penalty` corrigido para logits negativos
 - ✅ `chat.py` com modo `--one-shot` para integração
 - ✅ Dashboard com **Modo Local** (PyTorch sem Ollama)
@@ -371,7 +630,7 @@ Contribuições são bem-vindas! Abra issues ou envie pull requests no GitHub.
 
 ---
 
-**Última atualização:** Julho de 2026  
+**Última atualização:** Agosto de 2026  
 **Versão do README:** 3.1
 
 ## 💡 Treino Eficiente com Múltiplas Pastas
@@ -380,7 +639,7 @@ Em vez de treinar pasta por pasta, use vírgulas para combinar:
 
 ```powershell
 # Treina com várias pastas de uma vez
-python treino.py --dados tucano,ultrachat,blogset,guara,canarim --max-arquivos 20000 --epochs 30
+python treino.py --dados tucano,ultrachat,blogset,guara,canarim --max-arquivos 5000 --epochs 30
 ```
 
 Para listar todas as pastas disponíveis:

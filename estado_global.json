@@ -1,0 +1,96 @@
+{
+  "versao": "1.0.0",
+  "ultima_inicializacao": "2026-07-27T19:22:42.834375",
+  "ultima_alteracao": null,
+  "servicos": {
+    "ollama": {
+      "status": "online",
+      "ultimo_ping": "2026-07-27T19:22:42.846332",
+      "erro": null
+    },
+    "dashboard": {
+      "status": "offline",
+      "ultimo_ping": "2026-07-27T19:22:59.650666",
+      "erro": "timed out"
+    },
+    "deepseek_api": {
+      "status": "online",
+      "ultimo_ping": "2026-07-27T19:22:46.778094",
+      "erro": null
+    },
+    "duckduckgo": {
+      "status": "online",
+      "ultimo_ping": "2026-07-27T19:22:46.924435",
+      "erro": null
+    }
+  },
+  "geracao": {
+    "ultimo_tipo": null,
+    "total_gerados": 0,
+    "topicos_usados": [],
+    "ultimo_arquivo": null
+  },
+  "erros_recentes": [
+    {
+      "tipo": "servico",
+      "mensagem": "Dashboard offline: Offline: timed out",
+      "detalhes": null,
+      "data": "2026-07-27T15:11:25.550255"
+    },
+    {
+      "tipo": "servico",
+      "mensagem": "Dashboard offline: Offline: timed out",
+      "detalhes": null,
+      "data": "2026-07-27T15:11:34.520892"
+    },
+    {
+      "tipo": "servico",
+      "mensagem": "Dashboard offline: Offline: timed out",
+      "detalhes": null,
+      "data": "2026-07-27T15:43:44.947952"
+    },
+    {
+      "tipo": "servico",
+      "mensagem": "Dashboard offline: Offline: timed out",
+      "detalhes": null,
+      "data": "2026-07-27T19:22:45.880875"
+    }
+  ],
+  "historico_inicializacoes": [
+    {
+      "data": "2026-07-27T13:47:27.488983",
+      "hostname": "Acer-K50K103",
+      "pid": 3340
+    },
+    {
+      "data": "2026-07-27T15:11:22.390435",
+      "hostname": "Acer-K50K103",
+      "pid": 10236
+    },
+    {
+      "data": "2026-07-27T15:11:31.451318",
+      "hostname": "Acer-K50K103",
+      "pid": 10236
+    },
+    {
+      "data": "2026-07-27T15:43:41.788728",
+      "hostname": "Acer-K50K103",
+      "pid": 2256
+    },
+    {
+      "data": "2026-07-27T18:02:33.743282",
+      "hostname": "Acer-K50K103",
+      "pid": 18584
+    },
+    {
+      "data": "2026-07-27T18:31:05.030214",
+      "hostname": "Acer-K50K103",
+      "pid": 6612
+    },
+    {
+      "data": "2026-07-27T19:22:42.834238",
+      "hostname": "Acer-K50K103",
+      "pid": 6612
+    }
+  ]
+}

@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block title %}Gerar Dados{% endblock %}
+{% block content %}
+<div x-data="gerarDadosState()" x-cloak>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">📝 Gerar Dados</h2>
+  <p class="text-zinc-500 text-sm mb-4">Gere conteúdo para treino via <strong class="text-emerald-400">API DeepSeek</strong></p>
+
+  <!-- Cards de Status -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+    <div class="bg-zinc-900 p-4 rounded-2xl" title="Arquivos .txt gerados em dados/gerados/">
+      <p class="text-zinc-500 text-xs">📄 Arquivos gerados</p>
+      <p class="text-xl font-bold mt-1" x-text="(dados?.total_arquivos||0).toLocaleString()"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl" title="Status da chave DeepSeek">
+      <p class="text-zinc-500 text-xs">🔑 DeepSeek</p>
+      <p class="text-xl font-bold mt-1" x-text="deepseekOk ? '✅' : '⚠️'"></p>
+      <p class="text-[10px] mt-1" :class="deepseekOk?'text-emerald-400':'text-amber-400'" x-text="deepseekOk?'Key ativa':'Falta .env'"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl" title="Tópicos disponíveis em topicos.txt">
+      <p class="text-zinc-500 text-xs">📡 Tópicos</p>
+      <p class="text-xl font-bold mt-1" x-text="topicos.length"></p>
+      <button @click="carregarTopicos()" class="text-[10px] text-zinc-600 hover:text-zinc-400 mt-1">⟳ Recarregar</button>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl" title="Buscar tópicos de feeds RSS + DeepSeek">
+      <p class="text-zinc-500 text-xs">✨ Gerar Tópicos</p>
+      <div class="flex gap-1 mt-1">
+        <button @click="gerarTopicos()" :disabled="topicosGerando" class="flex-1 text-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 disabled:opacity-50 px-2 py-1.5 rounded-xl transition-all">
+          <i class="fa-solid" :class="topicosGerando?'fa-spinner fa-spin':'fa-plus'"></i>
+          <span x-text="topicosGerando?'Buscando...':'+ Novos'"></span>
+        </button>
+        <button @click="gerarTopicosRSS()" :disabled="topicosGerando" class="flex-1 text-xs bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 disabled:opacity-50 px-2 py-1.5 rounded-xl transition-all" title="Buscar títulos de feeds RSS">
+          <i class="fa-solid" :class="topicosGerando?'fa-spinner fa-spin':'fa-rss'"></i>
+          <span>RSS</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ FORMULÁRIO PRINCIPAL ═══ -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-semibold">🤖 Geração via DeepSeek</h3>
+      <div class="flex items-center gap-3">
+        <span class="text-xs" :class="deepseekOk?'text-emerald-400':'text-amber-400'" x-text="deepseekOk?'✅ Key ativa':'⚠️ Configure DEEPSEEK_API_KEY'"></span>
+        <span class="text-xs text-zinc-500">Modelo: <strong class="text-emerald-400">deepseek-v4-flash</strong></span>
+      </div>
+    </div>
+
+    <!-- Campos: cada um ocupa a linha inteira em mobile, lado a lado onde couber -->
+    <div class="flex flex-col md:flex-row md:flex-wrap gap-3 mb-4">
+      <!-- Tipo: pode crescer mas não encolhe demais -->
+      <div class="w-full md:w-56 lg:w-72 min-w-0">
+        <label class="text-xs text-zinc-500 block mb-1">📋 Tipo de conteúdo</label>
+        <select x-model="apiTipo" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none truncate">
+          <template x-for="t in tipos" :key="t.id"><option :value="t.id" x-text="t.nome + ' — ' + t.desc"></option></template>
+        </select>
+      </div>
+      <!-- Tópico: flexível, ocupa espaço restante -->
+      <div class="flex-1 min-w-[200px]">
+        <label class="text-xs text-zinc-500 block mb-1">📌 Tópico</label>
+        <div class="flex gap-2">
+          <select x-model="apiTopico" class="flex-1 min-w-0 bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none truncate">
+            <option value="">🔀 Aleatório</option>
+            <template x-for="t in topicos" :key="t"><option :value="t" x-text="t.length>50?t.slice(0,50)+'...':t"></option></template>
+          </select>
+          <input type="text" x-model="apiTopicoCustom" placeholder="Ou digite..." @focus="apiTopico=''" class="flex-1 min-w-[100px] bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+          <button @click="sortearTopico()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 px-3 rounded-xl text-xs shrink-0" title="Escolher tópico aleatório">🎲</button>
+        </div>
+      </div>
+      <!-- Quantidade: compacto, quebra para linha abaixo se necessário -->
+      <div class="shrink-0 w-full sm:w-28 md:w-24">
+        <label class="text-xs text-zinc-500 block mb-1">🔢 Quantidade</label>
+        <input type="number" x-model="apiQuantidade" min="1" max="9999" step="1" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none" placeholder="1-9999">
+      </div>
+    </div>
+
+    <!-- Botão Gerar -->
+    <button @click="gerarAPI()" :disabled="!deepseekOk || apiGerando"
+            class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2">
+      <i class="fa-solid" :class="apiGerando?'fa-spinner fa-spin':'fa-wand-magic-sparkles'"></i>
+      <span x-text="apiGerando ? 'Gerando... (pode levar vários minutos)' : '🚀 Gerar via API'"></span>
+    </button>
+    <p x-show="apiMsg" class="text-xs mt-3" :class="apiMsg.startsWith('✅')?'text-emerald-400':apiMsg.startsWith('❌')?'text-red-400':'text-zinc-400'" x-text="apiMsg"></p>
+  </div>
+
+  <!-- ═══ LISTA DE ARQUIVOS GERADOS (feedback visual) ═══ -->
+  <div x-show="arquivosGerados.length > 0" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold">📁 Últimos arquivos gerados <span class="text-zinc-500 text-xs" x-text="'('+arquivosGerados.length+')'"></span></h3>
+      <button @click="arquivosGerados=[]" class="text-xs text-zinc-600 hover:text-zinc-400">Limpar</button>
+    </div>
+    <div class="space-y-2 max-h-64 overflow-auto scrollbar-thin">
+      <template x-for="(arq, i) in arquivosGerados" :key="i">
+        <div class="flex items-center justify-between bg-zinc-800/50 p-3 rounded-xl">
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium truncate" x-text="arq.nome"></p>
+            <p class="text-[10px] text-zinc-600" x-text="arq.caminho"></p>
+          </div>
+          <div class="text-right shrink-0 ml-2">
+            <p class="text-xs text-zinc-400" x-text="arq.tamanho"></p>
+            <p class="text-[10px] text-zinc-600" x-text="arq.tipo"></p>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- ═══ RESULTADO DA ÚLTIMA GERAÇÃO ═══ -->
+  <div x-show="apiResultado" class="bg-zinc-900 rounded-2xl p-4 md:p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold">📄 Último resultado</h3>
+      <div class="flex gap-2">
+        <button @click="copiarAPI()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-400 px-3 py-1.5 rounded-lg">📋 Copiar</button>
+      </div>
+    </div>
+    <pre class="bg-black/40 rounded-xl p-3 text-xs font-mono text-zinc-400 overflow-auto max-h-64 scrollbar-thin leading-relaxed whitespace-pre-wrap" x-text="apiResultado"></pre>
+  </div>
+
+  <!-- ═══ TOAST DE FEEDBACK ═══ -->
+  <div x-show="toast" class="fixed bottom-6 right-6 z-50 transition-all duration-500"
+       x-transition:enter="transform ease-out duration-300"
+       x-transition:enter-start="translate-y-4 opacity-0"
+       x-transition:enter-end="translate-y-0 opacity-100"
+       x-transition:leave="transform ease-in duration-200"
+       x-transition:leave-start="translate-y-0 opacity-100"
+       x-transition:leave-end="translate-y-4 opacity-0">
+    <div class="bg-zinc-800 border border-zinc-700 rounded-2xl px-5 py-3 shadow-xl flex items-center gap-3 text-sm"
+         :class="toastTipo==='erro'?'border-red-700/50':'border-emerald-700/50'">
+      <span x-text="toastIcone"></span>
+      <span x-text="toast"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+console.log("[GERAR_DADOS] Página carregada");
+function gerarDadosState() {
+  return {
+    dados: null,
+    deepseekOk: false, topicos: [], tipos: [],
+    apiTipo: 'auto', apiTopico: '', apiTopicoCustom: '', apiQuantidade: 1,
+    apiGerando: false, apiMsg: '', apiResultado: '',
+    arquivosGerados: [], topicosGerando: false,
+    toast: '', toastTipo: '', toastIcone: '', toastTimer: null,
+
+    get tipos() {
+      return [
+        {id:'auto', nome:'Automático', desc:'balanceia todos os tipos'},
+        {id:'dicionario', nome:'Dicionário', desc:'pergunta + resposta curta'},
+        {id:'pergunta_resposta', nome:'Pergunta/Resposta', desc:'longa ★'},
+        {id:'iteracao', nome:'Iteração', desc:'diálogo 5-8 turnos'},
+        {id:'artigo', nome:'Artigo', desc:'estruturado 500-900 palavras ★★'},
+        {id:'conto', nome:'Conto', desc:'história curta 400-700 ★★★'},
+        {id:'dialogo_profundo', nome:'Diálogo Profundo', desc:'10-15 turnos ★★★★★'},
+        {id:'explicacao', nome:'Explicação', desc:'detalhada 350-600 palavras'},
+        {id:'resumo', nome:'Resumo', desc:'síntese concisa 200-400'},
+        {id:'conversa', nome:'Conversa', desc:'diálogo, min 250 palavras'},
+        {id:'saudacao', nome:'Saudação', desc:'prontas, sem custo'},
+        {id:'poema', nome:'Poema', desc:'10-20 versos'},
+        {id:'carta', nome:'Carta', desc:'formal/informal'},
+        {id:'entrevista', nome:'Entrevista', desc:'5-8 perguntas'},
+        {id:'debate', nome:'Debate', desc:'pró e contra'},
+        {id:'tutorial', nome:'Tutorial', desc:'passo a passo'},
+        {id:'resenha', nome:'Resenha', desc:'crítica'},
+        {id:'relatorio', nome:'Relatório', desc:'técnico'},
+        {id:'ensaio', nome:'Ensaio', desc:'reflexivo'},
+        {id:'cronica', nome:'Crônica', desc:'texto literário'},
+        {id:'receita', nome:'Receita', desc:'culinária'},
+        {id:'dica', nome:'Dica', desc:'conselho rápido'}
+      ];
+    },
+
+    init() {
+      console.log("[GERAR_DADOS] Inicializando...");
+      this.pollStatus(); this.carregarTopicos(); this.verificarDeepSeek();
+    },
+
+    mostrarToast(msg, tipo='info') {
+      if(this.toastTimer) clearTimeout(this.toastTimer);
+      this.toast = msg;
+      this.toastTipo = tipo;
+      this.toastIcone = tipo==='erro'?'❌':tipo==='ok'?'✅':'ℹ️';
+      this.toastTimer = setTimeout(() => { this.toast = ''; }, 4000);
+    },
+
+    async pollStatus() {
+      try{const r=await fetch('/api/generate/status'); if(r.ok) this.dados=await r.json();}catch(e){}
+    },
+    async carregarTopicos() {
+      try{const r=await fetch('/api/topicos/listar'); if(r.ok) this.topicos=(await r.json()).topicos||[];}catch(e){}
+    },
+    async sortearTopico() {
+      try{const r=await fetch('/api/topicos/sortear'); if(r.ok){const d=await r.json(); if(d.topico) this.apiTopicoCustom=d.topico; this.apiTopico='';}}catch(e){}
+    },
+    async verificarDeepSeek() {
+      try{const r=await fetch('/api/generate/deepseek-status',{signal:AbortSignal.timeout(5000)}); if(r.ok){const d=await r.json(); this.deepseekOk=!!d.ok;}}catch(e){}
+    },
+    async gerarTopicos() {
+      this.topicosGerando=true;
+      try {
+        const r=await fetch('/api/topicos/gerar',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+        const d=await r.json();
+        if(r.ok && d.status==='ok'){ this.mostrarToast(d.mensagem, 'ok'); this.carregarTopicos(); }
+        else { this.mostrarToast(d.mensagem||'Erro ao gerar tópicos', 'erro'); }
+      } catch(e) { this.mostrarToast('Erro: '+e.message, 'erro'); }
+      this.topicosGerando=false;
+    },
+    async gerarTopicosRSS() {
+      this.topicosGerando=true;
+      try {
+        const r=await fetch('/api/topicos/rss',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+        const d=await r.json();
+        if(r.ok && d.status==='ok'){ this.mostrarToast(d.mensagem, 'ok'); this.carregarTopicos(); }
+        else { this.mostrarToast(d.mensagem||'Erro ao buscar RSS', 'erro'); }
+      } catch(e) { this.mostrarToast('Erro: '+e.message, 'erro'); }
+      this.topicosGerando=false;
+    },
+
+    async gerarAPI() {
+      if(!this.deepseekOk) return;
+      this.apiGerando=true;
+      const topico=this.apiTopicoCustom||this.apiTopico||'';
+      this.apiMsg='⏳ Gerando '+this.apiQuantidade+' '+(topico?'"'+topico+'"':'itens')+' via DeepSeek...';
+      console.log("[GERAR_DADOS] Chamando API DeepSeek:", {quantidade:this.apiQuantidade, tipo:this.apiTipo, tema:topico});
+      try {
+        const r=await fetch('/api/generate/gerar-api',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantidade:parseInt(this.apiQuantidade)||1,tipo:this.apiTipo,tema:topico||undefined})});
+        const d=await r.json();
+        console.log("[GERAR_DADOS] Resposta:", d);
+        if(r.ok && d.status==='ok'){
+          this.apiMsg='✅ Concluído!';
+          if(d.textos?.length>0){
+            this.apiResultado=d.textos.join('\n\n---\n\n');
+            this.apiMsg+=` (${d.total_gerados||d.textos.length} textos)`;
+            // Adiciona à lista de arquivos gerados
+            const novosArquivos = (d.arquivos || []).map(a => ({
+              nome: a.nome || 'texto_'+Date.now()+'.txt',
+              caminho: a.caminho || 'dados/gerados/'+this.apiTipo+'/',
+              tamanho: a.tamanho_kb ? a.tamanho_kb+' KB' : '—',
+              tipo: this.apiTipo
+            }));
+            if(novosArquivos.length) {
+              this.arquivosGerados = [...novosArquivos, ...this.arquivosGerados].slice(0, 20);
+            }
+            this.mostrarToast(this.apiMsg, 'ok');
+          } else if(d.mensagem) {
+            this.mostrarToast(d.mensagem, 'ok');
+          }
+          setTimeout(()=>this.pollStatus(), 3000);
+        } else {
+          this.apiMsg='❌ '+(d.message||d.mensagem||'Erro '+r.status);
+          this.mostrarToast(this.apiMsg, 'erro');
+        }
+      } catch(e){
+        this.apiMsg='❌ '+e.message;
+        this.mostrarToast('Erro de conexão: '+e.message, 'erro');
+        console.error("[GERAR_DADOS] Erro API:", e);
+      }
+      this.apiGerando=false;
+    },
+
+    copiarAPI(){
+      navigator.clipboard?.writeText(this.apiResultado).then(()=>{
+        this.mostrarToast('Copiado para área de transferência!', 'ok');
+      }).catch(()=>{});
+    }
+  };
+}
+</script>
+{% endblock %}
+

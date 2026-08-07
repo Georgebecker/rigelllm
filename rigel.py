@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 rigel.py - Orquestrador do RigelSLM
-Versão com LOG VERBOSO, BARRA DE PROGRESSO, Dashboard corrigido e GESTÃO DO OLLAMA.
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
+Com LOG VERBOSO, BARRA DE PROGRESSO, Dashboard corrigido e GESTÃO DO OLLAMA.
 """
 import os
 import sys
@@ -482,6 +483,22 @@ def configurar_ambiente():
 
 def menu_principal():
     log_atividade("=== INÍCIO DA SESSÃO ===")
+
+    # ─── Verificação inicial de serviços ───
+    print("\n🔄 Verificando serviços...")
+    try:
+        from verificador import verificar_tudo, obter_estado
+        resultados = verificar_tudo(registrar_erros=True)
+        # Se algum serviço crítico estiver offline, avisa mas não bloqueia
+        if not resultados.get("ollama", {}).get("ok"):
+            print("   ℹ️  Use a opção 5 para iniciar o Ollama.")
+        if not resultados.get("dashboard", {}).get("ok"):
+            print("   ℹ️  Use a opção 6 para iniciar o Dashboard.")
+    except ImportError as e:
+        print(f"   ⚠️ Módulo de verificação não disponível: {e}")
+    except Exception as e:
+        print(f"   ⚠️ Erro na verificação inicial: {e}")
+
     while True:
         print("\n" + "="*70)
         print("   ⭐ RIGELSLM - SISTEMA UNIFICADO")
@@ -494,7 +511,8 @@ def menu_principal():
         print("  6. 🖥️  Dashboard (FastAPI)")
         print("  7. 📊 Logs e Estatísticas")
         print("  8. 🛠️  Configurações do Ambiente")
-        print("  9. 🚪 Sair")
+        print("  9. 🔍 Verificar Serviços (diagnóstico rápido)")
+        print("  10. 🚪 Sair")
         print("="*70)
         opcao = input("👉 Escolha uma opção: ").strip()
         log_atividade(f"Menu principal: escolheu opção {opcao}")
@@ -515,6 +533,15 @@ def menu_principal():
         elif opcao == "8":
             menu_configuracoes()
         elif opcao == "9":
+            # Diagnóstico rápido
+            print("\n🔍 Executando diagnóstico...")
+            try:
+                from verificador import verificar_tudo
+                verificar_tudo(registrar_erros=True)
+            except ImportError:
+                print("❌ Módulo verificador.py não encontrado.")
+            pausar()
+        elif opcao == "10":
             print("👋 Saindo...")
             log_atividade("=== FIM DA SESSÃO (usuário saiu) ===")
             break
@@ -659,8 +686,7 @@ def menu_gerar_dados():
     print("\n--- ✨ GERAR DADOS SINTÉTICOS ---")
     print("  1. 💬 Diálogos v2 (22 tipos de conteúdo via API) [RECOMENDADO]")
     print("  2. 📰 RSS Processor (notícias)")
-    print("  3. 🌐 Tradução de arquivos (inglês->português)")
-    print("  4. 🔙 Voltar")
+    print("  3. 🔙 Voltar")
     sub = input("👉 Opção: ").strip()
     log_atividade(f"Gerar dados: escolheu {sub}")
     if sub == "1":
@@ -674,12 +700,6 @@ def menu_gerar_dados():
         executar_comando_com_progresso(["python", "rss_processor.py", "--quantidade", qtd], "Processando RSS", emoji="📰")
         pausar()
     elif sub == "3":
-        entrada = input("📁 Pasta de entrada (arquivos em inglês): ").strip()
-        saida = input("📁 Pasta de saída: ").strip()
-        if entrada and saida:
-            executar_comando_com_progresso(["python", "traduza.py", "--pasta", entrada, "--saida", saida], "Traduzindo", emoji="🌐")
-            pausar()
-    elif sub == "4":
         return
 
 def menu_converter_ollama():
@@ -850,7 +870,8 @@ def menu_logs():
     print("  3. 📂 Ver registro de pastas")
     print("  4. 📁 Ver logs de erro do Dashboard")
     print("  5. 📄 Ver log de atividades (verboso)")
-    print("  6. 🔙 Voltar")
+    print("  6. � Contabilizar pastas de dados (espaço ocupado)")
+    print("  7. 🔙 Voltar")
     sub = input("👉 Opção: ").strip()
     log_atividade(f"Logs: escolheu {sub}")
     if sub == "1":
@@ -889,6 +910,48 @@ def menu_logs():
             print("📭 Nenhuma atividade registrada ainda.")
         pausar()
     elif sub == "6":
+        print("\n📦 Contabilizando pastas de dados...")
+        print("   ⚠️  Isso pode levar alguns minutos dependendo da quantidade de arquivos.")
+        resp = input("   Continuar? (S/N): ").strip().lower()
+        if resp == 's':
+            print("   🔍 Escaneando...")
+            dados_dir = PROJETO_DIR / "dados"
+            total_pastas = 0
+            total_arquivos = 0
+            total_bytes = 0
+            for raiz, dirs, arquivos in os.walk(dados_dir):
+                # Pula pastas grandes demais
+                nome_pasta = Path(raiz).name
+                if nome_pasta.startswith('.') or nome_pasta == '__pycache__':
+                    continue
+                for f in arquivos:
+                    try:
+                        fp = Path(raiz) / f
+                        if fp.is_file():
+                            total_arquivos += 1
+                            total_bytes += fp.stat().st_size
+                    except:
+                        pass
+                total_pastas += len(dirs)
+            total_gb = total_bytes / (1024**3)
+            print(f"\n📊 RESULTADO:")
+            print(f"   📁 Pastas: {total_pastas}")
+            print(f"   📄 Arquivos: {total_arquivos}")
+            print(f"   💾 Espaço ocupado: {total_gb:.2f} GB")
+            # Salva no log
+            resultado = {
+                "data": datetime.now().isoformat(),
+                "pastas": total_pastas,
+                "arquivos": total_arquivos,
+                "espaco_gb": round(total_gb, 2)
+            }
+            with open(LOG_DIR / "contagem_dados.json", "w", encoding="utf-8") as f:
+                json.dump(resultado, f, indent=2, ensure_ascii=False)
+            print(f"   💾 Resultado salvo em logs/contagem_dados.json")
+        else:
+            print("   ⏭️  Contagem cancelada.")
+        pausar()
+    elif sub == "7":
         return
 
 def menu_configuracoes():

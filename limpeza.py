@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 limpeza.py - Corrige a codificação de arquivos .txt, gerando cópias em utf-8.
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 - Varre recursivamente a pasta de entrada.
 - Tenta ler cada arquivo com várias codificações (utf-8, latin-1, cp1252, etc.).
 - Se a codificação for diferente de utf-8, converte e salva como utf-8.

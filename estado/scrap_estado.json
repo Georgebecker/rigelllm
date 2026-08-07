@@ -1,0 +1,23 @@
+{
+  "rodando": 0,
+  "url": null,
+  "etapa": "idle",
+  "mensagem": "",
+  "percentual": null,
+  "inicio": null,
+  "fim": null,
+  "erro": null,
+  "titulo": null,
+  "palavras": null,
+  "idioma": null,
+  "fonte": null,
+  "formato": null,
+  "nome": null,
+  "saida": null,
+  "tratado_exemplos": 0,
+  "limpos_origens": 0,
+  "paginas": 0,
+  "profundidade": 0,
+  "limite": 1,
+  "site": null
+}

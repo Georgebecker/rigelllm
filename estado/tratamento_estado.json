@@ -1,0 +1,42 @@
+{
+  "rodando": false,
+  "etapa": "concluido",
+  "mensagem": "✅ 3/4 pasta(s) tratadas e promovidas.",
+  "percentual": 100,
+  "fila": [
+    "alanwgt_fipex-veiculos-brasil",
+    "BrunoN-Dev_ultra-alpaca-ptbr",
+    "Montival_fipex-veiculos-brasil",
+    "scrap"
+  ],
+  "atual": "scrap",
+  "concluidos": [
+    {
+      "ok": true,
+      "tratamento": "limpeza_leve",
+      "detalhe": "limpeza leve OK: 5 artefato(s) em processed/ (ex.: rigel_sft.parquet)",
+      "nome": "alanwgt_fipex-veiculos-brasil"
+    },
+    {
+      "ok": true,
+      "tratamento": "sanitizar",
+      "detalhe": "sanitizado: 0 exemplos, 1 arquivo(s) -> processed/jsonl/BrunoN-Dev_ultra-alpaca-ptbr/",
+      "nome": "BrunoN-Dev_ultra-alpaca-ptbr"
+    },
+    {
+      "ok": true,
+      "tratamento": "sanitizar",
+      "detalhe": "sanitizado: 0 exemplos, 1 arquivo(s) -> processed/jsonl/Montival_fipex-veiculos-brasil/",
+      "nome": "Montival_fipex-veiculos-brasil"
+    },
+    {
+      "ok": false,
+      "tratamento": "nenhum",
+      "detalhe": "sem tratamento para formato vazio",
+      "nome": "scrap"
+    }
+  ],
+  "inicio": "2026-08-07T01:11:46.670044",
+  "fim": "2026-08-07T01:16:23.085590",
+  "erro": null
+}

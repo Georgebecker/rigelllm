@@ -3,6 +3,7 @@
 """
 organizar_pastas.py - Organiza pastas de dados com limite de 5000 arquivos
 e explode arquivos grandes (>30MB) em partes menores.
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 Uso: python organizar_pastas.py [--limite 5000] [--tamanho-max 30] [--registro registro_pastas.json] [--apenas-registro]
 """
 import os

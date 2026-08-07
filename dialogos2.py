@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-dialogos.py - Gerador de dados sintéticos para RigelSLM (v3.2)
+dialogos2.py - Gerador de dados sintéticos para RigelSLM
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 EXPANSÃO COMPLETA: todas as listas originais + novas.
 Autor: George Herman Becker
 VERSÃO III: geração de perguntas baseada em INTENÇÕES COGNITIVAS.
@@ -24,6 +25,14 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from tqdm import tqdm
 
+# Console UTF-8 (evita crash com emojis quando o stdout é pipe, ex: dashboard)
+if sys.stdout and hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 # ============================================================================
 # 0. CONFIGURAÇÃO DE PASTAS E ARQUIVOS
 # ============================================================================
@@ -34,7 +43,7 @@ PASTA_SAIDA = "dados/gerados"
 PASTA_DADOS_CURTOS = os.path.join(PASTA_SAIDA, "curtos")
 PASTA_DADOS_LONGOS = os.path.join(PASTA_SAIDA, "longos")
 PASTA_LOGS = os.path.join(PASTA_SAIDA, "logs")
-PASTA_DESCARTES = os.path.join(PASTA_SAIDA, "descartados")
+PASTA_DESCARTES = "dados/descartados"
 PASTA_ESTADO = os.path.join(PASTA_SAIDA, "estado")
 PASTA_CACHE = os.path.join(PASTA_ESTADO, "cache")
 
@@ -4055,6 +4064,9 @@ load_dotenv()
 API_KEY = os.getenv("DEEPSEEK_API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME", "deepseek-v4-flash")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+# Modelo para o Ollama local (separado do MODEL_NAME, que é da API DeepSeek).
+# O .env usa MODEL_NAME=deepseek-v4-flash (API), que NÃO existe no Ollama.
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
 USE_OLLAMA = os.getenv("USE_OLLAMA", "false").lower() == "true"
 MAX_COST_USD = float(os.getenv("MAX_COST_USD", str(MAX_COST_USD)))
 DELAY_SECONDS = float(os.getenv("DELAY_SECONDS", str(DELAY_SECONDS)))
@@ -4063,12 +4075,17 @@ if not API_KEY and not USE_OLLAMA:
     print("❌ ERRO: DEEPSEEK_API_KEY não encontrada no arquivo .env e USE_OLLAMA não está ativo.")
     sys.exit(1)
 
+# Sempre define a variável para evitar NameError: o .env pode ter USE_OLLAMA=True
+# (então `client` nunca é criado abaixo) e o default de --modelo redefinir
+# USE_OLLAMA=False depois do carregamento do módulo.
+client = None
+
 if USE_OLLAMA:
-    print(f"🔧 Usando modelo local Ollama em {OLLAMA_URL}")
+    print(f"🔧 Usando modelo local Ollama em {OLLAMA_URL} (modelo {OLLAMA_MODEL})")
     import requests
     def ollama_generate(prompt, max_tokens=512, temperature=0.7):
         payload = {
-            "model": MODEL_NAME,
+            "model": OLLAMA_MODEL,
             "prompt": prompt,
             "stream": False,
             "options": {
@@ -4327,6 +4344,104 @@ def salvar_metadados(metadados):
     historico = carregar_json(ARQUIVO_METADADOS, [])
     historico.append(metadados)
     salvar_json(ARQUIVO_METADADOS, historico)
+
+# ============================================================================
+# 11b. SAÍDA JSONL (SFT messages) — opcional via --formato jsonl
+# ============================================================================
+import atexit as _atexit
+
+_escritor_jsonl = None
+_atexit_jsonl_registrado = False
+
+
+def _pergunta_por_tipo(tipo: str, tema: str) -> str:
+    """Deriva uma pergunta user do tipo/tema quando o texto não tem Pergunta:/Resposta:."""
+    mapa = {
+        "pergunta_resposta": "Responda à pergunta sobre {t}.",
+        "dicionario": "Explique o significado de {t}.",
+        "iteracao": "Explique {t} em detalhes.",
+        "artigo": "Escreva um artigo informativo e completo sobre {t}.",
+        "conto": "Escreva um conto envolvente sobre {t}.",
+        "dialogo_profundo": "Tenha uma conversa profunda sobre {t}.",
+        "explicacao": "Explique o conceito de {t} com clareza.",
+        "resumo": "Resuma o tema {t} de forma objetiva.",
+        "poema": "Escreva um poema sobre {t}.",
+        "carta": "Escreva uma carta sobre {t}.",
+        "entrevista": "Conduza uma entrevista sobre {t}.",
+        "debate": "Promova um debate sobre {t}.",
+        "tutorial": "Escreva um tutorial sobre {t}.",
+        "resenha": "Escreva uma resenha sobre {t}.",
+        "relatorio": "Escreva um relatório sobre {t}.",
+        "ensaio": "Escreva um ensaio sobre {t}.",
+        "cronica": "Escreva uma crônica sobre {t}.",
+        "receita": "Escreva uma receita de {t}.",
+        "dica": "Dê dicas sobre {t}.",
+        "conversa": "Converse naturalmente sobre {t}.",
+    }
+    return mapa.get(tipo, "Fale sobre {t}.").format(t=tema or "este tema")
+
+
+def _extrair_pergunta_resposta(texto: str):
+    """Extrai (pergunta, resposta) de texto com marcadores Pergunta:/Resposta:."""
+    if not texto:
+        return "", texto or ""
+    if "Pergunta:" in texto and "Resposta:" in texto:
+        partes = texto.split("Resposta:", 1)
+        pergunta = texto.split("Pergunta:", 1)[1].split("Resposta:", 1)[0].strip()
+        return pergunta, partes[1].strip()
+    if "Resposta:" in texto:
+        return "", texto.split("Resposta:", 1)[1].strip()
+    return "", texto.strip()
+
+
+def _get_escritor_jsonl(pasta_jsonl, exemplos_por_arquivo=1000):
+    global _escritor_jsonl, _atexit_jsonl_registrado
+    if _escritor_jsonl is None:
+        from saida_manager import EscritorJsonl
+        _escritor_jsonl = EscritorJsonl(
+            pasta_jsonl or "dialogos2",
+            exemplos_por_arquivo=exemplos_por_arquivo or 1000,
+        )
+    if not _atexit_jsonl_registrado:
+        _atexit.register(_fechar_escritor_jsonl)
+        _atexit_jsonl_registrado = True
+    return _escritor_jsonl
+
+
+def _fechar_escritor_jsonl():
+    global _escritor_jsonl
+    if _escritor_jsonl is not None:
+        try:
+            _escritor_jsonl.close()
+        except Exception:
+            pass
+        _escritor_jsonl = None
+
+
+def _salvar_saida(texto, prefixo, indice, tipo, txt_pasta=None, tema="",
+                  pergunta=None, resposta_opt=None, categoria=None,
+                  assunto=None, nota=None, formato="txt",
+                  pasta_jsonl="dialogos2", exemplos_por_arquivo=1000):
+    """Salva o texto gerado no formato escolhido: txt (padrão) ou jsonl (SFT)."""
+    if formato != "jsonl":
+        if txt_pasta is not None:
+            return salvar_texto(texto, prefixo, indice, txt_pasta)
+        return salvar_texto(texto, prefixo, indice, tipo)
+    # --- Modo JSONL (SFT messages) ---
+    if pergunta is None:
+        q, r = _extrair_pergunta_resposta(texto)
+        pergunta = q or _pergunta_por_tipo(tipo, tema)
+        resposta = resposta_opt or (r if r else texto)
+    else:
+        resposta = resposta_opt or texto
+    if not pergunta or not resposta:
+        return None
+    _get_escritor_jsonl(pasta_jsonl, exemplos_por_arquivo).salvar(
+        pergunta=pergunta, resposta=resposta,
+        categoria=categoria or tipo, assunto=assunto or tema,
+        nota=nota,
+    )
+    return None
 
 # ============================================================================
 # 12. PROMPTS (REFOÇADOS E NOVOS) – mantidos
@@ -4751,8 +4866,8 @@ def _gerar_texto_variavel(tipo, tema, pergunta=None):
         if not pergunta_fallback.endswith("?"):
             pergunta_fallback += "?"
     
-    # Tenta a API uma última vez
-    if not USE_OLLAMA and client:
+    # Tenta a API uma última vez (client pode ser None se o .env usa Ollama)
+    if not USE_OLLAMA and client is not None:
         try:
             prompt = f"""Responda à seguinte pergunta em português brasileiro de forma direta e informativa (mínimo 50 palavras). 
 Seja objetivo e evite frases genéricas como "é muito relevante" ou "envolve diversos aspectos".
@@ -5109,7 +5224,7 @@ def menu_interativo():
     ]
     while True:
         print("\n" + "=" * 70)
-        print("🤖 GERADOR DE DADOS SINTÉTICOS - RigelSLM (v3.2)")
+        print("🤖 GERADOR DE DADOS SINTÉTICOS - RigelSLM (v1.0.0)")
         print("   Desenvolvido por George Herman Becker")
         print("=" * 70)
         print("\nEscolha o tipo de dado a gerar:")
@@ -5270,7 +5385,7 @@ def executar_geracao(args):
 
     if args.tipo == "auto":
         print("=" * 70)
-        print("🤖 GERADOR DE DADOS SINTÉTICOS - MODO AUTOMÁTICO (v3.2)")
+        print("🤖 GERADOR DE DADOS SINTÉTICOS - MODO AUTOMÁTICO (v1.0.0)")
         print(f"   Modelo: {args.modelo}")
         print(f"   Limite: ${MAX_COST_USD:.2f}")
         print(f"   Delay: {DELAY_SECONDS}s")
@@ -5347,7 +5462,9 @@ def executar_geracao(args):
                 args_sub.max_tokens_cronica_base, args_sub.max_tokens_cronica_extra,
                 args_sub.max_tokens_receita_base, args_sub.max_tokens_receita_extra,
                 args_sub.max_tokens_dica_base, args_sub.max_tokens_dica_extra,
-                delay=DELAY_SECONDS
+                delay=DELAY_SECONDS,
+                formato=args.formato, pasta_jsonl=args.pasta_jsonl,
+                exemplos_por_arquivo=args.exemplos_por_arquivo
             )
             total_gerados_global += gerados
             total_descartes_global += descartes
@@ -5367,7 +5484,7 @@ def executar_geracao(args):
 
     # Execução normal
     print("=" * 70)
-    print("🤖 GERADOR DE DADOS SINTÉTICOS - RigelSLM (v3.2)")
+    print("🤖 GERADOR DE DADOS SINTÉTICOS - RigelSLM (v1.0.0)")
     print(f"   Modelo: {args.modelo}")
     print(f"   Limite: ${MAX_COST_USD:.2f}")
     print(f"   Delay: {DELAY_SECONDS}s")
@@ -5395,7 +5512,12 @@ def executar_geracao(args):
                 continue
             texto = f"Pergunta: {pergunta}\nResposta: {resposta}"
             pasta = PASTA_DADOS_CURTOS
-            salvar_texto(texto, args.prefixo, total_gerados, pasta)
+            _salvar_saida(texto, args.prefixo, total_gerados, "saudacao",
+                          txt_pasta=pasta, tema="cumprimento",
+                          pergunta=pergunta, resposta_opt=resposta,
+                          categoria="saudacao", assunto="cumprimento",
+                          formato=args.formato, pasta_jsonl=args.pasta_jsonl,
+                          exemplos_por_arquivo=args.exemplos_por_arquivo)
             metadados = {
                 "indice": total_gerados,
                 "tipo": "saudacao",
@@ -5411,7 +5533,11 @@ def executar_geracao(args):
             total_gerados += 1
             if total_gerados % 100 == 0:
                 print(f"   ✅ {total_gerados} saudações geradas")
-        print(f"\n✅ {total_gerados} saudações salvas em {PASTA_DADOS_CURTOS}/")
+        if args.formato == "jsonl":
+            print(f"\n✅ {total_gerados} saudações salvas em "
+                  f"{os.path.join('dados', 'gerados', 'jsonl', args.pasta_jsonl)}/")
+        else:
+            print(f"\n✅ {total_gerados} saudações salvas em {PASTA_DADOS_CURTOS}/")
         return
 
     escalonamento_map = {
@@ -5497,7 +5623,11 @@ def executar_geracao(args):
             if is_fallback in ("fallback", "fallback_api"):
                 caminho = salvar_fallback(texto, args.prefixo, total_gerados)
             else:
-                caminho = salvar_texto(texto, args.prefixo, total_gerados, args.tipo)
+                caminho = _salvar_saida(texto, args.prefixo, total_gerados, args.tipo,
+                                        tema=tema, pergunta=pergunta,
+                                        categoria=categoria, assunto=assunto,
+                                        formato=args.formato, pasta_jsonl=args.pasta_jsonl,
+                                        exemplos_por_arquivo=args.exemplos_por_arquivo)
 
             estado_dialogos["processados"].append(h)
             estado_dialogos["custo_total"] += custo
@@ -5520,7 +5650,9 @@ def executar_geracao(args):
     print(f"   🔁 Repetidos (ignorados): {total_repetidos}")
     print(f"   💰 Gasto execução: ${gasto_execucao:.4f}")
     # Mostra a pasta onde os arquivos foram salvos
-    if args.tipo in PASTA_POR_TIPO:
+    if args.formato == "jsonl":
+        pasta_destino = os.path.join("dados", "gerados", "jsonl", args.pasta_jsonl)
+    elif args.tipo in PASTA_POR_TIPO:
         pasta_destino = os.path.join(PASTA_SAIDA, PASTA_POR_TIPO[args.tipo])
     else:
         pasta_destino = PASTA_SAIDA
@@ -5560,7 +5692,8 @@ def gerar_lote(tipo, quantidade, prefixo,
                max_tokens_cronica_base=768, max_tokens_cronica_extra=[768,1024,1280],
                max_tokens_receita_base=512, max_tokens_receita_extra=[512,768,1024],
                max_tokens_dica_base=512, max_tokens_dica_extra=[512,768,1024],
-               delay=2.0):
+               delay=2.0, formato="txt", pasta_jsonl=None,
+               exemplos_por_arquivo=1000):
     escalonamento_map = {
         "dicionario": [max_tokens_base] + max_tokens_extra,
         "pergunta_resposta": [max_tokens_pr_base] + max_tokens_pr_extra,
@@ -5642,7 +5775,11 @@ def gerar_lote(tipo, quantidade, prefixo,
             if is_fallback in ("fallback", "fallback_api"):
                 caminho = salvar_fallback(texto, prefixo, total_gerados)
             else:
-                caminho = salvar_texto(texto, prefixo, total_gerados, tipo)
+                caminho = _salvar_saida(texto, prefixo, total_gerados, tipo,
+                                        tema=tema, pergunta=pergunta,
+                                        categoria=categoria, assunto=assunto,
+                                        formato=formato, pasta_jsonl=pasta_jsonl,
+                                        exemplos_por_arquivo=exemplos_por_arquivo)
 
             estado_dialogos["processados"].append(h)
             estado_dialogos["custo_total"] += custo
@@ -5671,10 +5808,10 @@ def gerar_lote(tipo, quantidade, prefixo,
 # 21. FUNÇÃO PRINCIPAL
 # ============================================================================
 def main():
-    global MAX_COST_USD, DELAY_SECONDS
+    global MAX_COST_USD, DELAY_SECONDS, USE_OLLAMA
 
     if len(sys.argv) > 1:
-        parser = argparse.ArgumentParser(description="Gera diálogos sintéticos em PT-BR com foco em SLM (v3.2)")
+        parser = argparse.ArgumentParser(description="Gera diálogos sintéticos em PT-BR com foco em SLM (v1.0.0)")
         parser.add_argument("--tema", type=str, help="Tema específico (para conversa ou pergunta_resposta)")
         parser.add_argument("--quantidade", type=int, default=500, help="Quantidade de diálogos (padrão: 500)")
         parser.add_argument("--limite", type=float, help="Limite de gastos em USD (sobrescreve .env)")
@@ -5686,8 +5823,16 @@ def main():
         parser.add_argument("--validar", action="store_true", help="Lista arquivos inválidos sem removê-los (dry-run)")
         parser.add_argument("--ver-logs", action="store_true", help="Exibe o histórico de execuções")
         parser.add_argument("--estatisticas", action="store_true", help="Exibe estatísticas resumidas")
-        parser.add_argument("--modelo", type=str, choices=["deepseek", "ollama"], default="deepseek", help="Modelo a usar")
+        parser.add_argument("--modelo", type=str, choices=["deepseek", "ollama"],
+                            default="ollama" if USE_OLLAMA else "deepseek",
+                            help="Modelo a usar (default segue o .env: USE_OLLAMA)")
         parser.add_argument("--pasta-saida", type=str, default=PASTA_SAIDA, help="Pasta raiz de saída")
+        parser.add_argument("--formato", type=str, choices=["txt", "jsonl"], default="txt",
+                            help="Formato de saída: txt (padrão) ou jsonl (SFT messages)")
+        parser.add_argument("--pasta-jsonl", type=str, default="dialogos2",
+                            help="Nome do dataset JSONL em dados/gerados/jsonl/ (com --formato jsonl)")
+        parser.add_argument("--exemplos-por-arquivo", type=int, default=1000,
+                            help="Exemplos por arquivo JSONL (sharding)")
         # Argumentos de tokens (mantidos)
         parser.add_argument("--max-tokens-base", type=int, default=512)
         parser.add_argument("--max-tokens-extra", type=int, nargs="*", default=[512,768,1024])
@@ -5736,7 +5881,8 @@ def main():
         if args.delay is not None:
             DELAY_SECONDS = args.delay
         if args.modelo:
-            global USE_OLLAMA
+            # USE_OLLAMA já é global (declarado no topo de main()) — sem `global` aqui,
+            # pois o CPython rejeita `global` duplicado com uso no meio.
             USE_OLLAMA = (args.modelo == "ollama")
 
         executar_geracao(args)

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 utils.py - Funções utilitárias para o gerador de dados sintéticos
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 """
 import os
 import json

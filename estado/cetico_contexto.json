@@ -1,0 +1,100 @@
+{
+  "ultima_analise": {
+    "repo": "Madras1_corpus-ptbr-v1",
+    "caminho": "dados\\raw\\Madras1_corpus-ptbr-v1\\dataset.jsonl",
+    "tamanho_mb": 31113.0,
+    "ok": true,
+    "formato_principal": "pre_treino_texto",
+    "formato_distribuicao": {
+      "pre_treino_texto": 60
+    },
+    "idioma": {
+      "distribuicao": {
+        "pt": 15
+      },
+      "principal": [
+        "pt",
+        15
+      ],
+      "pct_pt": 100,
+      "amostras_falharam": 0
+    },
+    "pct_aproveitamento": {
+      "percentual": 100,
+      "pipeline": "causal (treino.py)"
+    },
+    "qualidade_estrelas": 5,
+    "qualidade_detalhe": {
+      "idioma_pt": "+2 (PT-BR 100%)",
+      "formato_util": "+1 (formato pre_treino_texto utilizável)",
+      "quantidade": "+1 (volume bom)",
+      "diversidade": "+1 (vocabulário diverso: 35%)"
+    },
+    "pipeline_sugerido": [
+      "🟢 TREINO CAUSAL (pré-treinamento) — treino.py aceita o campo 'text' direto. Ensina o modelo a escrever português natural (é o que os grandes LLMs fazem primeiro).",
+      "🟢 DIVIDIR em partes de ≤5.000 arquivos (regra de ouro) e treinar em etapas (local/Colab).",
+      "🟡 CONVERTER para SFT — gerar perguntas/respostas a partir dos textos (com um gerador de Q&A ou heurística) para o treino de conversa."
+    ],
+    "acoes_possiveis": [
+      "Treinar causal (treino.py aceita o campo text)",
+      "Dividir em partes de ≤5000 arquivos (regra de ouro)",
+      "Amostrar uma parte pequena para teste rápido",
+      "Converter para SFT com gerador de perguntas/respostas"
+    ],
+    "razao": "✅ APROVEITÁVEL! Material com 100% de aproveitamento para causal (treino.py) (⭐⭐⭐⭐⭐). Conteúdo PT-BR (100%). Formato detectado: pre_treino_texto. Não descarte: dá para treinar/adaptar conforme as ações abaixo.",
+    "info_hf": {},
+    "pode_evoluir": true,
+    "adaptadores": [
+      {
+        "arquivo": "adaptador_6fb1973092.py",
+        "chaves": [
+          "foo",
+          "bar"
+        ]
+      },
+      {
+        "arquivo": "adaptador_c8f2eefbc8.py",
+        "chaves": [
+          "text",
+          "source",
+          "subset",
+          "word_count",
+          "char_count",
+          "language"
+        ]
+      }
+    ],
+    "adaptador_utilizado": null,
+    "linhas_amostradas": 60,
+    "pct_textos_uteis": 100.0,
+    "amostra_bruta": [
+      {
+        "text": "Decreto do Município de Juiz de Fora/MG nº 8.959 de 25.07.2006 (Regulamenta o art. 50 da Lei nº 10.777, de 15 de julho de 2004, que dispõe sobre benefícios fiscais Dec. Mun. Juiz de Fora/MG 8.959/06 - Dec. - Decreto do Município de Juiz de Fora/MG nº 8.959 de 25.07.2006 DOM-Juiz de Fora: 26.07.2006 Regulamenta o art. 50 da Lei nº 10.777, de 15 de julho de 2004, que dispõe sobre benefícios fiscais dirigidos aos imóveis tombados e dá outras providências. O PREFEITO DE JUIZ DE FORA, no uso de suas atribuições legais e tendo em vista o disposto no art. 50, da Lei nº 10.777, de 15 de julho de 2004, com as alterações introduzidas pela Lei nº 11.000, de 06 de outubro de 2005, em consonância com o que determinam os incisos I e IX do art. 30 da Constituição Federal, Art. 1º Os imóveis tombados serão beneficiados por isenção do Imposto Sobre a Propriedade Predial e Territorial Urbana - IPTU, de acordo com as exigências consignadas no art. 50 da com base na Lei nº 10.777, de 15 de julho de 2004 e critérios fixados neste Decreto. Parágrafo único. A isenção a que se refere o \"caput\" é estendida a todos contribuintes do imposto independentemente de possuir registro do imóvel, nos termos do que dispõe o art. 9º, da Lei 8606/94, atendidas as seguintes condições: I - na data do requerimento, o imóvel já esteja cadastrado em nome do contribuinte, para fins de lançamento do IPTU/TSU; II - o contribuinte já tenha sido notificado regularmente do lançamento, pelo menos uma vez, o que se comprovara pela apresentação do último DAM (Documento de Arrecadação Municipal) do IPTU/TSU; III - o contrato de compromisso de compra e venda ou instrumento similar possua todos os requisitos legais exigidos para o cadastramento do imóvel. Art. 2º A isenção será requerida no prazo de 30 dias, contados da data de publicação do ato que decretou o tombamento do imóvel e o requerimento instruído com os ( continua ... )\tClique e Leia a íntegra deste documento.",
+        "source": "c4_pt",
+        "subset": "real",
+        "word_count": 344,
+        "char_count": 1950,
+        "language": "pt-br"
+      },
+      {
+        "text": "Boadica - Notícias - Operadoras buscam redes com capacidade para tráfego de dados OPERADORAS BUSCAM REDES COM CAPACIDADE PARA TRÁFEGO DE DADOS Seja congestionamento de rede, crise de capacidade ou sobrecarga de dados --as reclamações levantadas na feira Mobile World Congress em Barcelona esta semana foram sempre sobre formas de lidar com a explosão no tráfego de dados sem perder rentabilidade para as operadoras de telefonia móvel. O gerenciamento de tráfego de dados se tornou prioridade para a indústria de telecomunicações com o boom da Internet móvel, mas a receita das operadoras com dados ainda cresce, na melhor das hipóteses, a um passo muito lento. A empresa de pesquisas Informa prevê um crescimento de 50 por cento no tráfego de dados em 2010, por conta da popularidade de aparelhos como o iPhone da Apple e netbooks. Na receita de serviços, no entanto, a Informa espera uma alta de apenas 13 por cento. Isso aumentou a pressão sobre as operadoras para encontrar novas formas de se utilizar redes de telefonia fixa para diminuir as tensões. \"Descarregar é crucial para nós\", disse à Reuters o chefe do setor móvel global da operadora Orange, da France Telecom, Olaf Swantee. \"Para lidar com o problema dos smartphones, (as operadoras) estão investindo de novo\", disse o presidente-executivo da fabricante de equipamentos de rede Nokia Siemens, Rajeev Suri, acrescentando que ainda não se sabe se isso significa mais gastos ou uma substituição de investimentos. Por outro lado, analistas afirmam que as vendas de operadoras em mercados maduros não crescem suficientemente rápido para justificar grandes investimentos, o que pode significar um aumento na demanda por outras tecnologias, como Wi-Fi. \"O maior problema é que todo mundo espera todo esse volume de dados, mas ninguém quer pagar a mais por isso\", disse o vice-presidente de tecnologia da Belair Networks, que oferece serviços de Wi-Fi, Stephen Rayment. \"Operadoras começaram a oferecer pacotes de dados infinitos e agora sofrem com isso\", afirmou.",
+        "source": "c4_pt",
+        "subset": "real",
+        "word_count": 322,
+        "char_count": 2021,
+        "language": "pt-br"
+      },
+      {
+        "text": "Militar fotografa a própria morte durante exercício do Exército dos EUA | Curioso Mundo Militar fotografa a própria morte durante exercício do Exército dos EUA A foto de uma explosão foi a última capturada pela fotógrafa de guerra Hilda Clayton. A imagem foi feita há quatro anos e divulgada nesta semana pelo Exército americano, na revista Military Review. A publicação, especializada no assunto, disse que a morte da profissional em 2013 “simboliza como as mulheres do Exército estão cada vez mais próximas de situações de combate e de treinamento, assim como os homens”. Ela estava com 22 anos quando a fotografia foi feita, em 2 de julho de 2013, durante treinamento na província afegã de Laghman. Na mesma explosão morreram outros quatro soldados do Exército do Afeganistão. Um deles também era fotógrafo com qual Clayton tinha se apresentado para treinar. Natural de Augusta, Georgia, ela pertencia à 55° Companhia, com sede em Fort Meade, Maryland. Proxima Notícia Ian Somerhalder, astro de “The Vampire Diaries”, anuncia que vai ser pai Notícia Anterior Dono de pit bull tem parada cardíaca durante passeio e cão ataca pessoas que tentavam socorrer homem 16768 24 de março de 2017 12942 7 de abril de 2017 8699 24 de março de 2017",
+        "source": "c4_pt",
+        "subset": "real",
+        "word_count": 206,
+        "char_count": 1238,
+        "language": "pt-br"
+      }
+    ],
+    "diversidade_lexical": 0.358
+  },
+  "ultimo_caminho": "dados\\raw\\Madras1_corpus-ptbr-v1\\dataset.jsonl",
+  "ultimo_repo": "Madras1_corpus-ptbr-v1"
+}

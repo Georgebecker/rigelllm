@@ -1,4 +1,10 @@
 """Rota de Diagnóstico - Mostra o estado REAL de cada serviço"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+diagnostico.py - Diagnóstico completo do sistema RigelSLM
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
+"""
 from fastapi import APIRouter
 from pathlib import Path
 from datetime import datetime
@@ -105,6 +111,83 @@ async def diagnostico_completo():
         except Exception:
             pass
 
+    # ========== DEEPSEEK API ==========
+    deepseek_ok = False
+    deepseek_detalhe = "Não configurada"
+    try:
+        from config import API_KEY, DEEPSEEK_MODEL, API_BASE_URL
+        chave = API_KEY or os.environ.get("DEEPSEEK_API_KEY", "")
+        if chave and chave != "deepseek-aqui" and len(chave) > 10:
+            deepseek_ok = True
+            deepseek_detalhe = f"API Key configurada ({chave[:8]}...{chave[-4:]}, modelo: {DEEPSEEK_MODEL})"
+        elif chave:
+            deepseek_detalhe = "API Key parece inválida (muito curta ou placeholder)"
+        else:
+            deepseek_detalhe = "API Key não encontrada no .env"
+    except ImportError:
+        deepseek_detalhe = "config.py não encontrado"
+    except Exception as e:
+        deepseek_detalhe = f"Erro: {e}"
+
+    # ========== OLLAMA (teste real) ==========
+    ollama_ok = False
+    ollama_detalhe = "Offline"
+    ollama_modelo = None
+    try:
+        import socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(2)
+        result = sock.connect_ex(('127.0.0.1', 11434))
+        sock.close()
+        if result == 0:
+            import urllib.request, json
+            req = urllib.request.Request("http://127.0.0.1:11434/api/tags", method="GET")
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                if resp.status == 200:
+                    data = json.loads(resp.read().decode())
+                    modelos = [m["name"] for m in data.get("models", [])]
+                    ollama_modelo = modelos[0] if modelos else None
+                    ollama_ok = True
+                    ollama_detalhe = f"Online ({len(modelos)} modelos)"
+                    if ollama_modelo:
+                        ollama_detalhe += f", ativo: {ollama_modelo}"
+    except Exception as e:
+        ollama_detalhe = f"Erro: {e}"
+
+    # ========== DISCO ==========
+    disco_ok = False
+    disco_detalhe = ""
+    try:
+        import psutil
+        uso = psutil.disk_usage('/')
+        livre_gb = uso.free / (1024**3)
+        pct = uso.percent
+        disco_ok = livre_gb > 10
+        disco_detalhe = f"{pct:.1f}% usado ({livre_gb:.1f} GB livre)"
+        if not disco_ok:
+            disco_detalhe += " ⚠️ MENOS DE 10 GB!"
+    except Exception as e:
+        disco_detalhe = f"Erro: {e}"
+
+    # ========== CHECKPOINT INTEGRIDADE ==========
+    checkpoint_ok = False
+    checkpoint_detalhe = "Nenhum checkpoint"
+    for ckpt in ["modelo_melhor.pt", "checkpoint.pt", "modelo.pt"]:
+        ckpt_path = BASE_DIR / "modelo" / ckpt
+        if ckpt_path.exists():
+            try:
+                import torch
+                state = torch.load(ckpt_path, map_location='cpu')
+                if "embedding.weight" in state:
+                    checkpoint_ok = True
+                    checkpoint_detalhe = f"{ckpt}: {len(state)} tensores, OK"
+                else:
+                    checkpoint_detalhe = f"{ckpt}: formato inesperado"
+                break
+            except Exception as e:
+                checkpoint_detalhe = f"{ckpt}: CORROMPIDO - {e}"
+                break
+
     # ========== DIAGNÓSTICOS ==========
     diagnosticos = []
 
@@ -156,6 +239,30 @@ async def diagnostico_completo():
             diagnosticos.append({"tipo": "⚠️", "servico": "Último treino", "detalhe": "Erro ao ler métricas"})
     else:
         diagnosticos.append({"tipo": "❌", "servico": "Último treino", "detalhe": "Nenhuma métrica de treino encontrada"})
+
+    # Diagnóstico: DeepSeek API
+    if deepseek_ok:
+        diagnosticos.append({"tipo": "✅", "servico": "DeepSeek API", "detalhe": deepseek_detalhe})
+    else:
+        diagnosticos.append({"tipo": "⚠️" if "não configurada" in deepseek_detalhe else "❌", "servico": "DeepSeek API", "detalhe": deepseek_detalhe})
+
+    # Diagnóstico: Ollama
+    if ollama_ok:
+        diagnosticos.append({"tipo": "✅", "servico": "Ollama", "detalhe": ollama_detalhe})
+    else:
+        diagnosticos.append({"tipo": "❌", "servico": "Ollama", "detalhe": ollama_detalhe})
+
+    # Diagnóstico: Disco
+    if disco_ok:
+        diagnosticos.append({"tipo": "✅", "servico": "Espaço em disco", "detalhe": disco_detalhe})
+    else:
+        diagnosticos.append({"tipo": "🔴", "servico": "Espaço em disco", "detalhe": disco_detalhe})
+
+    # Diagnóstico: Checkpoint
+    if checkpoint_ok:
+        diagnosticos.append({"tipo": "✅", "servico": "Checkpoint", "detalhe": checkpoint_detalhe})
+    else:
+        diagnosticos.append({"tipo": "❌", "servico": "Checkpoint", "detalhe": checkpoint_detalhe})
 
     return {
         "timestamp": agora.isoformat(),

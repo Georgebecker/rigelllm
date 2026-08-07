@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block title %}Scrap{% endblock %}
+{% block content %}
+<div x-data="scrapState()" x-cloak>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">🌐 Scrap</h2>
+  <p class="text-zinc-500 text-sm mb-4">Cole um site → extraio <strong class="text-emerald-400">título + conteúdo</strong> (trafilatura) → salvo em <code class="text-zinc-300">jsonl</code> ou <code class="text-zinc-300">txt</code> → <strong class="text-emerald-400">tratamento automático</strong> → <code class="text-zinc-300">dados/processed/scrap/</code></p>
+
+  <!-- Nota informativa -->
+  <div class="bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-3.5 py-2.5 mb-5 text-xs text-zinc-400 flex items-start gap-2">
+    <i class="fa-solid fa-circle-info mt-0.5 text-zinc-500"></i>
+    <p class="leading-relaxed">
+      <b class="text-zinc-300">Pipeline:</b> fetch (httpx) → <b class="text-teal-400">trafilatura</b> (padrão-ouro) → fallback <b class="text-teal-400">justext</b> → fallback <b class="text-teal-400">BeautifulSoup</b>. Tratamento: <b class="text-teal-400">jsonl</b> → sanitização PT-BR (formato SFT messages, treinável) • <b class="text-teal-400">txt</b> → limpeza de encoding. Origens apagadas após promover (HD liberado).
+    </p>
+  </div>
+
+  <!-- Entrada da URL -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-teal-600/30">
+    <label class="text-xs font-semibold mb-2 block">🔗 URL do site</label>
+    <div class="flex flex-col md:flex-row gap-2">
+      <input type="text" x-model="url" placeholder="https://exemplo.com.br/artigo"
+             title="🌐 URL do site ou página para extrair/rastrear"
+             class="flex-1 bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2.5 text-sm border border-zinc-700 outline-none focus:border-teal-500"
+             @keydown.enter="testar()">
+      <button @click="testar()" :disabled="testando || estado?.rodando"
+              title="🧪 Testar site — extrai título + conteúdo e mostra a QUALIDADE (score 0-100) SEM salvar"
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-3.5 py-2.5 rounded-xl text-base disabled:opacity-50">
+        <i class="fa-solid" :class="testando ? 'fa-spinner fa-spin' : 'fa-vial'"></i>
+      </button>
+      <button @click="processar()" :disabled="processando || estado?.rodando || !url.trim()"
+              title="⚙️ Processar (pipeline) — extrai, trata (sanitiza/limpeza/parquet) e promove para dados/processed/scrap/"
+              class="bg-teal-600/20 hover:bg-teal-600/30 text-teal-400 px-3.5 py-2.5 rounded-xl text-base disabled:opacity-50">
+        <i class="fa-solid" :class="processando ? 'fa-spinner fa-spin' : 'fa-gears'"></i>
+      </button>
+    </div>
+    <div class="flex flex-wrap items-center gap-3 mt-3 text-xs">
+      <label class="flex items-center gap-2 text-zinc-300">
+        Formato:
+        <select x-model="formato" title="Formato de saída: jsonl (SFT treinável), txt (texto puro) ou parquet (rigel_sft + rigel_pretrain)"
+                class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1.5 text-xs border border-zinc-700 outline-none focus:border-teal-500">
+          <option value="jsonl">🧩 JSONL (SFT messages + tópico — treinável)</option>
+          <option value="txt">📄 TXT (texto puro)</option>
+          <option value="parquet">📦 Parquet (rigel_sft + rigel_pretrain)</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-2 text-zinc-300">
+        Modo:
+        <select x-model="modo" title="Como coletar: 🔢 quantidade de textos (até 100) ou 🕳️ profundidade (níveis de links internos)"
+                class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1.5 text-xs border border-zinc-700 outline-none focus:border-teal-500">
+          <option value="quantidade">🔢 Quantidade de textos</option>
+          <option value="profundidade">🕳️ Profundidade</option>
+        </select>
+      </label>
+      <label x-show="modo==='quantidade'" class="flex items-center gap-2 text-zinc-300">
+        Quantidade (1-100):
+        <input type="number" x-model.number="maxMaterias" min="1" max="100"
+               class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1.5 text-xs border border-zinc-700 outline-none focus:border-teal-500 w-20"
+               title="Quantas matérias coletar deste site">
+      </label>
+      <label x-show="modo==='profundidade'" class="flex items-center gap-2 text-zinc-300">
+        Profundidade (0-5):
+        <input type="number" x-model.number="profundidade" min="0" max="5"
+               class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1.5 text-xs border border-zinc-700 outline-none focus:border-teal-500 w-20"
+               title="0 = só esta página · 1+ = segue links internos do mesmo site">
+      </label>
+      <label class="flex items-center gap-2 text-zinc-300">
+        Preferir:
+        <select x-model="preferencia" title="Quando há mais candidatos que o limite: 📰 mais recentes (data), 🧠 mais complexas (mais longas) ou 🌱 ordem natural do site"
+                class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1.5 text-xs border border-zinc-700 outline-none focus:border-teal-500">
+          <option value="nenhuma">🌱 Natural (ordem do site)</option>
+          <option value="novas">📰 Mais recentes (por data)</option>
+          <option value="complexas">🧠 Mais complexas (mais longas)</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-2 text-zinc-300">
+        Nome (opcional):
+        <input type="text" x-model="nome" placeholder="auto: dominio_slug"
+               title="Nome da pasta do scrap (padrão: dominio_secao_slug)"
+               class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1.5 text-xs border border-zinc-700 outline-none focus:border-teal-500 w-48">
+      </label>
+    </div>
+    <p class="text-xs text-amber-400/90 mt-3" x-show="estado?.rodando">⏳ Um processamento já está em andamento — aguarde concluir (ou cancele abaixo).</p>
+  </div>
+
+  <!-- Painel de processamento -->
+  <div x-show="estado?.rodando || (estado?.etapa && estado.etapa!=='idle')" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-emerald-600/30">
+    <h3 class="text-sm font-semibold mb-2">⚙️ Processamento <span class="text-emerald-400" x-text="estado?.nome || ''"></span></h3>
+    <p class="text-xs text-zinc-400" x-text="estado?.mensagem"></p>
+    <div class="mt-2 h-2 bg-zinc-800 rounded-full overflow-hidden">
+      <div class="h-full bg-emerald-500 transition-all" :style="'width:' + (estado?.percentual||0) + '%'"></div>
+    </div>
+    <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+      <span x-show="estado?.site" class="text-zinc-300">🌐 <span x-text="estado?.site"></span></span>
+      <span x-show="estado?.paginas" class="text-sky-400">📄 <span x-text="estado?.paginas"></span> página(s)</span>
+      <span x-show="estado?.profundidade" class="text-purple-400">🕳️ prof. <span x-text="estado?.profundidade"></span></span>
+      <span x-show="estado?.limite" class="text-zinc-500">(limite <span x-text="estado?.limite"></span>)</span>
+      <span x-show="estado?.titulo" class="text-zinc-300">📰 <span x-text="estado?.titulo"></span></span>
+      <span x-show="estado?.palavras" class="text-sky-400">📝 <span x-text="estado?.palavras"></span> palavras</span>
+      <span x-show="estado?.idioma" class="text-emerald-400">🇧🇷 <span x-text="estado?.idioma"></span></span>
+      <span x-show="estado?.fonte" class="text-fuchsia-400">🧩 <span x-text="estado?.fonte"></span></span>
+      <button x-show="estado?.rodando" @click="cancelar()" :disabled="cancelarBusy"
+              title="🗑️ Cancelar — para o processamento e libera para recomeçar (apaga a pasta parcial)"
+              class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3 py-2 rounded-xl text-base disabled:opacity-50 ml-auto">
+        <i class="fa-solid" :class="cancelarBusy ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Resultado do teste de qualidade -->
+  <div x-show="teste" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-sky-600/30">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold">🧪 Resultado do teste <span class="text-zinc-500 font-normal" x-text="'— ' + (teste?.url || '')"></span></h3>
+      <span class="text-xs font-bold rounded-full px-3 py-1" 
+            :class="(teste?.score||0) >= 60 ? 'bg-emerald-600/20 text-emerald-400' : (teste?.score||0) >= 30 ? 'bg-amber-600/20 text-amber-400' : 'bg-red-600/20 text-red-400'"
+            x-text="'Qualidade: ' + (teste?.score||0) + '/100'"></span>
+    </div>
+    <template x-if="teste?.ok">
+      <div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs mb-3">
+          <div class="bg-zinc-800/50 rounded-xl p-2"><span class="text-zinc-500">Título</span><br><b class="text-zinc-100 line-clamp-2" x-text="teste?.titulo||'—'"></b></div>
+          <div class="bg-zinc-800/50 rounded-xl p-2"><span class="text-zinc-500">Palavras</span><br><b class="text-emerald-400" x-text="teste?.palavras||0"></b></div>
+          <div class="bg-zinc-800/50 rounded-xl p-2"><span class="text-zinc-500">Idioma</span><br><b class="text-emerald-400" x-text="teste?.idioma||'?'"></b></div>
+          <div class="bg-zinc-800/50 rounded-xl p-2"><span class="text-zinc-500">Extrator</span><br><b class="text-fuchsia-400" x-text="teste?.fonte||'—'"></b></div>
+        </div>
+        <p class="text-xs text-zinc-400"><b class="text-zinc-300">Amostra:</b></p>
+        <p class="text-xs text-zinc-300 bg-zinc-800/50 rounded-xl p-3 mt-1 whitespace-pre-wrap break-words max-h-40 overflow-auto" x-text="teste?.amostra"></p>
+      </div>
+    </template>
+    <template x-if="teste && !teste?.ok">
+      <p class="text-xs text-red-400">❌ <span x-text="teste?.erro"></span></p>
+    </template>
+  </div>
+
+  <!-- Erro no processamento -->
+  <div x-show="estado?.etapa==='erro'" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-red-600/40">
+    <h3 class="text-sm font-semibold text-red-400 mb-1">❌ Falha no processamento</h3>
+    <p class="text-xs text-zinc-300" x-text="estado?.erro"></p>
+  </div>
+
+  <!-- Concluído -->
+  <div x-show="estado?.etapa==='concluido'" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-emerald-600/30">
+    <p class="text-xs text-emerald-400">✅ <span x-text="estado?.mensagem"></span></p>
+    <p class="text-xs text-zinc-400 mt-1">📦 Saída: <code class="text-teal-300" x-text="estado?.saida"></code> • 🧹 origens limpas: <span x-text="estado?.limpos_origens||0"></span></p>
+    <button @click="esquecer()" title="🧹 Esquecer painel — limpa o registro (não apaga arquivos)"
+            class="mt-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-xl text-base">
+      <i class="fa-solid fa-eraser"></i>
+    </button>
+  </div>
+
+  <!-- Scraps processados -->
+  <div x-show="scraps?.itens?.length > 0" class="bg-zinc-900 rounded-2xl p-4 md:p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold">📚 Scraps em <code class="text-teal-400">dados/processed/scrap/</code></h3>
+      <button @click="carregarScraps()" :disabled="scrapsBusy"
+              title="🔄 Atualizar lista de scraps"
+              class="text-xs text-zinc-500 hover:text-zinc-300 disabled:opacity-50">
+        <i class="fa-solid" :class="scrapsBusy ? 'fa-spinner fa-spin' : 'fa-rotate'"></i>
+      </button>
+    </div>
+    <div class="space-y-2">
+      <template x-for="s in scraps?.itens" :key="s.nome">
+        <div class="bg-zinc-800/50 p-3 rounded-xl">
+          <div class="flex items-center gap-2">
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-medium truncate" x-text="s.nome"></p>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded-full shrink-0 font-bold"
+                  :class="s.tratamento==='sanitizado' ? 'bg-emerald-600/20 text-emerald-400' : s.tratamento==='parquet' ? 'bg-purple-600/20 text-purple-400' : s.tratamento==='limpeza_encoding' ? 'bg-amber-600/20 text-amber-400' : 'bg-zinc-700 text-zinc-400'"
+                  x-text="(s.tratamento==='sanitizado' ? '🧼 Sanitizado' : s.tratamento==='parquet' ? '📦 Parquet' : s.tratamento==='limpeza_encoding' ? '🔤 Limpeza' : '⚪ Bruto')"></span>
+            <span class="text-[10px] text-zinc-400 shrink-0 font-semibold" x-text="s.tamanho_mb + ' MB'"></span>
+          </div>
+          <div class="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-zinc-500">
+            <template x-for="a in s.detalhes||[]" :key="a.nome">
+              <span><span x-text="a.nome"></span> <b class="text-zinc-400" x-text="a.tamanho_kb + ' KB'"></b></span>
+            </template>
+            <template x-for="sp in s.subpastas||[]" :key="sp.nome">
+              <span>📁 <span x-text="sp.nome"></span> <b class="text-zinc-400" x-text="sp.tamanho_mb + ' MB'"></b></span>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div x-show="toast" class="fixed bottom-6 right-6 z-50 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm shadow-xl">
+    <span x-text="toast"></span>
+  </div>
+</div>
+
+<script>
+console.log("[SCRAP] Página carregada");
+function scrapState() {
+  return {
+    url: '', nome: '', formato: 'jsonl', modo: 'quantidade', preferencia: 'nenhuma', profundidade: 1, maxMaterias: 20,
+    testando: false, processando: false, cancelarBusy: false,
+    teste: null, estado: null, scraps: null, toast: '', toastTimer: null,
+    scrapsBusy: false,
+
+    init() {
+      console.log("[SCRAP] Inicializando...");
+      this.carregarStatus(); this.carregarScraps();
+      setInterval(()=>this.carregarStatus(), 2000);
+    },
+
+    mostrarToast(msg) {
+      this.toast = msg;
+      clearTimeout(this.toastTimer);
+      this.toastTimer = setTimeout(()=>this.toast='', 4000);
+    },
+
+    async carregarStatus() {
+      try { this.estado = await (await fetch('/api/scrap/status')).json(); }
+      catch(e) { console.warn("[SCRAP] status:", e); }
+    },
+
+    async carregarScraps() {
+      this.scrapsBusy = true;
+      try { this.scraps = await (await fetch('/api/scrap/listar')).json(); }
+      catch(e) { console.warn("[SCRAP] listar:", e); }
+      finally { this.scrapsBusy = false; }
+    },
+
+    async testar() {
+      const u = (this.url||'').trim();
+      if (!u) { this.mostrarToast('⚠️ Informe a URL.'); return; }
+      this.testando = true; this.teste = null;
+      try {
+        const r = await fetch('/api/scrap/testar', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({url: u})
+        });
+        this.teste = await r.json();
+        this.mostrarToast(this.teste?.ok ? ('🧪 Qualidade: ' + (this.teste.score||0) + '/100') : ('❌ ' + (this.teste?.erro||'erro')));
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.testando = false; }
+    },
+
+    async processar() {
+      const u = (this.url||'').trim();
+      if (!u) { this.mostrarToast('⚠️ Informe a URL.'); return; }
+      if (this.estado?.rodando) { this.mostrarToast('⏳ Já existe um processamento em andamento.'); return; }
+      this.processando = true;
+      try {
+        const r = await fetch('/api/scrap/processar', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({url: u, formato: this.formato, nome: (this.nome||'').trim() || null, modo: this.modo, preferencia: this.preferencia, profundidade: this.profundidade || 0, max_materias: this.maxMaterias || 1})
+        });
+        const dados = await r.json();
+        this.mostrarToast(dados.ok ? '⚙️ Processamento iniciado!' : ('❌ ' + (dados.erro||'erro')));
+        this.carregarStatus();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.processando = false; }
+    },
+
+    async cancelar() {
+      if (!confirm('Cancelar o processamento em andamento?\n\n🗑️ Isso apaga a pasta parcial e libera para recomeçar.')) return;
+      this.cancelarBusy = true;
+      try {
+        const r = await fetch('/api/scrap/limpar', {method:'POST'});
+        const dados = await r.json();
+        this.mostrarToast('🗑️ ' + (dados.mensagem||'Cancelado.'));
+        this.carregarStatus();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.cancelarBusy = false; }
+    },
+
+    async esquecer() {
+      try {
+        await fetch('/api/scrap/limpar', {method:'POST'});
+        this.mostrarToast('🧹 Painel esquecido (arquivos intactos).');
+        this.carregarStatus(); this.carregarScraps();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+    }
+  };
+}
+</script>
+{% endblock %}

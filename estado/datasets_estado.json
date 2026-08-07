@@ -1,0 +1,18 @@
+{
+  "rodando": false,
+  "repo": "dominguesm/brwac",
+  "etapa": "travado",
+  "mensagem": "⚠️ Download órfão: parou no meio do caminho (77% / dominguesm/brwac) — o processo anterior morreu (crash ou reinício). Limpe o estado e baixe novamente.",
+  "percentual": 77,
+  "inicio": "2026-08-07T11:41:28.011449",
+  "fim": "2026-08-07T14:34:05.165845",
+  "total_exemplos": 0,
+  "total_arquivos": 0,
+  "total_pastas": 0,
+  "erro": "processo anterior morreu no meio",
+  "diagnostico": null,
+  "tratado_exemplos": 0,
+  "limpos_origens": 0,
+  "tratamento": null,
+  "travado": true
+}

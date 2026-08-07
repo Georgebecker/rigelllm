@@ -1,7 +1,8 @@
-"""Helper para executar scripts em background com saída em log em tempo real.
-
-Usa Popen + stdout/stderr para streamar a saída para um arquivo de log,
-em vez de usar subprocess.run(capture_output=True) que descarta a saída.
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+runner.py - Executor de scripts em background para o Dashboard RigelSLM
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 """
 import subprocess
 from subprocess import Popen, PIPE, STDOUT

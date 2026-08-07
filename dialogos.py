@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-dialogos.py - Gerador de dados sintéticos para RigelSLM (v3.2)
+dialogos.py - Gerador de dados sintéticos para RigelSLM
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 EXPANSÃO COMPLETA: todas as listas originais + novas.
 Autor: George Herman Becker
 VERSÃO II: geração de perguntas com classificação inteligente e intenção.
@@ -31,7 +32,7 @@ PASTA_SAIDA = "dados/gerados"
 PASTA_DADOS_CURTOS = os.path.join(PASTA_SAIDA, "curtos")
 PASTA_DADOS_LONGOS = os.path.join(PASTA_SAIDA, "longos")
 PASTA_LOGS = os.path.join(PASTA_SAIDA, "logs")
-PASTA_DESCARTES = os.path.join(PASTA_SAIDA, "descartados")
+PASTA_DESCARTES = "dados/descartados"
 PASTA_ESTADO = os.path.join(PASTA_SAIDA, "estado")
 PASTA_CACHE = os.path.join(PASTA_ESTADO, "cache")
 
@@ -4794,7 +4795,7 @@ def estimar_custo(tipo: str, quantidade: int) -> float:
 def menu_interativo():
     while True:
         print("\n" + "=" * 70)
-        print("🤖 GERADOR DE DADOS SINTÉTICOS - RigelSLM (v3.2)")
+        print("🤖 GERADOR DE DADOS SINTÉTICOS - RigelSLM (v1.0.0)")
         print("   Desenvolvido por George Herman Becker")
         print("=" * 70)
         print("\nEscolha o tipo de dado a gerar:")
@@ -4950,7 +4951,7 @@ def executar_geracao(args):
 
     if args.tipo == "auto":
         print("=" * 70)
-        print("🤖 GERADOR DE DADOS SINTÉTICOS - MODO AUTOMÁTICO (v3.2)")
+        print("🤖 GERADOR DE DADOS SINTÉTICOS - MODO AUTOMÁTICO (v1.0.0)")
         print(f"   Modelo: {args.modelo}")
         print(f"   Limite: ${MAX_COST_USD:.2f}")
         print(f"   Delay: {DELAY_SECONDS}s")
@@ -5047,7 +5048,7 @@ def executar_geracao(args):
 
     # Execução normal
     print("=" * 70)
-    print("🤖 GERADOR DE DADOS SINTÉTICOS - RigelSLM (v3.2)")
+    print("🤖 GERADOR DE DADOS SINTÉTICOS - RigelSLM (v1.0.0)")
     print(f"   Modelo: {args.modelo}")
     print(f"   Limite: ${MAX_COST_USD:.2f}")
     print(f"   Delay: {DELAY_SECONDS}s")
@@ -5367,7 +5368,7 @@ def main():
     global MAX_COST_USD, DELAY_SECONDS
 
     if len(sys.argv) > 1:
-        parser = argparse.ArgumentParser(description="Gera diálogos sintéticos em PT-BR com foco em SLM (v3.2)")
+        parser = argparse.ArgumentParser(description="Gera diálogos sintéticos em PT-BR com foco em SLM (v1.0.0)")
         parser.add_argument("--tema", type=str, help="Tema específico (para conversa ou pergunta_resposta)")
         parser.add_argument("--quantidade", type=int, default=500, help="Quantidade de diálogos (padrão: 500)")
         parser.add_argument("--limite", type=float, help="Limite de gastos em USD (sobrescreve .env)")

@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+organizar.py - Organizador de pastas para o Dashboard RigelSLM
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
+"""
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 import subprocess
 import os

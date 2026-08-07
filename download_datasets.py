@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-download_datasets.py - PREPARAÇÃO DE DADOS PARA TREINO DO RIGELSLM (v4.0)
+download_datasets.py - PREPARAÇÃO DE DADOS PARA TREINO DO RIGELSLM
+Versão: 1.0.1 | Data: 01/08/2026 | Correção Guará + verificação de espaço
 ================================================================
 
 ESTRUTURA DE PASTAS:
@@ -45,6 +46,13 @@ from datasets import load_dataset, config
 from langdetect import detect, DetectorFactory
 from bs4 import BeautifulSoup
 import fitz  # PyMuPDF
+
+# Garante saída UTF-8 no console (emojis quebram no cp1252 do Windows)
+for stream in (sys.stdout, sys.stderr):
+    try:
+        stream.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
 
 # ============================================================================
 # 0. CONFIGURAÇÕES GERAIS
@@ -280,8 +288,25 @@ def normalizar_texto(texto):
     texto = re.sub(r'[ \t]+', ' ', texto)
     return texto.strip()
 
+def corrigir_mojibake(texto):
+    """Corrige mojibake (UTF-8 decodificado como Latin-1/CP1252): 'VocÃª' -> 'Você'."""
+    if not texto:
+        return texto
+    if not re.search(r'Ã.|Â.|â€|â€™|â€œ', texto):
+        return texto
+    for encoding in ('latin-1', 'cp1252'):
+        try:
+            tentativa = texto.encode(encoding, errors='strict').decode('utf-8', errors='strict')
+            if '\ufffd' not in tentativa:
+                return tentativa
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            continue
+    return texto
+
+
 def limpar_texto(texto):
-    """Remove URLs, emails, números de telefone e normaliza."""
+    """Remove URLs, emails, números de telefone, corrige mojibake e normaliza."""
+    texto = corrigir_mojibake(texto)
     texto = re.sub(r'https?://\S+|www\.\S+', '', texto)
     texto = re.sub(r'\S+@\S+\.\S+', '', texto)
     texto = re.sub(r'\(\d{2}\)\s?\d{4,5}-\d{4}', '', texto)
@@ -549,6 +574,31 @@ def processar_texto(texto_bruto, tipo="texto", corrigir_espacos=False, aplicar_r
 # ============================================================================
 # 5. FUNÇÕES DE ARQUIVO E VALIDAÇÃO
 # ============================================================================
+
+ESPACO_MINIMO_GB = 5.0
+ESPACO_AVISO_GB = 20.0
+
+
+def verificar_espaco(minimo_gb=ESPACO_MINIMO_GB, aviso_gb=ESPACO_AVISO_GB):
+    """Verifica espaço livre em disco antes de iniciar downloads.
+
+    Retorna (ok, livre_gb, mensagem). Nunca bloqueia por erro de medição.
+    """
+    try:
+        uso = shutil.disk_usage(PASTA_BASE)
+        livre_gb = uso.free / (1024 ** 3)
+        if livre_gb < minimo_gb:
+            return (False, livre_gb,
+                    f"❌ Espaço livre insuficiente: {livre_gb:.1f} GB "
+                    f"(mínimo recomendado: {minimo_gb:.1f} GB). Libere espaço e tente novamente.")
+        if livre_gb < aviso_gb:
+            return (True, livre_gb,
+                    f"⚠️ Pouco espaço livre: {livre_gb:.1f} GB. "
+                    f"Fontes grandes (GigaVerbo/brWaC) podem não caber.")
+        return True, livre_gb, f"✅ Espaço livre em disco: {livre_gb:.1f} GB."
+    except Exception as e:
+        return True, 0.0, f"⚠️ Não foi possível verificar espaço em disco: {e}"
+
 
 def salvar_texto(texto, prefixo, indice, pasta):
     os.makedirs(pasta, exist_ok=True)
@@ -1011,20 +1061,15 @@ def baixar_ultrachatbr(limite=50000, corrigir_espacos=False, aplicar_reconstruca
             for exemplo in dataset:
                 if contador >= limite:
                     break
-                conversas = exemplo.get('conversa', [])
-                if not conversas:
+                turnos = _extrair_conversas(exemplo)
+                if not turnos:
                     pbar.update(1)
                     continue
-                texto_bruto = ""
-                for turno in conversas:
-                    if isinstance(turno, dict):
-                        valor = turno.get('value') or turno.get('content') or turno.get('text')
-                        if valor:
-                            texto_bruto += str(valor) + " "
-                if not texto_bruto.strip():
+                texto_formatado = _turnos_para_pergunta_resposta(turnos)
+                if not texto_formatado:
                     pbar.update(1)
                     continue
-                resultado, motivos = processar_texto(texto_bruto, tipo="dialogo",
+                resultado, motivos = processar_texto(texto_formatado, tipo="dialogo",
                                                      corrigir_espacos=corrigir_espacos,
                                                      aplicar_reconstrucao=aplicar_reconstrucao)
                 if resultado is None:
@@ -1053,18 +1098,13 @@ def baixar_tucano_sft(limite=30000, corrigir_espacos=False, aplicar_reconstrucao
         for exemplo in dataset:
             if contador >= limite:
                 break
-            conversas = exemplo.get('conversations', [])
-            if not conversas:
+            turnos = _extrair_conversas(exemplo)
+            if not turnos:
                 continue
-            texto_bruto = ""
-            for turno in conversas:
-                if isinstance(turno, dict):
-                    valor = turno.get('value')
-                    if valor:
-                        texto_bruto += str(valor) + " "
-            if not texto_bruto.strip():
+            texto_formatado = _turnos_para_pergunta_resposta(turnos)
+            if not texto_formatado:
                 continue
-            resultado, motivos = processar_texto(texto_bruto, tipo="dialogo",
+            resultado, motivos = processar_texto(texto_formatado, tipo="dialogo",
                                                  corrigir_espacos=corrigir_espacos,
                                                  aplicar_reconstrucao=aplicar_reconstrucao)
             if resultado is None:
@@ -1077,95 +1117,104 @@ def baixar_tucano_sft(limite=30000, corrigir_espacos=False, aplicar_reconstrucao
         log(f"   ❌ Erro no Tucano-SFT: {e}")
         return 0
 
-# --- 7.5 Guará (diálogo) – CORRIGIDO: agora com streaming e fallback ---
+# --- 7.5 Guará (diálogo) – CORRIGIDO 01/08/2026: campo real é 'conversations' (JSON string) ---
+def _extrair_conversas(exemplo):
+    """Extrai lista de turnos de um exemplo HF (campos conversations/conversa/messages)."""
+    conv = (exemplo.get('conversations') or exemplo.get('conversa') or
+            exemplo.get('conversation') or exemplo.get('messages'))
+    if isinstance(conv, str):
+        try:
+            conv = json.loads(conv)
+        except Exception:
+            return None
+    if not isinstance(conv, list):
+        return None
+    return conv
+
+
+def _turnos_para_pergunta_resposta(turnos):
+    """Converte lista de turnos {'from':..., 'value':...} em texto 'Pergunta: ...\nResposta: ...'."""
+    pares = []
+    atual = None
+    for turno in turnos:
+        if not isinstance(turno, dict):
+            continue
+        origem = (turno.get('from') or turno.get('role') or '').strip().lower()
+        valor = (turno.get('value') or turno.get('content') or turno.get('text') or '').strip()
+        if not valor:
+            continue
+        if origem in ('system', 'contexto', 'context', 'instruction'):
+            continue
+        if origem in ('human', 'user', 'usuario', 'pessoa', 'pergunta', 'prompt', 'input'):
+            if atual:
+                pares.append(atual)
+            atual = [valor]
+        elif origem in ('gpt', 'assistant', 'assistente', 'ia', 'model', 'resposta', 'output', 'answer'):
+            if atual:
+                atual.append(valor)
+            else:
+                atual = ["", valor]
+        else:
+            if atual and len(atual) == 1:
+                atual.append(valor)
+            else:
+                if atual:
+                    pares.append(atual)
+                atual = [valor]
+    if atual:
+        pares.append(atual)
+
+    blocos = []
+    for pergunta, resposta in pares:
+        if pergunta and resposta:
+            blocos.append(f"Pergunta: {pergunta}\nResposta: {resposta}")
+    return "\n\n".join(blocos).strip()
+
+
 def baixar_guara(limite=20000, corrigir_espacos=False, aplicar_reconstrucao=False):
+    """Guará (adalbertojunior/Guara) — ~958 mil exemplos pt-BR, campo 'conversations' (JSON)."""
     log("\n📥 Baixando Guará...")
+    log("   ℹ️ Dataset: adalbertojunior/Guara (~958 mil exemplos, campo 'conversations' JSON).")
     pasta_destino = os.path.join(PASTA_GERADOS, FONTES["guara"])
     os.makedirs(pasta_destino, exist_ok=True)
 
+    contador = 0
     try:
-        # Tenta carregar o dataset em streaming
         dataset = load_dataset("adalbertojunior/Guara", split="train", streaming=True)
-        log("   ✅ Dataset Guará carregado com sucesso.")
-        contador = 0
-        for exemplo in dataset:
-            if contador >= limite:
-                break
-            # O dataset Guará tem campos 'instruction', 'input' (opcional) e 'output'
-            instrucao = exemplo.get('instruction', '')
-            entrada = exemplo.get('input', '')
-            saida = exemplo.get('output', '')
-            if not instrucao and not saida:
-                # Fallback: tenta outros campos comuns
-                texto_bruto = ""
-                for k, v in exemplo.items():
-                    if isinstance(v, str) and len(v) > 20:
-                        texto_bruto += v + " "
-                if not texto_bruto.strip():
-                    continue
-                resultado, motivos = processar_texto(texto_bruto, tipo="dialogo",
-                                                     corrigir_espacos=corrigir_espacos,
-                                                     aplicar_reconstrucao=aplicar_reconstrucao)
-                if resultado is None:
-                    continue
-                salvar_texto(resultado, "guara", contador, pasta_destino)
-                contador += 1
-                continue
-
-            # Formata pergunta + resposta
-            if entrada:
-                pergunta = f"{instrucao}\n{entrada}"
-            else:
-                pergunta = instrucao
-            resposta = saida
-            if not pergunta or not resposta:
-                continue
-            texto_formatado = f"Pergunta: {pergunta}\nResposta: {resposta}"
-            # Processa o texto formatado (limpeza, validação)
-            resultado, motivos = processar_texto(texto_formatado, tipo="dialogo",
-                                                 corrigir_espacos=corrigir_espacos,
-                                                 aplicar_reconstrucao=aplicar_reconstrucao)
-            if resultado is None:
-                continue
-            salvar_texto(resultado, "guara", contador, pasta_destino)
-            contador += 1
-        log(f"   ✅ Guará: {contador} textos salvos em {pasta_destino}.")
-        return contador
+        log("   ✅ Dataset Guará carregado (streaming).")
+        iterador = dataset
     except Exception as e:
-        log(f"   ❌ Erro no Guará: {e}")
-        log("   ⚠️  Tentando fallback: carregar dataset sem streaming (pode levar mais tempo)...")
+        log(f"   ❌ Erro no streaming: {e}")
+        log("   ⚠️  Tentando carregamento completo (baixa ~1,5 GB uma vez e fica em cache)...")
         try:
-            # Fallback: carregar sem streaming (se o dataset for pequeno, funciona)
             dataset = load_dataset("adalbertojunior/Guara", split="train")
-            contador = 0
-            for exemplo in dataset:
-                if contador >= limite:
-                    break
-                instrucao = exemplo.get('instruction', '')
-                entrada = exemplo.get('input', '')
-                saida = exemplo.get('output', '')
-                if not instrucao and not saida:
-                    continue
-                if entrada:
-                    pergunta = f"{instrucao}\n{entrada}"
-                else:
-                    pergunta = instrucao
-                resposta = saida
-                if not pergunta or not resposta:
-                    continue
-                texto_formatado = f"Pergunta: {pergunta}\nResposta: {resposta}"
-                resultado, motivos = processar_texto(texto_formatado, tipo="dialogo",
-                                                     corrigir_espacos=corrigir_espacos,
-                                                     aplicar_reconstrucao=aplicar_reconstrucao)
-                if resultado is None:
-                    continue
-                salvar_texto(resultado, "guara", contador, pasta_destino)
-                contador += 1
-            log(f"   ✅ Guará (fallback): {contador} textos salvos em {pasta_destino}.")
-            return contador
+            iterador = dataset
         except Exception as e2:
-            log(f"   ❌ Erro também no fallback: {e2}")
+            log(f"   ❌ Erro também no carregamento completo: {e2}")
             return 0
+
+    for exemplo in tqdm(iterador, desc="   Guará", unit="ex"):
+        if contador >= limite:
+            break
+        turnos = _extrair_conversas(exemplo)
+        if not turnos:
+            continue
+        texto_formatado = _turnos_para_pergunta_resposta(turnos)
+        if not texto_formatado:
+            continue
+        resultado, motivos = processar_texto(
+            texto_formatado,
+            tipo="dialogo",
+            corrigir_espacos=corrigir_espacos,
+            aplicar_reconstrucao=aplicar_reconstrucao
+        )
+        if resultado is None:
+            continue
+        salvar_texto(resultado, "guara", contador, pasta_destino)
+        contador += 1
+
+    log(f"   ✅ Guará: {contador} conversas salvas em {pasta_destino}.")
+    return contador
 
 # --- 7.6 Wikipédia (crawler) ---
 def extrair_links_wikipedia(soup, base_url):
@@ -1349,7 +1398,7 @@ def baixar_brwac(limite_gb=None, max_exemplos=None, corrigir_espacos=False, apli
 def main():
     inicio = time.time()
 
-    parser = argparse.ArgumentParser(description="Prepara dados para treino do RigelSLM (v4.0)")
+    parser = argparse.ArgumentParser(description="Prepara dados para treino do RigelSLM (v1.0.0)")
     parser.add_argument("--qualificar", action="store_true", help="Aplica validação, limpeza e reconstrução, e copia dados válidos para dados/processed/")
     parser.add_argument("--fonte", type=str, choices=list(FONTES.keys()), help="Especifica uma fonte para operações (ex: tucano, ultrachat, datasets)")
     parser.add_argument("--validar", action="store_true", help="Lista arquivos inválidos (estruturalmente) em processed/ (ou na fonte se --fonte)")
@@ -1525,6 +1574,13 @@ def main():
     # ========================================================================
     # EXECUTA O DOWNLOAD PARA CADA FONTE SELECIONADA
     # ========================================================================
+
+    # Verifica espaço em disco antes de iniciar qualquer download
+    ok_espaco, livre_gb, msg_espaco = verificar_espaco()
+    log(msg_espaco)
+    if not ok_espaco:
+        log("❌ Download cancelado por falta de espaço em disco.")
+        return
 
     total = 0
     for chave in fontes_selecionadas:

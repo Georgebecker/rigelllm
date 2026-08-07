@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 generation.py - Núcleo de geração de conteúdo.
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 Com prompts contextualizados por categoria (livros, filmes, pessoas, etc.)
 """
 import random

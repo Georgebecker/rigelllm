@@ -1,4 +1,9 @@
-"""Rota de RSS - Processamento de feeds RSS/Atom/XML com resultados reais"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+rss.py - Processamento RSS para o Dashboard RigelSLM
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
+"""
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -20,6 +25,7 @@ GERADOS_DIR = BASE_DIR / "dados" / "gerados"
 class RssRequest(BaseModel):
     quantidade: int = 10
     feeds: list[str] | None = None
+    modelo_resumo: str | None = None
 
 
 class RssTestRequest(BaseModel):
@@ -32,6 +38,37 @@ class AddFeedRequest(BaseModel):
 
 # Cache de resultados
 _resultado_cache = {"ultimo_processamento": None, "resultado": None}
+
+
+def _listar_modelos_ollama() -> list[str]:
+    """Lista os modelos disponíveis no Ollama local (para o seletor de resumo)."""
+    try:
+        proc = subprocess.run(
+            ["ollama", "list"],
+            capture_output=True,
+            text=True,
+            encoding="cp1252",
+            errors="ignore",
+        )
+        if proc.returncode != 0:
+            return []
+        linhas = proc.stdout.strip().split("\n")[1:]  # pula cabeçalho
+        return [linha.split()[0] for linha in linhas if linha.strip()]
+    except Exception:
+        return []
+
+
+def _ollama_online() -> bool:
+    """Verifica se o Ollama está respondendo em 127.0.0.1:11434."""
+    try:
+        import socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex(("127.0.0.1", 11434))
+        sock.close()
+        return result == 0
+    except Exception:
+        return False
 
 
 def contar_pasta_rss(nome_pasta: str) -> int:
@@ -84,7 +121,9 @@ async def rss_status():
         "total_gerados": total_gerados,
         "ultimo_log": ultimo_log,
         "resultado_anterior": _resultado_cache.get("resultado"),
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
+        "ollama_online": _ollama_online(),
+        "modelos_ollama": _listar_modelos_ollama(),
     }
 
 
@@ -97,6 +136,8 @@ async def processar_rss(
     cmd = ["python", "rss_processor.py", "--quantidade", str(req.quantidade)]
     if req.feeds:
         cmd.extend(["--feeds", ",".join(req.feeds)])
+    if req.modelo_resumo:
+        cmd.extend(["--modelo-resumo", req.modelo_resumo])
 
     LOGS_DIR.mkdir(exist_ok=True)
     log_file = LOGS_DIR / "dashboard.log"
@@ -114,9 +155,30 @@ async def processar_rss(
         "timestamp": ts,
     }
 
+    # Puxa últimas linhas do log RSS para feedback imediato
+    ultimo_log = ""
+    log_rss_path = LOGS_DIR / "rss.log"
+    if log_rss_path.exists():
+        try:
+            conteudo = log_rss_path.read_text(encoding="utf-8", errors="replace")
+            linhas = conteudo.splitlines()
+            ultimo_log = "\n".join(linhas[-15:])
+        except:
+            pass
+    # Também tenta o log do rss_processor
+    log_processor = GERADOS_DIR / "logs" / "rss.log"
+    if log_processor.exists() and not ultimo_log:
+        try:
+            conteudo = log_processor.read_text(encoding="utf-8", errors="replace")
+            linhas = conteudo.splitlines()
+            ultimo_log = "\n".join(linhas[-15:])
+        except:
+            pass
+
     return {
         "status": "started",
         "message": f"Processando {req.quantidade} feeds em segundo plano",
+        "ultimo_log": ultimo_log,
         "timestamp": ts
     }
 

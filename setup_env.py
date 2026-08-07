@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 setup_env.py - Configuração automática do ambiente RigelSLM
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 Uso: python setup_env.py [--no-venv] [--no-cuda] [--install-extras]
 """
 import os
@@ -175,6 +176,19 @@ OLLAMA_URL=http://localhost:11434
 # ----- Treino -----
 # OMP_NUM_THREADS=16
 # TORCH_NUM_THREADS=16
+
+# ----- Guardião de limites (opcional; por padrão são PROPORCIONAIS ao
+#      hardware, gravados em config_recursos.json na instalação). -----
+# SCAN_MAX_ARQUIVOS=2000000
+# SCAN_MAX_DIRETORIOS=200000
+# SCAN_PAUSA_CADA=2000
+# SCAN_PAUSA_SEG=0.002
+# MEM_MIN_LIVRE_MB=1024
+# MEM_MIN_LIVRE_PCT=12
+# CPU_MAX_USO_PCT=75
+# DISCO_MIN_LIVRE_PCT=5
+# DISCO_MIN_LIVRE_MB=1024
+# SCAN_MAX_NOMES_CACHE=2000
 """)
     log(".env.example criado. Renomeie para .env e configure sua chave.", emoji="📄")
 
@@ -208,6 +222,35 @@ def verificar_espaco_disco():
     except:
         pass
 
+
+def configurar_recursos():
+    """Detecta o hardware desta máquina e grava limites PROPORCIONAIS em
+    config_recursos.json (regra do usuário: cada máquina tem limites
+    diferentes — RAM, CPU, GPU, HD/SSD/NVMe — definidos na instalação).
+    Depois, cada limite pode ser ajustado no próprio arquivo ou via env."""
+    # Garante que o pacote dashboard seja importável mesmo rodando fora dele
+    if str(PROJETO_DIR) not in sys.path:
+        sys.path.insert(0, str(PROJETO_DIR))
+    try:
+        from dashboard.services.recursos import (
+            detectar_hardware, calcular_limites, salvar_limites, CONFIG_RECURSOS,
+        )
+    except Exception as e:
+        log(f"Não foi possível carregar recursos.py: {e}", emoji="❌", nivel="ERRO")
+        return
+    log("Detectando hardware para limites proporcionais...", emoji="🖥️")
+    hw = detectar_hardware()
+    log(f"RAM {hw.get('ram_gb')} GB | {hw.get('cpu_cores')} cores | "
+        f"disco {hw.get('disco_tipo')} ({hw.get('disco_livre_gb')} GB livres) | "
+        f"GPU: {hw.get('gpu_nome') or 'não detectada'}", emoji="🛡️")
+    lim = calcular_limites(hw)
+    salvar_limites(lim, hw)
+    log(f"Limites proporcionais gravados em {CONFIG_RECURSOS}:", emoji="📝")
+    for k, v in lim.items():
+        log(f"   {k} = {v}", emoji="🔹")
+    log("Ajuste fino: edite config_recursos.json ou use variáveis de ambiente "
+        "(ex.: MEM_MIN_LIVRE_PCT=15, SCAN_PAUSA_SEG=0.005).", emoji="💡")
+
 def criar_scripts_auxiliares():
     """Cria scripts auxiliares para iniciar o Ollama e o dashboard."""
     # Script para iniciar Ollama (Windows)
@@ -235,7 +278,7 @@ ollama serve
 title RigelSLM Dashboard
 cd /d %~dp0
 echo ========================================
-echo    RigelSLM Dashboard v3.0
+echo    RigelSLM Dashboard v1.0.0
 echo ========================================
 echo.
 :: Verifica se o servidor está rodando
@@ -309,6 +352,9 @@ def main():
 
     # 9. Verifica espaço em disco
     verificar_espaco_disco()
+
+    # 9.5 Limites PROPORCIONAIS ao hardware (guardião) — regra do usuário
+    configurar_recursos()
 
     # 10. Cria scripts auxiliares
     criar_scripts_auxiliares()

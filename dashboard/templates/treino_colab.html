@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}Treino Colab{% endblock %}
+{% block content %}
+<div x-data="treinoColabState()" x-cloak>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">🎯 Treino no Google Colab</h2>
+  <p class="text-zinc-500 text-sm mb-4">Prepara o notebook com o dataset/parâmetros escolhidos e abre o Colab (GPU T4) para você rodar.</p>
+
+  <!-- Como funciona (honesto) -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-4 border border-sky-600/20">
+    <h3 class="text-sm font-semibold mb-2">ℹ️ Como funciona</h3>
+    <p class="text-[11px] text-zinc-400 leading-relaxed">
+      O dashboard <b>não controla o Colab diretamente</b> (são ambientes separados — o notebook roda na nuvem do Google).
+      O que esta página faz: pega o seu <code class="text-sky-400">RigelSLM_Colab.ipynb</code>, <b>injeta o modo de treino,
+      o dataset e os parâmetros escolhidos</b> (cada tipo de arquivo tem seu comando próprio na célula de treino) e
+      gera uma cópia pronta em <code class="text-sky-400">colab/RigelSLM_Colab_pronto.ipynb</code>.
+    </p>
+    <ol class="text-[11px] text-zinc-400 list-decimal ml-4 mt-2 space-y-0.5">
+      <li>Escolha o <b>tipo de treino</b> (JSONL / Texto / Parquet) — cada um tem sua própria célula de comando.</li>
+      <li>Preencha os parâmetros do modo escolhido e clique em <b>📦 Gerar notebook + Abrir Colab</b>.</li>
+      <li>No Colab: <b>File → Upload notebook</b> e envie o arquivo gerado (ou coloque-o no Drive e abra com o Colab).</li>
+      <li>Execute as células em ordem — ele monta o Drive (pede permissão), detecta a GPU e treina.</li>
+    </ol>
+  </div>
+
+  <!-- Tipo de treino -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-4 border border-sky-600/20">
+    <h3 class="text-sm font-semibold mb-2">🧭 Tipo de treino</h3>
+    <div class="flex flex-wrap gap-2">
+      <button @click="modo='jsonl'" :class="modo==='jsonl' ? 'bg-sky-600/40 text-sky-200 border-sky-500/50' : 'bg-zinc-800 text-zinc-400 border-zinc-700'" class="px-4 py-2 rounded-xl text-xs font-medium border transition-all">
+        🧾 JSONL (SFT)
+      </button>
+      <button @click="modo='texto'" :class="modo==='texto' ? 'bg-sky-600/40 text-sky-200 border-sky-500/50' : 'bg-zinc-800 text-zinc-400 border-zinc-700'" class="px-4 py-2 rounded-xl text-xs font-medium border transition-all">
+        📄 Texto (causal)
+      </button>
+      <button @click="modo='parquet'" :class="modo==='parquet' ? 'bg-sky-600/40 text-sky-200 border-sky-500/50' : 'bg-zinc-800 text-zinc-400 border-zinc-700'" class="px-4 py-2 rounded-xl text-xs font-medium border transition-all">
+        📦 Parquet
+      </button>
+    </div>
+    <p class="text-[11px] text-zinc-400 mt-2" x-text="descricaoModo()"></p>
+  </div>
+
+  <!-- Dataset + parâmetros (por modo) -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-4">
+    <h3 class="text-sm font-semibold mb-3" x-text="modo==='texto' ? '📦 Parâmetros — Texto (treino.py)' : modo==='parquet' ? '📦 Parâmetros — Parquet (treino_colab.py)' : '📦 Parâmetros — JSONL (treinar_com_jsonl.py)'"></h3>
+    <div class="grid md:grid-cols-2 gap-3">
+      <!-- JSONL: dataset validado -->
+      <div x-show="modo==='jsonl'">
+        <label class="block text-xs text-zinc-500 mb-1">Dataset (processed)</label>
+        <select x-model="datasetSel" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+          <option value="">— selecione um dataset validado —</option>
+          <template x-for="d in datasets" :key="d.nome">
+            <option :value="d.nome" x-text="d.nome + ' (' + d.arquivos + ' arquivos)'"></option>
+          </template>
+        </select>
+        <p class="text-[10px] text-zinc-600 mt-1" x-show="!datasets.length">Nenhum dataset validado. Promova os provisórios no <a href="/treino_local" class="text-sky-400 underline">Treino Local</a>.</p>
+      </div>
+      <!-- Texto/parquet: caminho dos dados -->
+      <div x-show="modo!=='jsonl'">
+        <label class="block text-xs text-zinc-500 mb-1" x-text="modo==='texto' ? 'Pasta dos dados .txt (no Drive)' : 'Pasta dos parquet (no Drive)'"></label>
+        <input type="text" x-model="dadosPath" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none"
+               :placeholder="modo==='texto' ? 'dados/processed' : '/content/dados/processed'">
+      </div>
+      <div>
+        <label class="block text-xs text-zinc-500 mb-1">Caminho do projeto no Drive</label>
+        <input type="text" x-model="drivePath" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none" placeholder="/content/drive/MyDrive/rigelllm">
+      </div>
+      <div x-show="modo==='jsonl'">
+        <label class="block text-xs text-zinc-500 mb-1">Épocas</label>
+        <input type="number" x-model.number="epochs" min="1" max="50" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+      </div>
+      <div>
+        <label class="block text-xs text-zinc-500 mb-1">Max arquivos (0 = todos)</label>
+        <input type="number" x-model.number="maxArquivos" min="0" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+      </div>
+      <div x-show="modo==='jsonl'">
+        <label class="block text-xs text-zinc-500 mb-1">Learning rate</label>
+        <input type="number" x-model.number="lr" step="0.00001" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+      </div>
+      <div x-show="modo==='jsonl'">
+        <label class="block text-xs text-zinc-500 mb-1">Grad accumulation</label>
+        <input type="number" x-model.number="accum" min="1" max="16" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+      </div>
+      <div x-show="modo!=='jsonl'">
+        <label class="block text-xs text-zinc-500 mb-1">Batch size</label>
+        <input type="number" x-model.number="batchSize" min="1" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+      </div>
+      <div x-show="modo!=='jsonl'">
+        <label class="block text-xs text-zinc-500 mb-1">Save a cada N batches</label>
+        <input type="number" x-model.number="saveEvery" min="1" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+      </div>
+      <div x-show="modo==='parquet'">
+        <label class="block text-xs text-zinc-500 mb-1">Num workers</label>
+        <input type="number" x-model.number="numWorkers" min="0" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+      </div>
+      <div x-show="modo==='parquet'">
+        <label class="block text-xs text-zinc-500 mb-1">Precisão</label>
+        <select x-model="precision" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+          <option value="amp">amp (recomendado)</option>
+          <option value="fp16">fp16</option>
+          <option value="fp32">fp32</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-4 mt-3 text-xs text-zinc-300">
+      <label class="flex items-center gap-2"><input type="checkbox" x-model="resume" class="accent-sky-500"> Retomar do checkpoint</label>
+      <label class="flex items-center gap-2" x-show="modo==='parquet'"><input type="checkbox" x-model="preload" class="accent-sky-500"> Pré-carregar tokens (--preload)</label>
+      <label class="flex items-center gap-2" x-show="modo==='jsonl'"><input type="checkbox" x-model="testarApos" class="accent-sky-500"> Testar após treinar</label>
+      <label class="flex items-center gap-2" x-show="modo==='jsonl'"><input type="checkbox" x-model="converterGguf" class="accent-sky-500"> Converter p/ GGUF ao final</label>
+    </div>
+    <div class="mt-4 flex flex-wrap items-center gap-3">
+      <button @click="gerar()" :disabled="gerando || (modo==='jsonl' && !datasetSel)"
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-40">
+        <i class="fa-solid" :class="gerando ? 'fa-spinner fa-spin' : 'fa-cloud-arrow-up'"></i>
+        <span class="ml-1" x-text="gerando ? 'Gerando...' : '📦 Gerar notebook + Abrir Colab'"></span>
+      </button>
+      <a href="https://colab.research.google.com/" target="_blank" rel="noopener"
+         class="text-[11px] text-sky-400 underline">abrir Colab direto</a>
+    </div>
+    <p x-show="erro" class="text-xs text-red-400 mt-2" x-text="'❌ ' + erro"></p>
+    <div x-show="resultado" class="mt-3 bg-emerald-900/20 border border-emerald-700/30 rounded-xl p-3 text-xs text-emerald-300">
+      <p>✅ Notebook gerado: <code class="text-emerald-100" x-text="resultado?.arquivo"></code></p>
+      <p class="mt-1 text-zinc-400" x-text="resultado?.instrucao"></p>
+    </div>
+    <!-- 📋 Comando para o Colab (mesmo que o notebook falhe, o comando funciona) -->
+    <div x-show="resultado && resultado.comando_colab" class="mt-3 bg-zinc-800/60 border border-zinc-700 rounded-xl p-3 text-xs">
+      <div class="flex items-center justify-between mb-1">
+        <p class="text-amber-300 font-medium">📋 Comando para o Colab (copie e cole)</p>
+        <button @click="copiarComando()" class="text-[10px] bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 px-2 py-1 rounded-lg">📄 Copiar</button>
+      </div>
+      <pre class="text-[10px] text-zinc-200 whitespace-pre-wrap overflow-auto max-h-44 scrollbar-thin" x-text="resultado?.comando_colab"></pre>
+      <p x-show="comandoCopiado" class="text-emerald-300 mt-1 text-[10px]">✅ Comando copiado!</p>
+    </div>
+  </div>
+
+  <!-- Planos do Colab -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5">
+    <h3 class="text-sm font-semibold mb-2">💳 Planos do Google Colab</h3>
+    <div class="grid md:grid-cols-3 gap-3 text-xs">
+      <div class="bg-zinc-800/50 rounded-xl p-3">
+        <p class="font-medium text-zinc-200">🆓 Gratuito</p>
+        <p class="text-zinc-400 mt-1">Acesso básico sem custo, com GPUs padrão (como <b>T4</b>) por tempo limitado e recursos compartilhados. Suficiente para testes curtos.</p>
+      </div>
+      <div class="bg-zinc-800/50 rounded-xl p-3">
+        <p class="font-medium text-zinc-200">⏱️ Pay As You Go</p>
+        <p class="text-zinc-400 mt-1">Pague apenas pelo que usar (por compute unit). Bom para quem treina de vez em quando, sem assinatura mensal.</p>
+      </div>
+      <div class="bg-zinc-800/50 rounded-xl p-3">
+        <p class="font-medium text-zinc-200">⭐ Colab Pro</p>
+        <p class="text-zinc-400 mt-1">Assinatura mensal: acesso prioritário a GPUs melhores (A100/V100), mais tempo de execução e menos fila. Ideal p/ treinos longos.</p>
+      </div>
+    </div>
+    <div class="mt-3">
+      <a href="https://colab.research.google.com/signup?utm_source=footer&utm_medium=link&utm_campaign=footer_links&hl=pt-BR"
+         target="_blank" rel="noopener"
+         class="inline-block bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-4 py-2 rounded-xl text-xs font-medium">
+        Ver planos / assinar
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+console.log("[TREINO COLAB] Página carregada");
+function treinoColabState() {
+  return {
+    datasets: [], datasetSel: '', gerando: false, resultado: null, erro: '', comandoCopiado: false,
+    modo: 'jsonl', dadosPath: '',
+    epochs: 3, maxArquivos: 5, lr: 0.0001, accum: 4,
+    batchSize: 16, saveEvery: 50, numWorkers: 2, precision: 'amp', preload: false,
+    resume: true, testarApos: true, converterGguf: false,
+    drivePath: '/content/drive/MyDrive/rigelllm',
+    init() {
+      console.log("[TREINO COLAB] Inicializando...");
+      this.carregarDatasets();
+    },
+    async carregarDatasets() {
+      try {
+        const r = await fetch('/api/treino_colab/datasets');
+        const d = await r.json();
+        this.datasets = d.datasets || [];
+      } catch(e) { console.warn("[TREINO COLAB] datasets:", e); }
+    },
+    descricaoModo() {
+      if (this.modo === 'texto') return '📄 Treino CAUSAL com arquivos .txt (treino.py) — dados em dados/processed.';
+      if (this.modo === 'parquet') return '📦 Treino com datasets PARQUET (treino_colab.py) — dados em /content/dados/processed (ou o caminho que você definir).';
+      return '🧾 Treino SFT com JSONL messages (treinar_com_jsonl.py) — escolha um dataset validado em processed.';
+    },
+    async gerar() {
+      if (this.modo === 'jsonl' && !this.datasetSel) { this.erro = 'Selecione um dataset (processed).'; return; }
+      this.gerando = true; this.erro = ''; this.resultado = null;
+      try {
+        const r = await fetch('/api/treino_colab/gerar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            modo: this.modo,
+            dataset: this.datasetSel,
+            dados: this.dadosPath || '',
+            max_arquivos: +this.maxArquivos || 0,
+            epochs: +this.epochs || 3,
+            lr: parseFloat(this.lr) || 0.0001,
+            accum: +this.accum || 4,
+            batch_size: +this.batchSize || 16,
+            save_every: +this.saveEvery || 50,
+            num_workers: +this.numWorkers || 2,
+            precision: this.precision || 'amp',
+            preload: !!this.preload,
+            resume: !!this.resume,
+            testar_apos: !!this.testarApos,
+            converter_gguf: !!this.converterGguf,
+            drive_path: this.drivePath || '/content/drive/MyDrive/rigelllm'
+          })
+        });
+        const d = await r.json();
+        if (!d.ok) { this.erro = d.erro || 'Erro ao gerar notebook'; }
+        else {
+          this.resultado = d;
+          window.open('https://colab.research.google.com/', '_blank');
+        }
+      } catch(e) { this.erro = e.message; }
+      this.gerando = false;
+    },
+    async copiarComando() {
+      if (!this.resultado?.comando_colab) return;
+      try {
+        await navigator.clipboard.writeText(this.resultado.comando_colab);
+        this.comandoCopiado = true;
+        setTimeout(()=>this.comandoCopiado=false, 2000);
+      } catch(e) { console.warn("[COLAB] copiar:", e); }
+    }
+  };
+}
+</script>
+{% endblock %}

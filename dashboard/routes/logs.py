@@ -1,4 +1,9 @@
-"""Rotas de Logs - Visualização e exportação de logs do sistema"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+logs.py - Visualização de logs para o Dashboard RigelSLM
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
+"""
 from fastapi import APIRouter
 from fastapi.responses import PlainTextResponse, JSONResponse
 from pathlib import Path
@@ -78,6 +83,21 @@ async def visualizar_log(nome_arquivo: str):
     ultimas = "\n".join(linhas[-200:])
 
     return PlainTextResponse(ultimas)
+
+
+@router.get("/ultimas")
+async def log_ultimas(arquivo: str = "dashboard.log", linhas: int = 15):
+    """Últimas N linhas de um arquivo de log (usado pelo polling do dashboard)."""
+    caminho = LOGS_DIR / arquivo
+    if not caminho.exists():
+        return {"conteudo": f"Arquivo {arquivo} não encontrado.", "linhas": 0}
+    try:
+        conteudo = caminho.read_text(encoding="utf-8", errors="replace")
+    except Exception:
+        conteudo = caminho.read_text(encoding="latin-1", errors="replace")
+    linhas_lidas = conteudo.splitlines()
+    ultimas = "\n".join(linhas_lidas[-linhas:])
+    return {"conteudo": ultimas, "linhas": min(len(linhas_lidas), linhas)}
 
 
 @router.get("/dashboard")

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 main.py - Ponto de entrada principal do gerador de dados sintéticos RigelSLM.
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 """
 import argparse
 import sys
@@ -101,7 +102,7 @@ def cmd_status_topicos() -> None:
 def menu_interativo() -> None:
     """Exibe o menu interativo para escolha de tipo e parâmetros."""
     print("\n" + "=" * 70)
-    print("🤖 GERADOR DE DADOS SINTÉTICOS - RigelSLM (v2.0)")
+    print("🤖 GERADOR DE DADOS SINTÉTICOS - RigelSLM (v1.0.0)")
     print("   Desenvolvido por George Herman Becker")
     print("=" * 70)
     print("\nEscolha o tipo de dado a gerar:")
@@ -263,7 +264,7 @@ def executar_auto(state: StateManager, args) -> None:
     cmd_status_topicos()
 
     print("=" * 70)
-    print("🤖 GERADOR DE DADOS SINTÉTICOS - MODO AUTOMÁTICO (v2.0)")
+    print("🤖 GERADOR DE DADOS SINTÉTICOS - MODO AUTOMÁTICO (v1.0.0)")
     print(f"   Modelo: {MODEL_NAME} | Limite: ${MAX_COST_USD:.2f} | Delay: {DELAY_SECONDS}s")
     print(f"   Alvo: {args.quantidade} itens")
     print("=" * 70)
@@ -525,7 +526,7 @@ Agora, crie uma saudação diferente:"""
 def executar_tipo_especifico(state: StateManager, args) -> None:
     """Executa a geração para um único tipo."""
     print("=" * 70)
-    print("🤖 GERADOR DE DADOS SINTÉTICOS - RigelSLM (v2.0)")
+    print("🤖 GERADOR DE DADOS SINTÉTICOS - RigelSLM (v1.0.0)")
     print(f"   Modelo: {MODEL_NAME} | Limite: ${MAX_COST_USD:.2f} | Delay: {DELAY_SECONDS}s")
     print(f"   Alvo: {args.quantidade} itens | Tipo: {args.tipo}")
     print(f"   Saída: {PASTA_DADOS_CURTOS} (curtos) e {PASTA_DADOS_LONGOS} (longos)")

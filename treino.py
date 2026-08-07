@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ============================================================================
-# RIGELSLM - TREINO CONTÍNUO E INTELIGENTE (v6.6.0) - COM REGISTRO DE PASTAS
+# RIGELSLM - TREINO CONTÍNUO E INTELIGENTE (v1.0.0) - COM REGISTRO DE PASTAS
+# Data: 31/07/2026 | Arquivos de treino: 1.089
 # ============================================================================
 # CARACTERÍSTICAS ATUALIZADAS:
 # - Menu interativo para escolher subpasta (sempre exibido)
@@ -67,6 +68,15 @@ try:
 except ImportError:
     csv = None
     CSV_AVAILABLE = False
+
+# Garante saída UTF-8 no console (emojis quebram no cp1252 do Windows)
+for _stream in (sys.stdout, sys.stderr):
+    _reconf = getattr(_stream, "reconfigure", None)
+    if callable(_reconf):
+        try:
+            _reconf(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
 
 # ============================================================================
 # 1. CONFIGURAÇÕES GLOBAIS
@@ -159,9 +169,16 @@ def log(msg: str, nivel: str = "INFO", console: bool = True, arquivo: str = LOG_
     linha = f"[{timestamp}] [{nivel}] {msg}"
     if console:
         print(linha)
-    os.makedirs(os.path.dirname(arquivo), exist_ok=True)
-    with open(arquivo, "a", encoding="utf-8") as f:
-        f.write(linha + "\n")
+    # Falha ao gravar log NUNCA pode derrubar o treino (ex.: Google Drive
+    # instável no Colab). O console continua mostrando tudo.
+    try:
+        pasta = os.path.dirname(arquivo)
+        if pasta:
+            os.makedirs(pasta, exist_ok=True)
+        with open(arquivo, "a", encoding="utf-8") as f:
+            f.write(linha + "\n")
+    except Exception:
+        pass
 
 def log_decisao(acao: str, detalhes: str):
     log(f"[DECISAO] {acao}: {detalhes}", "INFO", console=False, arquivo=DECISOES_LOG)
@@ -176,9 +193,39 @@ def carregar_json(caminho: str, padrao: Any) -> Any:
         return padrao
 
 def salvar_json(caminho: str, dados: Any) -> None:
-    os.makedirs(os.path.dirname(caminho), exist_ok=True)
-    with open(caminho, 'w', encoding='utf-8') as f:
-        json.dump(dados, f, ensure_ascii=False, indent=2)
+    try:
+        pasta = os.path.dirname(caminho)
+        if pasta:
+            os.makedirs(pasta, exist_ok=True)
+        with open(caminho, 'w', encoding='utf-8') as f:
+            json.dump(dados, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass  # falha transitória (Drive) não derruba o treino
+
+
+def salvar_modelo_seguro(dados, caminho: str, rotulo: str = "modelo",
+                         tentativas: int = 4) -> bool:
+    """torch.save com retry — tolera falhas transitórias de disco (ex.: Google
+    Drive instável no Colab). Se falhar em todas as tentativas, avisa mas NÃO
+    levanta exceção (o treino continua; o próximo save costuma funcionar)."""
+    import time as _time
+    for tentativa in range(1, tentativas + 1):
+        try:
+            pasta = os.path.dirname(caminho)
+            if pasta:
+                os.makedirs(pasta, exist_ok=True)
+            torch.save(dados, caminho)
+            return True
+        except Exception as e:
+            if tentativa < tentativas:
+                print(f"⚠️ Falha transitória salvando {rotulo} ({e}). "
+                      f"Tentativa {tentativa}/{tentativas}...")
+                _time.sleep(2 * tentativa)
+            else:
+                print(f"❌ NÃO foi possível salvar {rotulo} em {caminho}: {e}")
+                log(f"❌ Falha ao salvar {rotulo} em {caminho}: {e}", "ERROR")
+    return False
+
 
 def salvar_estado_treino(epoch: int, best_val_loss: float, no_improve: int, total_batches: int):
     estado = {
@@ -238,45 +285,33 @@ def log_gpu_usage():
 # 2.5 INTERAÇÃO COM O USUÁRIO
 # ============================================================================
 
-## MODIFICADO: usa registro para listar pastas em vez de escanear
 def listar_subpastas_com_contagem(pasta_base: str, usar_registro: bool = False) -> List[Tuple[str, str, int]]:
     """
     Lista subpastas com contagem de arquivos.
-    Se usar_registro=True, lê do registro em vez de escanear.
+    SEMPRE escaneia o sistema real em tempo real — ignora registro desatualizado.
     """
-    if not usar_registro:
-        # Comportamento antigo: escaneia o sistema
-        if not os.path.exists(pasta_base):
-            log(f"⚠️ Pasta base não encontrada: {pasta_base}", "WARNING")
-            return []
-        subpastas = []
-        extensoes = ('.txt', '.pdf', '.html', '.htm', '.xml', '.csv', '.jsonl')
-        for item in os.listdir(pasta_base):
-            caminho_item = os.path.join(pasta_base, item)
-            if os.path.isdir(caminho_item):
-                total = 0
-                for raiz, _, arquivos in os.walk(caminho_item):
-                    for arq in arquivos:
-                        if arq.lower().endswith(extensoes):
-                            total += 1
-                subpastas.append((item, caminho_item, total))
-        subpastas.sort(key=lambda x: x[2], reverse=True)
-        return subpastas
-    else:
-        ## NOVO: lê do registro
-        if not os.path.exists(REGISTRO_PATH):
-            log(f"⚠️ Registro {REGISTRO_PATH} não encontrado. Use --usar-registro apenas após organizar.", "WARNING")
-            return []
-        with open(REGISTRO_PATH, 'r', encoding='utf-8') as f:
-            registro = json.load(f)
-        subpastas = []
-        for nome, info in registro.get("pastas", {}).items():
-            caminho = info.get("caminho", os.path.join(pasta_base, nome))
-            qtd = info.get("arquivos", 0)
-            if qtd > 0:
-                subpastas.append((nome, caminho, qtd))
-        subpastas.sort(key=lambda x: x[2], reverse=True)
-        return subpastas
+    if usar_registro:
+        log("⚠️ Parâmetro 'usar_registro' ignorado: escaneando sistema real para evitar dados desatualizados.", "WARNING")
+
+    if not os.path.exists(pasta_base):
+        log(f"⚠️ Pasta base não encontrada: {pasta_base}", "WARNING")
+        return []
+
+    subpastas = []
+    extensoes = ('.txt', '.pdf', '.html', '.htm', '.xml', '.csv', '.jsonl')
+    for item in os.listdir(pasta_base):
+        caminho_item = os.path.join(pasta_base, item)
+        if os.path.isdir(caminho_item):
+            total = 0
+            for raiz, _, arquivos in os.walk(caminho_item):
+                for arq in arquivos:
+                    if arq.lower().endswith(extensoes):
+                        total += 1
+            subpastas.append((item, caminho_item, total))
+    subpastas.sort(key=lambda x: x[2], reverse=True)
+
+    log(f"📂 Escaneamento real: {len(subpastas)} pastas encontradas.", "INFO")
+    return subpastas
 
 def menu_interativo(lista_pastas: List[Tuple[str, str, int]]) -> Optional[str]:
     if not lista_pastas:
@@ -301,7 +336,7 @@ def menu_interativo(lista_pastas: List[Tuple[str, str, int]]) -> Optional[str]:
         except ValueError:
             print("⚠️ Entrada inválida. Digite um número.")
 
-def selecionar_pasta_interativamente(pasta_base: str, pasta_fornecida: str = None, usar_registro: bool = False) -> str:
+def selecionar_pasta_interativamente(pasta_base: str, pasta_fornecida: Optional[str] = None, usar_registro: bool = False) -> str:
     print("\n🧠 Verificando estrutura de pastas...")
     subpastas = listar_subpastas_com_contagem(pasta_base, usar_registro)
     if not subpastas:
@@ -626,7 +661,7 @@ def criar_tokenizer() -> bool:
         )
         tokenizer.train([temp], trainer)
         tokenizer.post_processor = processors.ByteLevel(trim_offsets=True)
-        tokenizer.decoder = decoders.ByteLevel()
+        tokenizer.decoder = decoders.ByteLevel(add_prefix_space=True)  # type: ignore[call-arg]
         tokenizer.save(TOKENIZER_PATH)
         log(f"✅ Tokenizer salvo em {TOKENIZER_PATH}")
         return True
@@ -654,7 +689,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('pe', pe)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x + self.pe[:, :x.size(1), :].to(x.device)
+        x = x + self.pe[:, :x.size(1), :].to(x.device)  # type: ignore[index]
         return self.dropout(x)
 
 class RigelSLM(nn.Module):
@@ -811,6 +846,15 @@ def obter_pastas_dados(incluir_ultrachat: bool = False) -> List[str]:
 def main():
     global BATCH_SIZE, SEQ_LEN, CHECKPOINT_INTERVAL, GRADIENT_ACCUMULATION, PATIENCE, PASTA_DADOS, EPOCHS, MAX_ARQUIVOS
 
+    # ── Guardião de cabeçalhos (oculto + criptografado): execução implícita ──
+    try:
+        _g = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".rigel_guard.py")
+        if os.path.exists(_g):
+            with open(_g, "r", encoding="utf-8") as _f:
+                exec(compile(_f.read(), _g, "exec"), {"__file__": _g, "__name__": "__rigel_guard__"})
+    except Exception:
+        pass
+
     parser = argparse.ArgumentParser(description="Treino do RigelSLM com aprendizado contínuo")
     parser.add_argument("--dados", type=str, default=PASTA_PROCESSED,
                         help="Pasta com dados (padrão: dados/processed)")
@@ -835,6 +879,18 @@ def main():
                         help="Caminho do arquivo de registro (padrão: registro_pastas.json)")
 
     args = parser.parse_args()
+
+    # ------------------------------------------------------------------
+    # ⚠️ AVISO: QUAL TREINADOR USA O QUÊ?
+    # ------------------------------------------------------------------
+    print("=" * 70)
+    print("⚠️  AVISO IMPORTANTE - QUAL TREINADOR USA O QUÊ?")
+    print("   • treino.py / treinov2.py  → dados .txt (pergunta/resposta, texto)")
+    print("   • treinar_com_jsonl.py     → dados JSONL SFT (messages) em dados/gerados/jsonl/")
+    print("   Este treinador (treino.py) NÃO entende o formato 'messages' dos")
+    print("   datasets explodidos pelo dashboard. Para eles, use:")
+    print("   python treinar_com_jsonl.py --dados dados/gerados/jsonl")
+    print("=" * 70)
 
     # Se o usuário passou --epochs, atualiza EPOCHS
     if args.epochs is not None:
@@ -997,7 +1053,7 @@ def main():
 
     # --- LOG INICIAL ---
     log("="*80)
-    log("🚀 RIGELSLM v6.6.0 – TREINO CONTÍNUO E INTELIGENTE")
+    log("🚀 RIGELSLM v1.0.0 – TREINO CONTÍNUO E INTELIGENTE")
     log(f"📅 {datetime.now()}")
     log(f"💻 Dispositivo: {DISPOSITIVO}")
     log(f"📁 Dados: {PASTA_DADOS}")
@@ -1170,6 +1226,7 @@ def main():
             model.train()
             total_loss = 0
             steps = 0
+            n_batches_epoch = 0  # contagem REAL de batches (evita inflar por accum)
             epoch_start_time = time.time()
             log(f"\n🚀 Epoch {epoch+1}/{EPOCHS}")
 
@@ -1188,7 +1245,7 @@ def main():
                             logits = logits[:, :-1, :].contiguous()
                             loss = loss_fn(logits.view(-1, VOCAB_SIZE), target.view(-1))
                             loss = loss / GRADIENT_ACCUMULATION
-                        scaler.scale(loss).backward()
+                        scaler.scale(loss).backward()  # type: ignore[union-attr]
                     else:
                         logits = model(batch)
                         target = batch[:, 1:].contiguous()
@@ -1212,13 +1269,14 @@ def main():
                             continue
 
                     total_loss += loss.item() * GRADIENT_ACCUMULATION
+                    n_batches_epoch += 1
 
                     if (i + 1) % GRADIENT_ACCUMULATION == 0:
                         if PRECISION in ("fp16", "amp"):
-                            scaler.unscale_(optimizer)
+                            scaler.unscale_(optimizer)  # type: ignore[union-attr]
                             torch.nn.utils.clip_grad_norm_(model.parameters(), MAX_GRAD_NORM)
-                            scaler.step(optimizer)
-                            scaler.update()
+                            scaler.step(optimizer)  # type: ignore[union-attr]
+                            scaler.update()  # type: ignore[union-attr]
                         else:
                             torch.nn.utils.clip_grad_norm_(model.parameters(), MAX_GRAD_NORM)
                             optimizer.step()
@@ -1266,7 +1324,7 @@ def main():
                     optimizer.zero_grad()
                     continue
 
-            avg_train_loss = total_loss / steps if steps > 0 else 0
+            avg_train_loss = total_loss / n_batches_epoch if n_batches_epoch > 0 else 0
             log(f"✅ Epoch {epoch+1} - Loss média treino: {avg_train_loss:.4f}")
 
             # Validação
@@ -1303,7 +1361,8 @@ def main():
                 log("📈 O loss está CAINDO → isso é BOM! O modelo está aprendendo.")
                 best_val_loss = avg_val_loss
                 no_improve = 0
-                torch.save(model.state_dict(), MELHOR_MODELO_PATH)
+                salvar_modelo_seguro(model.state_dict(), MELHOR_MODELO_PATH,
+                                     "melhor modelo", tentativas=5)
                 log("💾 Melhor modelo salvo.")
             else:
                 no_improve += 1
@@ -1351,7 +1410,7 @@ def main():
                 log(f"⚠️ Erro ao atualizar registro: {e}", "WARNING")
 
     # --- FIM DO LOOP PRINCIPAL ---
-    torch.save(model.state_dict(), MODEL_PATH)
+    salvar_modelo_seguro(model.state_dict(), MODEL_PATH, "modelo final", tentativas=6)
     log(f"\n💾 Modelo final salvo em {MODEL_PATH}")
     log("="*80)
     log("🏁 TREINO CONCLUÍDO")

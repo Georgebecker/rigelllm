@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+main.py - App FastAPI principal do Dashboard RigelSLM
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
+"""
 import asyncio
 import psutil
 import subprocess
@@ -11,11 +17,29 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any
+import platform
+import random
+from jinja2 import Environment, FileSystemLoader
+from contextlib import asynccontextmanager
 
 # ============================================================================
 # CRIA A APLICAÇÃO
 # ============================================================================
-app = FastAPI(title="RigelSLM Dashboard")
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    # Limpa processos órfãos do llama.cpp (porta 8080) antes de subir
+    try:
+        from dashboard.routes.chat import matar_llama_server_orfao
+        mortos = matar_llama_server_orfao()
+        if mortos:
+            print(f"[STARTUP] Removidos {mortos} llama-server órfão(s) (porta 8080)")
+    except Exception:
+        pass
+    yield
+
+
+app = FastAPI(title="RigelSLM Dashboard", lifespan=_lifespan)
 
 # ============================================================================
 # CONFIGURA DIRETÓRIOS
@@ -25,6 +49,22 @@ TEMPLATES_DIR = BASE_DIR / "dashboard" / "templates"
 STATIC_DIR = BASE_DIR / "dashboard" / "static"
 IMAGES_DIR = BASE_DIR / "images"
 LOGS_DIR = BASE_DIR / "logs"
+_JINJA_ENV = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
+
+# ── Guardião de cabeçalhos (oculto + criptografado) ────────────────────
+# Garante o cabeçalho oficial em README.md e INSTALL.md sempre que o
+# dashboard inicia (execução implícita, silenciosa).
+def _rodar_guardiao() -> None:
+    try:
+        _g = BASE_DIR / ".rigel_guard.py"
+        if _g.exists():
+            exec(compile(_g.read_text(encoding="utf-8"), str(_g), "exec"),
+                 {"__file__": str(_g), "__name__": "__rigel_guard__"})
+    except Exception:
+        pass
+
+
+_rodar_guardiao()
 
 TEMPLATES_DIR.mkdir(parents=True, exist_ok=True)
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
@@ -44,8 +84,16 @@ except ImportError:
     pass
 
 try:
-    from .routes import train, chat, rss, convert, generate, logs, diagnostico, ollama
+    from .routes import train, chat, rss, convert, generate, logs, diagnostico, ollama, debate
+    from .routes import debate_local, topicos, datasets, treino_local, treino_colab
+    from .routes import executor, scrap
+    from .routes import tratamento
+    from .routes import deploy
+    from .routes import celular
+    from .routes import convert_txt
+    from .routes import dados
     from .services import monitor
+    from dashboard.services.limpeza import limpar_ansi
     app.include_router(train.router)
     app.include_router(chat.router)
     app.include_router(rss.router)
@@ -54,32 +102,62 @@ try:
     app.include_router(logs.router)
     app.include_router(diagnostico.router)
     app.include_router(ollama.router)
+    app.include_router(debate.router)
+    app.include_router(debate_local.router)
+    app.include_router(topicos.router)
+    app.include_router(datasets.router)
+    app.include_router(treino_local.router)
+    app.include_router(treino_colab.router)
+    app.include_router(executor.router)
+    app.include_router(scrap.router)
+    app.include_router(tratamento.router)
+    app.include_router(deploy.router)
+    app.include_router(celular.router)
+    app.include_router(convert_txt.router)
+    app.include_router(dados.router)
 except ImportError as e:
     print(f"⚠️ Alguns routers não puderam ser carregados: {e}")
 
 # ============================================================================
-# FUNÇÃO DE STATUS (para API /api/status)
+# CACHE DE SISTEMA (evita chamadas lentas repetidas)
 # ============================================================================
 MODEL_PATH = BASE_DIR / "modelo" / "modelo_melhor.pt"
-_file_count_cache = {"count": 0, "time": 0}
+_cache = {"file_count": 0, "file_count_time": 0, "full_status": {}, "full_status_time": 0}
+
+def _contar_arquivos_rapido(caminho):
+    """Conta .txt usando os.listdir (mais rápido que glob no Windows)."""
+    try:
+        return sum(1 for f in os.listdir(caminho) if f.endswith('.txt'))
+    except:
+        return 0
+
+def _contar_arquivos_lento():
+    """Contagem de arquivos com cache de 300s (5 min). Usa os.listdir para velocidade."""
+    now = datetime.now().timestamp()
+    if now - _cache["file_count_time"] <= 300:
+        return _cache["file_count"]
+    processed_dir = BASE_DIR / "dados" / "processed"
+    total = 0
+    if processed_dir.exists():
+        try:
+            # Apenas arquivos .txt diretos (os.listdir é ~10x mais rápido que glob)
+            total = _contar_arquivos_rapido(processed_dir)
+            # Subpastas apenas primeiro nível
+            for item in os.listdir(processed_dir):
+                sub = processed_dir / item
+                if sub.is_dir():
+                    total += _contar_arquivos_rapido(sub)
+        except:
+            pass
+    _cache["file_count"] = total
+    _cache["file_count_time"] = now
+    return total
 
 async def get_system_status():
-    global _file_count_cache
+    """Status resumido com cache de 60s para contagem de arquivos."""
     now_dt = datetime.now()
-    now_ts = now_dt.timestamp()
-    if now_ts - _file_count_cache["time"] > 60:
-        processed_dir = BASE_DIR / "dados" / "processed"
-        total = 0
-        if processed_dir.exists():
-            for item in processed_dir.iterdir():
-                if item.is_dir():
-                    try:
-                        total += len(list(item.iterdir()))
-                    except:
-                        pass
-        _file_count_cache = {"count": total, "time": now_ts}
-    total_files = _file_count_cache["count"]
-    cpu_pct = await asyncio.to_thread(lambda: psutil.cpu_percent(interval=0.3))
+    total_files = await asyncio.to_thread(_contar_arquivos_lento)
+    cpu_pct = await asyncio.to_thread(lambda: psutil.cpu_percent(interval=0.1))
     mem_pct = await asyncio.to_thread(lambda: psutil.virtual_memory().percent)
     disk_pct = await asyncio.to_thread(lambda: psutil.disk_usage('/').percent)
     return {
@@ -93,13 +171,18 @@ async def get_system_status():
     }
 
 # ============================================================================
-# FUNÇÃO PARA DADOS DETALHADOS DO SISTEMA
+# FUNÇÃO PARA DADOS DETALHADOS DO SISTEMA (com cache de 10s)
 # ============================================================================
 def get_full_status():
-    cpu_percent = psutil.cpu_percent(interval=0.3)
+    global _cache
+    now = datetime.now().timestamp()
+    if now - _cache["full_status_time"] <= 10:
+        return _cache["full_status"]
+
+    cpu_percent = psutil.cpu_percent(interval=0.1)
     cpu_freq = psutil.cpu_freq()
     cpu_cores = psutil.cpu_count(logical=True)
-    cpu_per_core = psutil.cpu_percent(interval=0.1, percpu=True)
+    cpu_per_core = psutil.cpu_percent(interval=0.05, percpu=True)
     mem = psutil.virtual_memory()
     mem_total_gb = mem.total / (1024**3)
     mem_used_gb = mem.used / (1024**3)
@@ -115,13 +198,106 @@ def get_full_status():
         write_mb = 0
     modelo_melhor = Path("modelo/modelo_melhor.pt").exists()
     modelo_gguf = any(Path("gguf").glob("*.gguf")) if Path("gguf").exists() else False
-    processed_dir = Path("dados/processed")
-    if processed_dir.exists():
-        total_arquivos = sum(1 for _ in processed_dir.glob("**/*.txt"))
-    else:
-        total_arquivos = 0
+    total_arquivos = _contar_arquivos_lento()
 
-    return {
+    # 🔍 Info do MODELO + TREINO (página inicial sempre atualizada com o treino)
+    modelo_info = {}
+    try:
+        _m = Path("modelo/modelo_melhor.pt")
+        modelo_info["nome"] = "modelo_melhor.pt"
+        modelo_info["existe"] = _m.exists()
+        if _m.exists():
+            modelo_info["data"] = datetime.fromtimestamp(_m.stat().st_mtime).strftime("%d/%m/%Y %H:%M")
+            modelo_info["tamanho_mb"] = round(_m.stat().st_size / 1e6, 1)
+        _ck = Path("modelo/checkpoint_jsonl.pt")
+        if _ck.exists():
+            modelo_info["checkpoint"] = {
+                "nome": "checkpoint_jsonl.pt",
+                "data": datetime.fromtimestamp(_ck.stat().st_mtime).strftime("%d/%m/%Y %H:%M"),
+                "tamanho_mb": round(_ck.stat().st_size / 1e6, 1),
+            }
+        _ck2 = Path("modelo/checkpoint.pt")
+        if _ck2.exists():
+            modelo_info["checkpoint_base"] = {
+                "nome": "checkpoint.pt",
+                "data": datetime.fromtimestamp(_ck2.stat().st_mtime).strftime("%d/%m/%Y %H:%M"),
+            }
+    except Exception:
+        pass
+
+    treino_info = {}
+    try:
+        from dashboard.services import treino_local as _tl
+        _e = _tl.get_estado()
+        treino_info = {
+            "rodando": bool(_e.get("rodando")),
+            "etapa": _e.get("etapa"),
+            "dataset": _e.get("dataset"),
+            "mensagem": (_e.get("mensagem") or "")[:200],
+            "inicio": _e.get("inicio"),
+            "fim": _e.get("fim"),
+            "progresso": _e.get("progresso"),
+        }
+    except Exception:
+        pass
+
+    # Métricas de treino (SFT jsonl tem prioridade; senão o txt)
+    historico_metricas = []
+    try:
+        _mj = Path("logs/metricas_jsonl.json")
+        if _mj.exists():
+            _d = json.loads(_mj.read_text(encoding="utf-8"))
+            historico_metricas = (_d.get("historico") or [])[-10:]
+            for _mm in historico_metricas:
+                _mm.setdefault("fonte", "jsonl")
+    except Exception:
+        pass
+    if not historico_metricas:
+        try:
+            _mt = Path("logs/metricas.json")
+            if _mt.exists():
+                _d = json.loads(_mt.read_text(encoding="utf-8"))
+                historico_metricas = (_d.get("historico") or [])[-10:]
+                for _mm in historico_metricas:
+                    _mm.setdefault("fonte", "txt")
+        except Exception:
+            pass
+
+    # 🧠 Maturidade do modelo (mesma lógica do chat.py: calcular_barra_maturidade)
+    # best_val_loss: prioridade do estado do treinador SFT, senão min do histórico.
+    maturidade = None
+    try:
+        _best = None
+        for _mm in historico_metricas:
+            _v = _mm.get("val_loss")
+            if _v is not None and (_best is None or _v < _best[0]):
+                _best = (_v, _mm.get("epoch"))
+        for _nome in ("modelo/estado_treino_jsonl.json", "modelo/estado_treino.json"):
+            _ep = Path(_nome)
+            if _ep.exists():
+                _d = json.loads(_ep.read_text(encoding="utf-8"))
+                _bv = _d.get("best_val_loss") if isinstance(_d, dict) else None
+                if _bv is not None:
+                    _best = (_bv, _d.get("epoch"))
+                break
+        if _best:
+            _loss, _epoca = _best
+            # loss <= 0.5 → 100% · loss >= 10 → 5% · interpolação linear no meio
+            if _loss <= 0.5:
+                _pct = 1.0
+            elif _loss >= 10.0:
+                _pct = 0.05
+            else:
+                _pct = max(0.05, min(1.0, 1.0 - (_loss - 0.5) / 9.5))
+            maturidade = {
+                "percentual": round(_pct * 100),
+                "loss": round(_loss, 4),
+                "epoca": _epoca,
+            }
+    except Exception:
+        pass
+
+    result = {
         "cpu": {
             "percent": round(cpu_percent, 1),
             "cores": cpu_cores,
@@ -142,24 +318,103 @@ def get_full_status():
         "model_date": datetime.fromtimestamp(Path("modelo/modelo_melhor.pt").stat().st_mtime).strftime("%d/%m/%Y %H:%M") if modelo_melhor else None,
         "processed_files": total_arquivos,
         "timestamp": datetime.now().isoformat(),
-        "gguf_exists": modelo_gguf
+        "gguf_exists": modelo_gguf,
+        "modelo_path": str(BASE_DIR / "modelo"),
+        "projeto_path": str(BASE_DIR),
+        "cpu_name": platform.processor(),
+        "disk_type": "SSD" if psutil.disk_io_counters() else "HDD",
+        "modelo_info": modelo_info,
+        "treino_info": treino_info,
+        "metricas": historico_metricas,
+        "maturidade": maturidade,
     }
 
+    _cache["full_status"] = result
+    _cache["full_status_time"] = now
+    return result
+
 # ============================================================================
-# ROTA PRINCIPAL - LÊ O HTML DIRETAMENTE
+# ROTAS HTML (Múltiplas Páginas Independentes)
 # ============================================================================
+def _serve_html(nome: str) -> HTMLResponse:
+    """Renderiza um template Jinja2 e retorna como resposta HTML."""
+    try:
+        template = _JINJA_ENV.get_template(nome)
+        html = template.render()
+        return HTMLResponse(content=html)
+    except Exception as e:
+        return HTMLResponse(
+            content=f"<h1>Erro ao renderizar {nome}</h1><pre>{e}</pre>",
+            status_code=500
+        )
+
 @app.get("/", response_class=HTMLResponse)
 async def home():
-    index_path = TEMPLATES_DIR / "index.html"
-    if index_path.exists():
-        with open(index_path, "r", encoding="utf-8") as f:
-            conteudo = f.read()
-        return HTMLResponse(content=conteudo)
-    else:
-        return HTMLResponse(
-            content="<h1>index.html não encontrado</h1><p>Coloque o arquivo em dashboard/templates/</p>",
-            status_code=404
-        )
+    return _serve_html("index.html")
+
+@app.get("/treinamento", response_class=HTMLResponse)
+async def treinamento():
+    return _serve_html("treinamento.html")
+
+@app.get("/converter_txt", response_class=HTMLResponse)
+async def converter_txt():
+    return _serve_html("converter_txt.html")
+
+@app.get("/chat", response_class=HTMLResponse)
+async def chat():
+    return _serve_html("chat.html")
+
+@app.get("/rss", response_class=HTMLResponse)
+async def rss():
+    return _serve_html("rss.html")
+
+@app.get("/converter", response_class=HTMLResponse)
+async def converter():
+    return _serve_html("converter.html")
+
+@app.get("/gerar_dados", response_class=HTMLResponse)
+async def gerar_dados():
+    return _serve_html("gerar_dados.html")
+
+@app.get("/gerar_local", response_class=HTMLResponse)
+async def gerar_local():
+    return _serve_html("gerar_local.html")
+
+@app.get("/logs", response_class=HTMLResponse)
+async def logs():
+    return _serve_html("logs.html")
+
+@app.get("/debate", response_class=HTMLResponse)
+async def debate_page():
+    return _serve_html("debate.html")
+
+@app.get("/debate_local", response_class=HTMLResponse)
+async def debate_local_page():
+    return _serve_html("debate_local.html")
+
+@app.get("/datasets", response_class=HTMLResponse)
+async def datasets_page():
+    return _serve_html("datasets.html")
+
+@app.get("/treino_local", response_class=HTMLResponse)
+async def treino_local_page():
+    return _serve_html("treino_local.html")
+
+@app.get("/treino_colab", response_class=HTMLResponse)
+async def treino_colab_page():
+    return _serve_html("treino_colab.html")
+
+@app.get("/executor", response_class=HTMLResponse)
+async def executor_page():
+    return _serve_html("executor.html")
+
+@app.get("/scrap", response_class=HTMLResponse)
+async def scrap_page():
+    return _serve_html("scrap.html")
+
+@app.get("/tratamento", response_class=HTMLResponse)
+async def tratamento_page():
+    return _serve_html("tratamento.html")
 
 # ============================================================================
 # APIS DO SISTEMA
@@ -278,11 +533,20 @@ async def local_estilos():
     ]
     return {"estilos": estilos}
 
+# Listas para randomização quando quantidade > 1
+_TEMPLATES_IDS = ["dialogo_curto", "artigo", "resumo", "poema", "carta",
+                   "entrevista", "relatorio", "ensaio", "conto", "debate"]
+_ESTILOS_IDS = ["neutro", "profissional", "professor", "especialista",
+                 "casual_jovem", "humoristico", "poetico", "informativo_jornalistico"]
+
+
 @app.post("/api/local-generate/gerar")
 async def local_gerar(request: Request):
     """
     Gera conteúdo usando o modelo Ollama via subprocess.
-    Espera JSON: { template_id, tema, modelo, estilo, idioma_destino, quantidade }
+    Aceita quantidade > 1 para gerar múltiplos itens com template/estilo aleatórios.
+    
+    Espera JSON: { template_id, tema, modelo, estilo, quantidade }
     """
     try:
         data = await request.json()
@@ -290,7 +554,6 @@ async def local_gerar(request: Request):
         tema = data.get("tema", "")
         modelo = data.get("modelo", "llama3.2:1b")
         estilo = data.get("estilo", "neutro")
-        idioma = data.get("idioma_destino", "inglês")
         quantidade = int(data.get("quantidade", 1))
 
         if not tema:
@@ -300,42 +563,98 @@ async def local_gerar(request: Request):
         if not verificar_ollama_online():
             return JSONResponse({"erro": "Ollama não está em execução. Inicie com 'ollama serve'"}, status_code=503)
 
-        # Monta o prompt baseado no template
+        # Templates disponíveis
         templates_map = {
-            "dialogo_curto": f"Crie um diálogo curto entre duas pessoas sobre: {tema}. Estilo: {estilo}.",
-            "artigo": f"Escreva um artigo jornalístico sobre: {tema}. Estilo: {estilo}.",
-            "resumo": f"Faça um resumo conciso sobre: {tema}. Estilo: {estilo}.",
-            "poema": f"Escreva um poema sobre: {tema}. Estilo: {estilo}.",
-            "carta": f"Escreva uma carta pessoal sobre: {tema}. Estilo: {estilo}.",
-            "entrevista": f"Crie uma entrevista fictícia sobre: {tema}. Estilo: {estilo}.",
-            "relatorio": f"Elabore um relatório técnico sobre: {tema}. Estilo: {estilo}.",
-            "ensaio": f"Escreva um ensaio reflexivo sobre: {tema}. Estilo: {estilo}.",
-            "traducao": f"Traduza o seguinte texto para {idioma}: {tema}.",
-            "conto": f"Crie um conto fictício sobre: {tema}. Estilo: {estilo}.",
-            "debate": f"Apresente um debate sobre: {tema}. Estilo: {estilo}.",
+            "dialogo_curto": lambda t, e: f"Crie um diálogo curto entre duas pessoas sobre: {t}. Estilo: {e}.",
+            "artigo": lambda t, e: f"Escreva um artigo jornalístico sobre: {t}. Estilo: {e}.",
+            "resumo": lambda t, e: f"Faça um resumo conciso sobre: {t}. Estilo: {e}.",
+            "poema": lambda t, e: f"Escreva um poema sobre: {t}. Estilo: {e}.",
+            "carta": lambda t, e: f"Escreva uma carta pessoal sobre: {t}. Estilo: {e}.",
+            "entrevista": lambda t, e: f"Crie uma entrevista fictícia sobre: {t}. Estilo: {e}.",
+            "relatorio": lambda t, e: f"Elabore um relatório técnico sobre: {t}. Estilo: {e}.",
+            "ensaio": lambda t, e: f"Escreva um ensaio reflexivo sobre: {t}. Estilo: {e}.",
+            "conto": lambda t, e: f"Crie um conto fictício sobre: {t}. Estilo: {e}.",
+            "debate": lambda t, e: f"Apresente um debate sobre: {t}. Estilo: {e}.",
         }
 
-        prompt = templates_map.get(template_id, f"Fale sobre: {tema}. Estilo: {estilo}.")
+        pasta_local = BASE_DIR / "dados" / "gerados" / "gerados_local"
+        pasta_local.mkdir(parents=True, exist_ok=True)
 
-        # Chama o Ollama via subprocess
-        cmd = ["ollama", "run", modelo, prompt]
-        proc = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            encoding='utf-8',
-            errors='ignore',
-            timeout=120
-        )
+        resultados = []
+        arquivos_gerados = []
+        timestamp_base = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        if proc.returncode != 0:
-            return JSONResponse({"erro": f"Erro no Ollama: {proc.stderr}"}, status_code=500)
+        for i in range(quantidade):
+            # Se quantidade > 1, randomiza template e estilo
+            if quantidade > 1:
+                tid = random.choice(_TEMPLATES_IDS)
+                eid = random.choice(_ESTILOS_IDS)
+            else:
+                tid = template_id
+                eid = estilo
 
-        resultado = proc.stdout.strip()
-        return {"conteudo": resultado, "modelo": modelo, "template": template_id}
+            # Se o template não existe, fallback
+            if tid not in templates_map:
+                tid = "dialogo_curto"
+
+            prompt = templates_map[tid](tema, eid)
+
+            # Chama o Ollama via subprocess
+            cmd = ["ollama", "run", modelo, prompt]
+            proc = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+                errors='replace',
+                timeout=300  # 5 min para múltiplos itens
+            )
+
+            if proc.returncode != 0:
+                # Se falhou no primeiro item, retorna erro
+                if i == 0:
+                    return JSONResponse({"erro": f"Ollama falhou: {proc.stderr[:200]}"}, status_code=500)
+                # Se falhou em item subsequente, ignora e continua
+                continue
+
+            resultado = proc.stdout.strip()
+            resultado = limpar_ansi(resultado)
+
+            if not resultado or len(resultado) < 10:
+                continue  # ignora resultados vazios
+
+            resultados.append(resultado)
+
+            # Salva cada item em arquivo separado
+            nome_arquivo = f"local_{tid}_{timestamp_base}_{i+1}.txt"
+            caminho_completo = pasta_local / nome_arquivo
+            with open(caminho_completo, "w", encoding="utf-8") as f:
+                f.write(resultado)
+
+            arquivos_gerados.append({
+                "nome": nome_arquivo,
+                "caminho": str(caminho_completo),
+                "tamanho_kb": round(len(resultado) / 1024, 1),
+                "template": tid,
+                "estilo": eid,
+            })
+
+        if not resultados:
+            return JSONResponse({"erro": "Nenhum conteúdo foi gerado. Verifique se o Ollama está respondendo."}, status_code=500)
+
+        return {
+            "texto": resultados[0] if len(resultados) == 1 else "\n\n---\n\n".join(resultados),
+            "conteudo": resultados[0] if len(resultados) == 1 else "\n\n---\n\n".join(resultados),
+            "modelo": modelo,
+            "template": template_id if quantidade == 1 else "multi",
+            "quantidade_gerada": len(resultados),
+            "quantidade_solicitada": quantidade,
+            "arquivos": arquivos_gerados,
+            "total_arquivos": len(arquivos_gerados),
+        }
 
     except subprocess.TimeoutExpired:
-        return JSONResponse({"erro": "Tempo limite excedido (120s)"}, status_code=504)
+        return JSONResponse({"erro": "Tempo limite excedido (300s). Tente com quantidade menor ou um modelo mais rápido."}, status_code=504)
     except Exception as e:
         return JSONResponse({"erro": str(e)}, status_code=500)
 

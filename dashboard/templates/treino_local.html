@@ -1,0 +1,570 @@
+{% extends "base.html" %}
+{% block title %}Treino Local{% endblock %}
+{% block content %}
+<div x-data="treinoLocalState()" x-cloak>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">🎯 Treino Local</h2>
+  <p class="text-zinc-500 text-sm mb-4">Treine um arquivo explodido na sua <strong class="text-emerald-400">CPU</strong> (ou GPU, se disponível) com mensagens ao vivo — igual ao Colab</p>
+
+  <!-- Aviso: traga o modelo! -->
+  <div class="bg-sky-500/10 border border-sky-500/30 text-sky-300 rounded-xl px-3.5 py-2.5 mb-4 text-xs flex items-start gap-2">
+    <i class="fa-solid fa-circle-info mt-0.5"></i>
+    <p class="leading-relaxed">🤫 <strong>Pssiu!</strong> Antes de treinar, não esqueça de trazer o <strong>último modelo treinado</strong> (pasta <code class="text-sky-200">modelo/</code>) — do Colab/Google Drive para este PC. Treinar com um modelo antigo sobrescreve o progresso!</p>
+  </div>
+
+  <!-- Status cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+    <div class="bg-zinc-900 p-4 rounded-2xl">
+      <p class="text-zinc-500 text-xs">⚡ Dispositivo</p>
+      <p class="text-xl font-bold mt-1" :class="estado?.dispositivo==='gpu'?'text-emerald-400':'text-sky-400'" x-text="(estado?.dispositivo||'cpu').toUpperCase()"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl">
+      <p class="text-zinc-500 text-xs">🧪 Status</p>
+      <p class="text-xl font-bold mt-1" x-text="(estado?.etapa||'idle').toUpperCase()"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl">
+      <p class="text-zinc-500 text-xs">📂 Dataset (treino)</p>
+      <p class="text-sm font-bold mt-1 truncate" x-text="estado?.dataset||'—'"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl">
+      <p class="text-zinc-500 text-xs">📄 Arquivo (treino)</p>
+      <p class="text-sm font-bold mt-1 truncate" x-text="estado?.arquivo||'—'"></p>
+    </div>
+  </div>
+
+  <!-- 🗂️ Resumo dos datasets disponíveis -->
+  <div class="mb-4 bg-zinc-900 rounded-2xl p-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-zinc-400">
+    <span>🗂️ <b class="text-zinc-200" x-text="datasets.length"></b> dataset(s)</span>
+    <span>📄 <b class="text-zinc-200" x-text="totalArquivos"></b> arquivo(s) no total</span>
+    <span>⚫ <b class="text-zinc-400" x-text="totalBandeira('nenhuma')"></b> sem treinar</span>
+    <span>⚪ <b class="text-zinc-100" x-text="totalBandeira('branca')"></b> branca</span>
+    <span>🟡 <b class="text-yellow-400" x-text="totalBandeira('amarela')"></b> amarela</span>
+    <span>🔴 <b class="text-red-400" x-text="totalBandeira('vermelha')"></b> vermelha</span>
+  </div>
+
+  <!-- ⏳ Barra de progresso do treino (mesmo estilo do Download) -->
+  <div x-show="estado?.progresso" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-4 border border-emerald-600/30">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-sm font-semibold flex items-center gap-2">
+        <span x-show="estado?.progresso?.status==='concluido'">✅ Treino concluído</span>
+        <span x-show="estado?.progresso?.status==='interrompido'">⏹️ Treino interrompido</span>
+        <span x-show="estado?.progresso?.status==='erro'">❌ Treino com erro</span>
+        <span x-show="estado?.progresso?.status==='treinando' && estado.rodando">🔄 Treinando...</span>
+        <span x-show="estado?.progresso?.status==='treinando' && !estado.rodando">⏹️ Treino parado</span>
+        <span x-show="!['concluido','interrompido','erro','treinando'].includes(estado?.progresso?.status)">🔄 Treinando...</span>
+        <span class="text-zinc-500 text-xs font-normal" x-text="estado?.progresso?.arquivo"></span>
+      </h3>
+      <span class="text-emerald-400 font-bold text-lg" x-text="(estado?.progresso?.percentual ?? '') + '%'"></span>
+    </div>
+    <div class="h-3 bg-zinc-800 rounded-full overflow-hidden">
+      <div x-show="estado?.progresso?.percentual !== null && estado?.progresso?.percentual !== undefined"
+           class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-700"
+           :style="'width:' + (estado?.progresso?.percentual||0) + '%'"></div>
+      <div x-show="estado?.progresso?.percentual === null || estado?.progresso?.percentual === undefined"
+           class="h-full w-1/3 bg-emerald-500 animate-pulse"></div>
+    </div>
+    <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-[11px] text-zinc-400">
+      <span x-show="estado?.progresso?.epoch">📊 Época <b class="text-zinc-200" x-text="estado?.progresso?.epoch"></b>/<span x-text="estado?.progresso?.total_epochs"></span></span>
+      <span x-show="estado?.progresso?.step !== null && estado?.progresso?.step !== undefined">⏱️ passo <b class="text-zinc-200" x-text="estado?.progresso?.step"></b>/<span x-text="estado?.progresso?.steps_por_epoch"></span></span>
+      <span x-show="estado?.progresso?.loss !== null && estado?.progresso?.loss !== undefined">📉 loss <b class="text-yellow-300" x-text="estado?.progresso?.loss"></b></span>
+      <span x-show="estado?.progresso?.lr !== null && estado?.progresso?.lr !== undefined">🎚️ lr <b class="text-zinc-200" x-text="estado?.progresso?.lr"></b></span>
+      <span x-show="estado?.progresso?.eta_segundos !== null && estado?.progresso?.eta_segundos !== undefined && estado.rodando">⏳ ETA ~<b class="text-emerald-400" x-text="estado?.progresso?.eta_segundos < 60 ? estado?.progresso?.eta_segundos + 's' : Math.round(estado?.progresso?.eta_segundos/60) + 'min'"></b></span>
+      <span x-show="estado?.progresso?.status==='concluido'" class="text-emerald-400">✓ arquivo marcado como treinado</span>
+      <span x-show="!estado?.rodando && estado?.progresso?.status==='treinando'" class="text-zinc-500">(parado — arquivo NÃO marcado)</span>
+    </div>
+  </div>
+
+  <!-- Seleção do dataset -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-4">
+    <div class="flex flex-wrap items-center gap-2 mb-3">
+      <h3 class="text-base font-semibold">🗂️ Escolha o dataset e o arquivo para treinar</h3>
+      <span class="text-[10px] text-zinc-500">(o arquivo só é marcado quando o treino termina)</span>
+    </div>
+    <!-- ⏳ Barra de progresso do ESCANEAMENTO da estrutura (não é o treino!) -->
+    <div x-show="scan?.rodando" class="mb-3 bg-zinc-800/60 rounded-xl p-3 border border-sky-600/30">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-[11px] text-sky-300 flex items-center gap-2">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          Lendo estrutura de dados — <b x-text="scan?.pasta_atual || '...'"></b>
+        </span>
+        <span class="text-sky-400 font-bold text-sm" x-text="(scan?.percentual||0) + '%'"></span>
+      </div>
+      <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-sky-600 to-sky-400 transition-all duration-300"
+             :style="'width:' + (scan?.percentual||0) + '%'"></div>
+      </div>
+      <p class="text-[10px] text-zinc-500 mt-1">
+        <span x-text="(scan?.itens_processados||0) + ' de ' + (scan?.total_itens||0) + ' pastas · ' + (scan?.encontrados||0) + ' dataset(s) encontrados'"></span>
+        <span x-show="!scan?.rodando && scan?.fase==='concluido'" class="text-emerald-400"> — ✅ concluído!</span>
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2 items-center">
+      <select x-model="datasetSel" @change="carregarArquivos()"
+              class="bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+        <option value="">— selecione um dataset validado (processed) —</option>
+        <template x-for="d in datasets.filter(x=>x.local==='processed')" :key="d.nome">
+          <option :value="d.nome" x-text="d.nome + ' (' + d.arquivos + ' arquivos)'"></option>
+        </template>
+      </select>
+      <button @click="lerEstrutura()" :disabled="scan?.rodando"
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-3 py-2 rounded-xl text-sm disabled:opacity-40 flex items-center gap-1.5">
+        <i class="fa-solid fa-magnifying-glass" :class="{'fa-spin': scan?.rodando}"></i>
+        <span x-text="scan?.rodando ? 'Lendo...' : '🔍 Ler estrutura'"></span>
+      </button>
+      <button @click="carregarDatasets()" :disabled="scan?.rodando"
+              class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-xl text-sm disabled:opacity-40">
+        <i class="fa-solid fa-rotate mr-1" :class="{'fa-spin': scan?.rodando}"></i>Atualizar
+      </button>
+      <span class="text-xs" :class="datasetLocal==='processed'?'text-sky-400':'text-zinc-500'" x-show="datasetSel" x-text="'📍 ' + datasetLocal"></span>
+      <span class="text-xs text-zinc-500" x-show="(datasets.filter(x=>x.local==='processed')).length==0">Nenhum dataset validado. Promova um dos provisórios abaixo ou baixe em <a href="/datasets" class="text-sky-400 underline">Datasets HF</a>.</span>
+  <!-- 📦 Provisórios (gerados) — validar/promover antes de treinar -->
+  <div x-show="(datasets.filter(x=>x.local==='gerados')).length" class="mt-3 bg-amber-500/5 border border-amber-600/20 rounded-xl p-3">
+    <p class="text-[11px] text-amber-400 mb-2">📦 Provisórios em <code class="text-amber-300">dados/gerados</code> (pré-treino — validar/promover antes de treinar):</p>
+    <div class="space-y-1.5">
+      <template x-for="d in datasets.filter(x=>x.local==='gerados')" :key="'g'+d.nome">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs text-zinc-400 truncate" x-text="d.nome + ' (' + d.arquivos + ' arquivos)'"></span>
+          <button @click="promoverDataset(d.nome)" :disabled="estado?.rodando"
+                  class="bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 px-3 py-1 rounded-lg text-xs shrink-0">
+            ✅ Promover p/ processed
+          </button>
+        </div>
+      </template>
+    </div>
+  </div>
+  <!-- Arquivos do dataset -->
+  <div x-show="arquivos.length > 0" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-4">
+    <h3 class="text-sm font-semibold mb-3">📄 Arquivos de <span x-text="datasetSel"></span></h3>
+    <div class="max-h-[24rem] overflow-auto scrollbar-thin space-y-1.5">
+      <template x-for="a in arquivos" :key="a.arquivo">
+        <div class="flex items-center gap-3 bg-zinc-800/40 p-2.5 rounded-xl">
+          <span class="shrink-0 w-3 h-3 rounded-full" :class="corBandeira(a.flag)" :title="'Bandeira: ' + a.flag"></span>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium truncate" x-text="a.arquivo"></p>
+            <p class="text-[10px] text-zinc-500" x-text="'treinado ' + a.vezes + 'x'"></p>
+          </div>
+          <button @click="iniciar(a)" :disabled="estado?.rodando"
+                  :title="(a.flag==='vermelha') ? 'Já treinado 3x — prefira outros arquivos' : 'Iniciar treino deste arquivo'"
+                  class="shrink-0 px-3 py-2 rounded-xl text-xs font-medium disabled:opacity-40 transition-colors"
+                  :class="a.flag==='vermelha' ? 'bg-zinc-800 text-zinc-500' : 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400'">
+            <i class="fa-solid fa-play mr-1"></i>Treinar
+          </button>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- 🚀 Fila de treinamento (lote) -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-4 border border-sky-600/30">
+    <h3 class="text-sm font-semibold mb-1">🚀 Fila de treinamento (lote)</h3>
+    <p class="text-[11px] text-zinc-500 mb-3">Treina os arquivos do dataset selecionado <b class="text-sky-400">UM POR VEZ</b>, salvando o modelo e <b class="text-sky-400">reiniciando o LR</b> entre cada um (nada se perde; retomável com "resume").</p>
+    <div class="flex flex-wrap gap-3 items-end">
+      <div>
+        <label class="text-[10px] text-zinc-500 block mb-1">Modo da fila</label>
+        <div class="flex flex-col gap-1 text-xs">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" value="arquivo" x-model="filaModo" class="accent-sky-500">
+            <span>Arquivo a Arquivo (Épocas)</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" value="tempo" x-model="filaModo" class="accent-sky-500">
+            <span>Tempo Determinado (Horas)</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" value="completo" x-model="filaModo" class="accent-sky-500">
+            <span>Completar Fila (até o fim)</span>
+          </label>
+        </div>
+      </div>
+      <div x-show="filaModo==='tempo'">
+        <label class="text-[10px] text-zinc-500 block mb-1">Limite (horas)</label>
+        <input x-model.number="filaHoras" type="number" min="0.1" step="0.5" value="8"
+               class="bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none w-24" />
+      </div>
+      <div>
+        <label class="text-[10px] text-zinc-500 block mb-1" title="Épocas treinadas em CADA arquivo da fila">Épocas por arquivo</label>
+        <input x-model.number="filaEpocas" type="number" min="1" step="1" value="5"
+               class="bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none w-24" />
+      </div>
+      <div>
+        <label class="text-[10px] text-zinc-500 block mb-1" title="0 = treina todos; 1 = pula qualquer já treinado 1x+; 3 = pula só os vermelhos">Pular já treinados (N+)</label>
+        <input x-model.number="pularTreinados" type="number" min="0" step="1" value="0"
+               class="bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none w-24" />
+      </div>
+      <div class="flex items-center gap-2 pb-1">
+        <input x-model="forcar" type="checkbox" id="forcarTreino"
+               class="w-4 h-4 accent-emerald-500" />
+        <label for="forcarTreino" class="text-[11px] text-zinc-400" title="Treina mesmo os arquivos já treinados (ignora a regra de pular)">⚡ Forçar (ignora já treinados)</label>
+      </div>
+      <button @click="iniciarFila()" :disabled="estado?.rodando || !datasetSel"
+              :title="!datasetSel ? 'Selecione um dataset acima' : 'Iniciar fila'"
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-40">
+        <i class="fa-solid fa-play mr-1"></i>Iniciar Fila
+      </button>
+      <span x-show="!datasetSel" class="text-[10px] text-zinc-600">— selecione um dataset acima primeiro —</span>
+    </div>
+    <!-- Progresso geral da fila (arquivo i/total + época + ETA) -->
+    <div x-show="fila?.total" class="mt-3 bg-zinc-800/60 rounded-xl p-3 border border-sky-600/30">
+      <p class="text-xs flex flex-wrap gap-x-2 gap-y-1">
+        <span class="font-semibold" :class="fila?.status==='concluido' ? 'text-emerald-400' : (fila?.status==='pausado'||fila?.status==='parado_tempo') ? 'text-yellow-300' : 'text-sky-400'">
+          📌 Arquivo <span x-text="Math.min((fila?.indice||0)+1, fila?.total||1)"></span>/<span x-text="fila?.total"></span>
+        </span>
+        <span class="text-zinc-400 truncate" x-text="fila?.arquivo_atual ? '— ' + fila?.arquivo_atual : ''"></span>
+        <span class="text-zinc-500" x-show="fila?.epoca_atual">· 📚 Época <span x-text="fila?.epoca_atual"></span>/<span x-text="fila?.total_epocas"></span><span x-show="fila?.progresso_porcent != null"> (<span x-text="fila?.progresso_porcent"></span>%)</span></span>
+        <span class="text-zinc-500" x-show="fila?.loss_atual != null">· loss: <span x-text="fila?.loss_atual"></span></span>
+        <span class="text-zinc-500" x-show="fila?.tempo_decorrido_seg">· ⏱️ <span x-text="fmtTempo(fila?.tempo_decorrido_seg)"></span></span>
+        <span class="text-emerald-400/80" x-show="filaEta">· ETA restante ~<span x-text="filaEta"></span></span>
+        <span class="text-zinc-500" x-show="fila?.arquivos_concluidos && fila?.arquivos_concluidos.length">· ✅ <span x-text="fila?.arquivos_concluidos?.length"></span> concluído(s)</span>
+        <span x-show="fila?.status" :class="fila?.status==='concluido'?'text-emerald-400':(fila?.status==='pausado'||fila?.status==='parado_tempo')?'text-yellow-300':'text-sky-400'" x-text="'· ' + fila?.status"></span>
+      </p>
+      <div class="mt-2 h-2 bg-zinc-700 rounded-full overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-sky-500 to-emerald-500 transition-all"
+             :style="'width:' + Math.min(100, Math.round(((fila?.indice||0)/(fila?.total||1))*100)) + '%'"></div>
+      </div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <button @click="pausarFila()" :disabled="!estado?.rodando || !fila?.total"
+                class="bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-300 disabled:opacity-40 px-3 py-1.5 rounded-xl text-xs font-medium">
+          <i class="fa-solid fa-pause mr-1"></i>Pausar
+        </button>
+        <button @click="retomarFila()" :disabled="!fila || fila?.status !== 'pausado'"
+                class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 disabled:opacity-40 px-3 py-1.5 rounded-xl text-xs font-medium">
+          <i class="fa-solid fa-play mr-1"></i>Retomar (resume)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Console ao vivo -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-sm font-semibold">🖥️ Console do treino</h3>
+      <div class="flex gap-2">
+        <button @click="parar()" :disabled="!estado?.rodando"
+                class="bg-red-600/20 hover:bg-red-600/30 text-red-400 disabled:opacity-40 px-3 py-1.5 rounded-xl text-xs font-medium">
+          <i class="fa-solid fa-stop mr-1"></i>Parar
+        </button>
+        <button @click="limparConsole()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-xl text-xs">
+          <i class="fa-solid fa-broom mr-1"></i>Limpar
+        </button>
+      </div>
+    </div>
+    <div x-show="estado?.rodando" class="text-xs text-emerald-400 mb-2 flex items-center gap-2">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      <span x-text="estado?.mensagem"></span>
+    </div>
+    <div x-show="!estado?.rodando && estado?.etapa==='concluido'" class="text-xs text-emerald-400 mb-2" x-text="estado?.mensagem"></div>
+    <div x-show="!estado?.rodando && estado?.etapa==='erro'" class="text-xs text-red-400 mb-2 whitespace-pre-line" x-text="estado?.mensagem"></div>
+    <div class="bg-black/70 rounded-xl p-3 font-mono text-[11px] leading-relaxed w-full max-w-full h-52 sm:h-72 md:h-96 overflow-auto scrollbar-thin text-zinc-300" x-ref="console">
+      <template x-for="(linha, i) in mensagensVisiveis" :key="i">
+        <div x-text="linha" :class="classeLinha(linha)"></div>
+      </template>
+      <div x-show="mensagensVisiveis.length===0" class="text-zinc-600 italic">— console vazio. Selecione um arquivo e clique em Treinar —</div>
+    </div>
+  </div>
+
+  <!-- 💾 Backups do modelo (escondido no fim de propósito) -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h3 class="text-sm font-semibold">💾 Backups do modelo</h3>
+      <button @click="fazerBackup()" :disabled="backupFazendo || estado?.rodando"
+              class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-3 py-2 rounded-xl text-sm">
+        📦 Fazer backup agora
+      </button>
+    </div>
+    <p class="text-[11px] text-zinc-500 mt-2">O treinador também guarda cópias automáticas antes de cada sobrescrita. Fazer backup é simples — <b class="text-zinc-300">recuperar é coisa séria</b>.</p>
+    <p class="text-[10px] text-zinc-600 mt-1">🔒 Máximo de 2 backups mantidos (o mais recente de <code>modelo.pt</code> e de <code>modelo_melhor.pt</code>) — backup é para emergência, não para encher o disco.</p>
+
+    <!-- 🔒 Recuperar backup: escondido de propósito (perigoso) -->
+    <button @click="mostrarRecuperar = !mostrarRecuperar"
+            class="mt-4 w-full text-left text-[10px] text-zinc-700 hover:text-zinc-500 flex items-center gap-1.5">
+      <i class="fa-solid fa-chevron-down text-[8px] transition-transform" :class="{'rotate-180': mostrarRecuperar}"></i>
+      <span>Recuperar backup (avançado — só para emergências)</span>
+    </button>
+    <div x-show="mostrarRecuperar" class="mt-2 border border-red-600/30 rounded-xl p-3 space-y-2">
+      <div class="bg-red-950/40 border border-red-600/30 rounded-lg p-2 text-[11px] text-red-300">
+        ⚠️ <b>Atenção:</b> recuperar um backup vai <b>SUBSTITUIR</b> seu último modelo
+        (<code class="text-red-200">modelo.pt</code> / <code class="text-red-200">modelo_melhor.pt</code>)
+        pelos arquivos do backup escolhido. O modelo atual é guardado como
+        <code class="text-red-200">pre_restauro_*</code> antes, por segurança.<br>
+        🪟 <b>Regra:</b> assim como programas do Windows exigem desinstalar antes de reinstalar,
+        <b>não restaure por cima de um estado que você quer preservar</b> — se não tiver certeza,
+        faça um backup antes. A responsabilidade é sua.
+      </div>
+      <select x-model="restaurarSel" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-xs border border-zinc-700 outline-none">
+        <option value="">— escolha um backup (2 mais recentes) —</option>
+        <template x-for="b in backups.slice(0,2)" :key="b.arquivo">
+          <option :value="b.arquivo" x-text="b.arquivo + ' (' + b.tamanho_mb + ' MB)'"></option>
+        </template>
+      </select>
+      <p class="text-[10px] text-zinc-500">Digite <b class="text-red-300">RESTAURAR</b> para confirmar:</p>
+      <input x-model="confirmarTexto" type="text" placeholder="RESTAURAR"
+             class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-xs border border-zinc-700 outline-none placeholder-zinc-600" />
+      <button @click="restaurarBackup()" :disabled="confirmarTexto !== 'RESTAURAR' || !restaurarSel"
+              class="w-full bg-red-600/20 hover:bg-red-600/30 disabled:opacity-40 disabled:cursor-not-allowed text-red-400 px-3 py-2 rounded-xl text-sm font-semibold">
+        ⚠️ Recuperar este backup
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+console.log("[TREINO LOCAL] Página carregada");
+function treinoLocalState() {
+  return {
+    datasets: [], datasetSel: '', datasetLocal: '', arquivos: [], estado: null,
+    mensagens: [], primeiraLeitura: true,
+    backups: [], backupFazendo: false,
+    mostrarRecuperar: false, restaurarSel: '', confirmarTexto: '',
+    scan: null, scanPoll: null,
+    filaModo: 'arquivo', filaHoras: 8, filaEpocas: 5, fila: {}, pularTreinados: 0, forcar: false,
+
+    get mensagensVisiveis() { return this.mensagens.slice(-300); },
+    get datasetAtual() { return this.datasets.find(d=>d.nome===this.datasetSel) || null; },
+    get totalArquivos() { return (this.datasets||[]).reduce((s,d)=>s+(d.arquivos||0),0); },
+    totalBandeira(flag) { return (this.datasets||[]).reduce((s,d)=>s+((d.bandeiras||{})[flag]||0),0); },
+    get filaEta() {
+      const f = this.fila;
+      if (!f || !f.total || !f.tempo_decorrido_seg) return '';
+      const feitos = Math.min(f.indice || 0, f.total);
+      if (feitos <= 0) return '';
+      const porArquivo = f.tempo_decorrido_seg / feitos;
+      const restante = Math.max(0, f.total - feitos) * porArquivo;
+      const h = Math.floor(restante / 3600), m = Math.round((restante % 3600) / 60);
+      return h ? h + 'h ' + m + 'min' : m + 'min';
+    },
+    fmtTempo(seg) {
+      const s = Math.max(0, Math.floor(seg || 0));
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+      return h ? h + 'h ' + m + 'min' : m + 'min';
+    },
+
+    init() {
+      console.log("[TREINO LOCAL] Inicializando...");
+      this.carregarDatasets();
+      this.carregarBackups();
+      setInterval(()=>this.carregarStatus(), 2000);
+    },
+
+    async lerEstrutura() {
+      if (this.scan?.rodando) return;
+      this.scan = {rodando: true, percentual: 0, pasta_atual: 'iniciando...', itens_processados: 0, total_itens: 0, encontrados: 0};
+      try {
+        const r = await fetch('/api/treino_local/reescanear', {method: 'POST'});
+        const d = await r.json();
+        if (!d.ok) { this.scan = d.scan || this.scan; return; }
+      } catch(e) { this.scan = {rodando: false, fase: 'erro', erro: e.message}; return; }
+      // Faz polling do progresso até terminar
+      clearInterval(this.scanPoll);
+      this.scanPoll = setInterval(() => this.pollScan(), 800);
+    },
+
+    async pollScan() {
+      try {
+        const r = await fetch('/api/treino_local/reescanear/status');
+        const d = await r.json();
+        this.scan = d;
+        if (!d.rodando) {
+          clearInterval(this.scanPoll);
+          this.scanPoll = null;
+          await this.carregarDatasets();   // recarrega a lista com o cache novo
+          if (this.datasetSel) await this.carregarArquivos();
+        }
+      } catch(e) { console.warn('[TREINO LOCAL] pollScan:', e); }
+    },
+
+    async carregarDatasets() {
+      try {
+        const r = await fetch('/api/treino_local/datasets');
+        const d = await r.json();
+        this.datasets = d.datasets || [];
+        if (d.scan?.rodando) {
+          this.scan = d.scan;
+          clearInterval(this.scanPoll);
+          this.scanPoll = setInterval(() => this.pollScan(), 800);
+        } else if (!this.scan?.rodando) {
+          this.scan = d.scan || this.scan;
+        }
+        if (this.datasetSel && !this.datasets.find(x=>x.nome===this.datasetSel)) this.datasetSel = '';
+        this.datasetLocal = this.datasetAtual?.local || '';
+      } catch(e) { console.warn("[TREINO LOCAL] datasets:", e); }
+    },
+
+    corBandeira(flag) {
+      return { nenhuma: 'bg-zinc-700', branca: 'bg-zinc-100', amarela: 'bg-yellow-400', vermelha: 'bg-red-500' }[flag] || 'bg-zinc-700';
+    },
+    classeLinha(linha) {
+      if (linha.includes('🎉') || linha.includes('🏆') || linha.includes('✅') || linha.includes('📈')) return 'text-emerald-400';
+      if (linha.includes('⚠️') || linha.includes('❌')) return 'text-red-400';
+      if (linha.includes('📊') || linha.includes('📉')) return 'text-yellow-300';
+      return '';
+    },
+
+    async carregarArquivos() {
+      this.arquivos = [];
+      if (!this.datasetSel) return;
+      this.datasetLocal = this.datasetAtual?.local || '';
+      try {
+        const r = await fetch('/api/treino_local/arquivos?dataset=' + encodeURIComponent(this.datasetSel));
+        const d = await r.json();
+        this.arquivos = d.arquivos || [];
+      } catch(e) { console.warn("[TREINO LOCAL] arquivos:", e); }
+    },
+
+    async promover() {
+      if (!this.datasetSel || this.estado?.rodando) return;
+      if (!confirm('Validar e copiar "' + this.datasetSel + '" para dados/processed/jsonl/?\nSó arquivos VÁLIDOS serão copiados.')) return;
+      const removerInvalidos = confirm('Remover os arquivos INVÁLIDOS da pasta de origem (gerados/jsonl)?');
+      try {
+        const r = await fetch('/api/treino_local/promover', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({dataset: this.datasetSel, remover_invalidos: removerInvalidos})
+        });
+        const d = await r.json();
+        alert(d.ok ? '✅ ' + d.mensagem + (d.invalidos ? '\n(inválidos: ' + d.invalidos + ')' : '') : '❌ ' + (d.erro || 'erro'));
+        await this.carregarDatasets();
+        await this.carregarArquivos();
+      } catch(e) { alert('❌ ' + e.message); }
+    },
+
+    async promoverDataset(nome) {
+      this.datasetSel = nome;
+      await this.promover();
+    },
+
+    async carregarStatus() {
+      try {
+        const r = await fetch('/api/treino_local/status');
+        const novo = await r.json();
+        // Treino terminou agora (estava rodando → parou): atualiza bandeiras na hora
+        const terminou = this.estado?.rodando && novo && !novo.rodando;
+        this.estado = novo;
+        this.fila = novo?.fila || null;
+        if (this.estado?.mensagens) {
+          // só mostra mensagens do treino atual (buffer do backend já é do treino atual)
+          this.mensagens = this.estado.mensagens;
+        }
+        // rola o console para baixo quando chega mensagem nova
+        if (this.mensagens.length && this.$refs?.console) {
+          this.$refs.console.scrollTop = this.$refs.console.scrollHeight;
+        }
+        if (terminou) {
+          await this.carregarArquivos();   // mostra a flag atualizada do arquivo
+          await this.carregarDatasets();   // atualiza os contadores de bandeira
+        }
+      } catch(e) { console.warn("[TREINO LOCAL] status:", e); }
+    },
+
+    async iniciar(a) {
+      if (this.estado?.rodando) return;
+      if (!this.forcar && (this.pularTreinados || 0) > 0 && (a.vezes || 0) >= (this.pularTreinados || 0)) {
+        alert('⏭️ Este arquivo já foi treinado ' + (a.vezes||0) + 'x (limite: pular >= ' + this.pularTreinados + '). Pulando.');
+        return;
+      }
+      if (a.flag === 'vermelha') {
+        if (!confirm('⚠️ Este arquivo já foi treinado 3x+. Continuar mesmo assim?')) return;
+      }
+      try {
+        const r = await fetch('/api/treino_local/iniciar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({dataset: this.datasetSel, arquivo: a.arquivo})
+        });
+        const d = await r.json();
+        if (!d.ok) { alert('❌ ' + (d.erro || 'erro')); return; }
+        this.carregarStatus();
+      } catch(e) { alert('❌ ' + e.message); }
+    },
+
+    async parar() {
+      if (!this.estado?.rodando) return;
+      if (!confirm('Parar o treino? O arquivo NÃO será marcado como treinado.')) return;
+      try {
+        const r = await fetch('/api/treino_local/parar', {method: 'POST'});
+        const d = await r.json();
+        if (d.ok) {
+          this.mensagens = this.mensagens.concat(['⏹️ ' + (d.mensagem || 'Parada solicitada!')]);
+        } else {
+          alert('❌ ' + (d.erro || 'erro'));
+        }
+        this.carregarStatus();
+      } catch(e) { console.warn(e); }
+    },
+
+    async iniciarFila() {
+      if (this.estado?.rodando || !this.datasetSel) return;
+      const limite = this.filaModo === 'tempo' ? (this.filaHoras || 8) : null;
+      const nomeModo = {arquivo:'Arquivo a Arquivo', tempo:'Tempo (' + (this.filaHoras||8) + 'h)', completo:'Completar Fila'}[this.filaModo] || this.filaModo;
+      const msg = 'Iniciar FILA de treinamento no dataset "' + this.datasetSel + '"?\nModo: ' + nomeModo + ' | ' + (this.filaEpocas||5) + ' época(s)/arquivo — o modelo é salvo e o LR reiniciado entre arquivos.';
+      if (!confirm(msg)) return;
+      try {
+        const r = await fetch('/api/treino_local/batch', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({pasta: this.datasetSel, modo: this.filaModo, limite_horas: limite, epocas_por_arquivo: this.filaEpocas || 5, pular_treinados: this.pularTreinados || 0, forcar: this.forcar})
+        });
+        const d = await r.json();
+        if (!d.ok) { alert('❌ ' + (d.erro || 'erro')); return; }
+        this.carregarStatus();
+      } catch(e) { alert('❌ ' + e.message); }
+    },
+
+    async pausarFila() {
+      if (!this.estado?.rodando) return;
+      if (!confirm('⏸️ Pausar a fila? O arquivo atual termina, salva o modelo e a fila para.')) return;
+      try {
+        const r = await fetch('/api/treino_local/pausar', {method: 'POST'});
+        const d = await r.json();
+        this.mensagens = this.mensagens.concat([d.ok ? d.mensagem : '❌ ' + (d.erro || 'erro')]);
+        this.carregarStatus();
+      } catch(e) { console.warn(e); }
+    },
+
+    async retomarFila() {
+      if (!this.fila || this.fila.status !== 'pausado') return;
+      if (!confirm('▶️ Retomar a fila de onde parou (--resume)?')) return;
+      try {
+        const r = await fetch('/api/treino_local/retomar', {method: 'POST'});
+        const d = await r.json();
+        if (!d.ok) { alert('❌ ' + (d.erro || 'erro')); return; }
+        this.carregarStatus();
+      } catch(e) { alert('❌ ' + e.message); }
+    },
+
+    async carregarBackups() {
+      try {
+        const r = await fetch('/api/treino_local/backups');
+        const d = await r.json();
+        this.backups = d.backups || [];
+      } catch(e) { console.warn('[BACKUP]', e); }
+    },
+
+    async fazerBackup() {
+      this.backupFazendo = true;
+      try {
+        const r = await fetch('/api/treino_local/backup_criar', {method: 'POST'});
+        const d = await r.json();
+        alert(d.ok ? '✅ Backup criado: ' + (d.criados||[]).length + ' arquivo(s) em modelo/backups/' : '❌ ' + (d.erro||'erro'));
+        await this.carregarBackups();
+      } catch(e) { alert('❌ ' + e.message); }
+      this.backupFazendo = false;
+    },
+
+    async restaurarBackup() {
+      if (!this.restaurarSel || this.confirmarTexto !== 'RESTAURAR') return;
+      try {
+        const r = await fetch('/api/treino_local/backup_restaurar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({arquivo: this.restaurarSel})
+        });
+        const d = await r.json();
+        alert(d.ok ? '✅ ' + d.mensagem : '❌ ' + d.erro);
+        await this.carregarBackups();
+        // fecha e limpa a zona de perigo
+        this.mostrarRecuperar = false;
+        this.restaurarSel = '';
+        this.confirmarTexto = '';
+      } catch(e) { alert('❌ ' + e.message); }
+    },
+
+    limparConsole() { this.mensagens = []; }
+  };
+}
+</script>
+{% endblock %}

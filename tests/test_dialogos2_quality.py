@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+test_dialogos2_quality.py - Testes de qualidade para dialogos2.py
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
+"""
 import importlib.util
 import pathlib
 import unittest

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Tratamento de Dados{% endblock %}
+{% block content %}
+<div x-data="tratamentoState()" x-cloak>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">🧹 Tratamento de Dados</h2>
+  <p class="text-zinc-500 text-sm mb-4">Dados de <strong class="text-emerald-400">qualquer fonte</strong> (scrap, RSS, download, manual) → detecto o formato → <strong class="text-emerald-400">marque e trate automaticamente</strong> → promovo p/ <code class="text-zinc-300">dados/processed/</code> e limpo as origens</p>
+
+  <!-- Nota informativa -->
+  <div class="bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-3.5 py-2.5 mb-5 text-xs text-zinc-400 flex items-start gap-2">
+    <i class="fa-solid fa-circle-info mt-0.5 text-zinc-500"></i>
+    <p class="leading-relaxed">
+      <b class="text-zinc-300">Matriz de tratamento:</b>
+      🧩 jsonl → <b class="text-teal-400">sanitização PT-BR</b> • 📦 parquet/csv → <b class="text-teal-400">limpeza leve v2</b> • 📄 txt → <b class="text-teal-400">limpeza de encoding</b>.
+      Origens apagadas após promover (HD liberado). Guardião de memória: não inicia se RAM livre &lt; 2 GB.
+    </p>
+  </div>
+
+  <!-- Ações -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-teal-600/30 flex flex-wrap items-center gap-3">
+    <label class="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer" title="☑️ Marca ou desmarca todas as pastas de uma vez">
+      <input type="checkbox" x-model="marcarTodos" @change="alternarTodos()" class="accent-teal-500">
+      <b>Marcar todos</b>
+    </label>
+    <button @click="tratar()" :disabled="marcados.length === 0 || estado?.rodando || tratarBusy"
+            title="🧹 Tratar marcados — aplica o tratamento certo (jsonl→sanitizar, parquet→limpeza leve, txt→limpeza) e promove p/ dados/processed/"
+            class="bg-teal-600/20 hover:bg-teal-600/30 text-teal-400 px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50">
+      <i class="fa-solid" :class="tratarBusy ? 'fa-spinner fa-spin' : 'fa-broom'"></i>
+      <span class="ml-1" x-text="'Tratar marcados (' + marcados.length + ')'"></span>
+    </button>
+    <button @click="carregar()" :disabled="carregando"
+            title="🔄 Atualizar lista de pastas em dados/raw/"
+            class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-xl text-base disabled:opacity-50">
+      <i class="fa-solid" :class="carregando ? 'fa-spinner fa-spin' : 'fa-rotate'"></i>
+    </button>
+    <span class="text-xs text-zinc-500" x-text="ramLivre ? ('🛡️ RAM livre: ' + ramLivre + ' GB') : ''"></span>
+  </div>
+
+  <!-- Painel de progresso -->
+  <div x-show="estado?.rodando || (estado?.etapa && estado.etapa!=='idle')" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-emerald-600/30">
+    <h3 class="text-sm font-semibold mb-2">⚙️ Tratamento <span class="text-emerald-400" x-text="estado?.atual || ''"></span></h3>
+    <p class="text-xs text-zinc-400" x-text="estado?.mensagem"></p>
+    <div class="mt-2 h-2 bg-zinc-800 rounded-full overflow-hidden">
+      <div class="h-full bg-emerald-500 transition-all" :style="'width:' + (estado?.percentual||0) + '%'"></div>
+    </div>
+    <div class="mt-3 space-y-1" x-show="(estado?.concluidos||[]).length">
+      <template x-for="c in estado?.concluidos" :key="c.nome">
+        <p class="text-xs" :class="c.ok ? 'text-emerald-400' : 'text-red-400'">
+          <span x-text="(c.ok ? '✅' : '❌') + ' ' + c.nome + ' — ' + c.detalhe"></span>
+        </p>
+      </template>
+    </div>
+    <button x-show="estado?.rodando" @click="cancelar()" :disabled="cancelarBusy"
+            title="⏹️ Parar — interrompe o lote (o que já foi tratado fica salvo)"
+            class="mt-3 bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3 py-1.5 rounded-xl text-xs font-medium">
+      <i class="fa-solid" :class="cancelarBusy ? 'fa-spinner fa-spin' : 'fa-stop'"></i>
+      <span class="ml-1">Parar</span>
+    </button>
+  </div>
+
+  <!-- Lista de pastas -->
+  <div x-show="itens.length" class="bg-zinc-900 rounded-2xl p-4 md:p-5">
+    <h3 class="text-sm font-semibold mb-3">📂 Pastas em <code class="text-teal-400" x-text="pasta || 'dados/raw/'"></code></h3>
+    <div class="space-y-2">
+      <template x-for="item in itens" :key="item.nome">
+        <div class="bg-zinc-800/50 p-3 rounded-xl flex items-center gap-3">
+          <input type="checkbox" :value="item.nome" x-model="marcados"
+                 :title="'☑️ Marcar ' + item.nome + ' para tratamento'" class="accent-teal-500 shrink-0">
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium truncate" x-text="item.nome"></p>
+            <p class="text-[10px] text-zinc-500 truncate" x-text="item.arquivos + ' arquivo(s)'"></p>
+          </div>
+          <span class="text-[10px] px-2 py-1 rounded-full shrink-0"
+                :class="item.formato==='jsonl' ? 'bg-sky-600/20 text-sky-400' : item.formato==='parquet' ? 'bg-purple-600/20 text-purple-400' : item.formato==='txt' ? 'bg-amber-600/20 text-amber-400' : 'bg-zinc-700 text-zinc-400'"
+                x-text="'🧩 ' + item.formato"></span>
+          <span class="text-[10px] px-2 py-1 rounded-full shrink-0"
+                :class="item.tratamento==='sanitizar' ? 'bg-teal-600/20 text-teal-400' : item.tratamento==='limpeza_leve' ? 'bg-purple-600/20 text-purple-400' : item.tratamento==='limpeza_encoding' ? 'bg-amber-600/20 text-amber-400' : 'bg-zinc-700 text-zinc-400'"
+                x-text="(item.tratamento==='sanitizar' ? '🧼 ' : item.tratamento==='limpeza_leve' ? '🧹 ' : item.tratamento==='limpeza_encoding' ? '🔤 ' : '⛔ ') + item.tratamento"></span>
+          <span class="text-[10px] text-zinc-400 shrink-0" x-text="item.tamanho_mb + ' MB'"></span>
+        </div>
+      </template>
+    </div>
+  </div>
+  <p x-show="!itens.length && !carregando" class="text-xs text-zinc-500 mt-4">Nenhuma pasta em <code class="text-zinc-400">dados/raw/</code>. Coloque dados de qualquer fonte lá (jsonl/parquet/txt/csv).</p>
+
+  <!-- Toast -->
+  <div x-show="toast" class="fixed bottom-6 right-6 z-50 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm shadow-xl">
+    <span x-text="toast"></span>
+  </div>
+</div>
+
+<script>
+console.log("[TRATAMENTO] Página carregada");
+function tratamentoState() {
+  return {
+    itens: [], marcados: [], marcarTodos: false, pasta: '',
+    estado: null, tratarBusy: false, cancelarBusy: false, carregando: false,
+    ramLivre: '', toast: '', toastTimer: null,
+
+    init() {
+      console.log("[TRATAMENTO] Inicializando...");
+      this.carregar();
+      this.carregarStatus();
+      setInterval(()=>this.carregarStatus(), 2000);
+    },
+
+    mostrarToast(msg) {
+      this.toast = msg;
+      clearTimeout(this.toastTimer);
+      this.toastTimer = setTimeout(()=>this.toast='', 5000);
+    },
+
+    async carregar() {
+      this.carregando = true;
+      try {
+        const r = await (await fetch('/api/tratamento/listar')).json();
+        this.itens = r.itens || [];
+        this.pasta = r.pasta || 'dados/raw/';
+        // ram livre (do último tratamento ou null)
+      } catch(e) { console.warn("[TRATAMENTO] listar:", e); }
+      finally { this.carregando = false; }
+    },
+
+    async carregarStatus() {
+      try {
+        const e = await (await fetch('/api/tratamento/status')).json();
+        this.estado = e;
+        if (e?.ram_livre_gb) this.ramLivre = e.ram_livre_gb;
+        if (e?.etapa === 'concluido' && !this.tratarBusy && e?.concluidos?.length) {
+          this.mostrarToast(e.mensagem);
+        }
+      } catch(e) { console.warn("[TRATAMENTO] status:", e); }
+    },
+
+    alternarTodos() {
+      this.marcados = this.marcarTodos ? this.itens.map(i => i.nome) : [];
+    },
+
+    async tratar() {
+      if (this.marcados.length === 0) { this.mostrarToast('⚠️ Marque pelo menos uma pasta.'); return; }
+      if (this.estado?.rodando) { this.mostrarToast('⏳ Já existe um tratamento em andamento.'); return; }
+      if (!confirm('Tratar ' + this.marcados.length + ' pasta(s) marcada(s)?\n\n🧹 O tratamento certo é aplicado automaticamente (jsonl→sanitizar, parquet→limpeza leve, txt→limpeza). As origens são apagadas após promover.')) return;
+      this.tratarBusy = true;
+      try {
+        const r = await fetch('/api/tratamento/tratar', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({nomes: this.marcados})
+        });
+        const d = await r.json();
+        if (d.ok) this.mostrarToast('⚙️ ' + d.mensagem);
+        else this.mostrarToast('❌ ' + (d.erro||'erro'));
+        this.carregarStatus();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.tratarBusy = false; }
+    },
+
+    async cancelar() {
+      this.cancelarBusy = true;
+      try {
+        await fetch('/api/tratamento/limpar', {method:'POST'});
+        this.mostrarToast('⏹️ Parado (o que já foi tratado fica salvo).');
+        this.carregarStatus();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.cancelarBusy = false; }
+    }
+  };
+}
+</script>
+{% endblock %}

@@ -1,4 +1,9 @@
-"""Rota de Geração Local com Ollama — Prompt templates para criar conteúdo variado."""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+local_generate.py - Geração local com Ollama (templates) para o Dashboard RigelSLM
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
+"""
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
@@ -10,49 +15,22 @@ from datetime import datetime
 import uuid
 import time
 
-# ─── Pesquisa Web (DuckDuckGo) ───
-try:
-    from duckduckgo_search import DDGS
-    _ddgs_available = True
-except ImportError:
-    _ddgs_available = False
-
 router = APIRouter(prefix="/api/local-generate", tags=["Geração Local"])
 
 BASE_DIR = Path(__file__).parent.parent.parent
 LOGS_DIR = BASE_DIR / "logs"
 OLLAMA_URL = "http://localhost:11434"
 
-# ─── Função de Pesquisa Web ───
-
-async def _pesquisar_web_async(topico: str, max_resultados: int = 5) -> str:
-    """Pesquisa na web usando DuckDuckGo e retorna um resumo dos resultados."""
-    if not _ddgs_available:
-        return ""
-    try:
-        def _sinc():
-            with DDGS() as ddgs:
-                resultados = list(ddgs.text(topico, max_results=max_resultados))
-                if not resultados:
-                    return ""
-                linhas = []
-                for r in resultados:
-                    titulo = r.get("title", "")
-                    snippet = r.get("body", "")
-                    link = r.get("href", "")
-                    if titulo and snippet:
-                        linhas.append(f"• {titulo}: {snippet[:300]}")
-                return "\n".join(linhas[:max_resultados])
-        return await asyncio.to_thread(_sinc)
-    except Exception as e:
-        print(f"[PESQUISA WEB] Erro: {e}")
-        return ""
+# ─── Serviço de Pesquisa Web ───
+from dashboard.services.pesquisa import pesquisar
+from dashboard.services.limpeza import limpar_e_aviso, verificar_disponivel, PESQUISA_SEMPRE_ATIVA
+_ddgs_available = verificar_disponivel()
 
 
 @router.get("/pesquisa-status")
 def pesquisa_status():
     """Retorna se a pesquisa web está disponível."""
-    return {"disponivel": _ddgs_available}
+    return {"disponivel": verificar_disponivel()}
 
 
 # ─── Auto-Filtro de Qualidade ───
@@ -286,6 +264,7 @@ class GerarRequest(BaseModel):
     idioma_destino: str = "inglês"
     quantidade: int = 1
     auto_filtrar: bool = False
+    pesquisar_web: bool = False
 
 
 class GerarLoteRequest(BaseModel):
@@ -518,6 +497,14 @@ async def gerar_conteudo(req: GerarRequest):
     else:
         system_msg = template["system"]
 
+    # 🔍 Pesquisa web se ativado
+    if req.pesquisar_web or PESQUISA_SEMPRE_ATIVA:
+        print(f"[GERAR_LOCAL] 🔍 Pesquisa web para: {req.tema[:50]}...")
+        contexto_pesquisa = await asyncio.to_thread(pesquisar, req.tema, 5)
+        if contexto_pesquisa:
+            system_msg += f"\n\nUse as seguintes informações reais da web para embasar o texto:\n{contexto_pesquisa}\nBaseie-se nestes fatos. Se não houver info suficiente, apenas escreva sem inventar."
+            print(f"[GERAR_LOCAL] ✅ Pesquisa OK — {len(contexto_pesquisa)} chars de contexto")
+
     # Monta o prompt
     prompt_texto = template["prompt"].format(
         tema=req.tema,
@@ -614,14 +601,15 @@ async def _gerar_stream(modelo: str, system: str, prompt: str, temp: float, max_
                     except json.JSONDecodeError:
                         continue
 
+                texto_completo = limpar_e_aviso(texto_completo, "Geração Local Stream")
                 yield f"data: {json.dumps({'type': 'done', 'conteudo': texto_completo})}\n\n"
 
     except httpx.TimeoutException:
-        yield f"data: {json.dumps({'type': 'erro', 'conteudo': '⏱️ Tempo limite excedido (120s).'})}\n\n"
+        yield f"data: {json.dumps({'type': 'erro', 'conteudo': 'Tempo limite excedido (120s).'})}\n\n"
     except httpx.ConnectError:
-        yield f"data: {json.dumps({'type': 'erro', 'conteudo': '🔴 Não foi possível conectar ao Ollama.'})}\n\n"
+        yield f"data: {json.dumps({'type': 'erro', 'conteudo': 'Nao foi possivel conectar ao Ollama.'})}\n\n"
     except Exception as e:
-        yield f"data: {json.dumps({'type': 'erro', 'conteudo': f'❌ Erro: {str(e)[:200]}'})}\n\n"
+        yield f"data: {json.dumps({'type': 'erro', 'conteudo': f'Erro: {str(e)[:200]}'})}\n\n"
     finally:
         if task_id and task_id in _tasks_in_progress:
             _tasks_in_progress.pop(task_id, None)
@@ -649,7 +637,8 @@ async def _gerar_lote_com_filtro(modelo: str, system: str, template: dict, topic
         # 🔍 Pesquisa web real (se ativada)
         if pesquisar_web and _ddgs_available:
             yield f"data: {json.dumps({'type': 'lote_item_pesquisando', 'indice': idx + 1, 'topico': topico})}\n\n"
-            item_pesquisa = await _pesquisar_web_async(topico)
+            item_pesquisa_sinc = await asyncio.to_thread(pesquisar, topico, 5)
+            item_pesquisa = item_pesquisa_sinc or ""
             if item_pesquisa:
                 yield f"data: {json.dumps({'type': 'lote_item_pesquisa_pronta', 'indice': idx + 1, 'resultados': item_pesquisa[:200]})}\n\n"
 
@@ -733,6 +722,9 @@ async def _gerar_lote_com_filtro(modelo: str, system: str, template: dict, topic
                             if task_id and task_id in _tasks_in_progress:
                                 _tasks_in_progress[task_id]['last_heartbeat'] = time.time()
                             yield f"data: {json.dumps({'type': 'lote_heartbeat', 'indice': idx + 1, 'total': total, 'topico': topico[:60], 'elapsed': round(time.time() - inicio_global)})}\n\n"
+
+            # Remove emojis do texto gerado (prejudicam treinamento)
+            texto_gerado = limpar_e_aviso(texto_gerado, f"Geração Local ({topico[:30]})")
 
             tempo_item = time.time() - inicio_item
             stats["total_gerados"] += 1

@@ -1,0 +1,13 @@
+{
+  "baixando": false,
+  "modelo": null,
+  "percentual": 0,
+  "progresso_bytes": "",
+  "mensagem": "",
+  "etapa": "idle",
+  "inicio": null,
+  "fim": null,
+  "erro": null,
+  "sharded_repo": null,
+  "sharded_quant": null
+}

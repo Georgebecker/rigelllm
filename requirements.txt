@@ -1,5 +1,5 @@
 # =============================================================================
-# RIGELSLM - DEPENDÊNCIAS COMPLETAS (v3.1 - ESTÁVEL)
+# RIGELSLM - DEPENDÊNCIAS COMPLETAS (v1.0.0 - ESTÁVEL)
 # =============================================================================
 # Instale com: pip install -r requirements.txt
 # Recomendado: usar python setup_env.py (que já aplica correções)

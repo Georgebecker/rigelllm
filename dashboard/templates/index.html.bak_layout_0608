@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div x-data="homeState()" x-cloak>
+  <!-- Loading inicial -->
+  <div x-show="!carregou" class="flex items-center justify-center py-20">
+    <div class="text-center">
+      <i class="fa-solid fa-spinner fa-spin text-4xl text-emerald-400 mb-4"></i>
+      <p class="text-zinc-500">Carregando métricas do sistema...</p>
+    </div>
+  </div>
+  <div x-show="carregou">
+  <div class="flex items-center justify-between mb-6 md:mb-10">
+    <div class="min-w-0">
+      <h2 class="text-2xl md:text-4xl font-bold">📊 Visão Geral</h2>
+      <p class="text-zinc-500 mt-1 text-sm" x-text="'🔄 ' + (statusTime || '—')"></p>
+    </div>
+    <button @click="pollAll()" title="Atualizar dados do sistema" aria-label="Atualizar dados do sistema"
+            class="text-zinc-500 hover:text-emerald-400 text-xl shrink-0 ml-2 transition-transform active:scale-90">
+      <i class="fa-solid fa-rotate" :class="{'fa-spin': loading}"></i>
+    </button>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-8">
+    <!-- 🧠 Modelo (hero) -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card border border-emerald-600/20">
+      <p class="text-zinc-500 text-xs mb-1">🧠 Modelo</p>
+      <p class="text-lg md:text-xl font-bold" :class="treinando ? 'text-emerald-400' : 'text-zinc-100'" x-text="modeloStatus"></p>
+      <p class="text-xs text-zinc-600 mt-1 truncate" x-text="modeloNome"></p>
+      <p class="text-xs text-zinc-600" x-text="modeloData"></p>
+      <p class="text-xs text-zinc-600" x-show="modeloTamanho" x-text="modeloTamanho"></p>
+      <p class="text-xs text-teal-400 mt-0.5 truncate" x-show="modeloCheckpoint" x-text="modeloCheckpoint"></p>
+      <p x-show="treinando" class="text-xs text-emerald-400 mt-1 animate-pulse">🟢 Treinando agora...</p>
+      <!-- 🧠 Nível do modelo (mesma fórmula do chat.py) -->
+      <div class="mt-2" x-show="maturidadePct !== null">
+        <div class="flex justify-between text-[10px] text-zinc-500 mb-0.5">
+          <span title="Nível do modelo calculado pelo melhor val_loss (igual ao chat.py)">🧠 Nível do modelo</span>
+          <span class="font-bold" :class="maturidadePct >= 60 ? 'text-emerald-400' : (maturidadePct >= 30 ? 'text-amber-400' : 'text-red-400')" x-text="maturidadePct + '%'"></span>
+        </div>
+        <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-amber-500 to-emerald-500 transition-all" :style="'width:' + maturidadePct + '%'"></div>
+        </div>
+        <p class="text-[10px] text-zinc-600 mt-0.5 truncate" x-show="maturidadeLoss !== null" x-text="'melhor val_loss ' + maturidadeLoss + (maturidadeEpoca ? ' · época ' + maturidadeEpoca : '')"></p>
+      </div>
+    </div>
+    <!-- 🎯 Treinamento (estado ao vivo) -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
+      <p class="text-zinc-500 text-xs mb-1">🎯 Treinamento</p>
+      <p class="text-lg md:text-xl font-bold" :class="treinoEtapa==='treinando' ? 'text-emerald-400' : treinoEtapa==='erro' ? 'text-red-400' : 'text-zinc-300'"
+         x-text="treinoEtapa==='treinando' ? '🟢 Rodando' : (treinoEtapa==='concluido' ? '✅ Concluído' : (treinoEtapa==='erro' ? '❌ Erro' : '⏸️ Parado'))"></p>
+      <p class="text-xs text-zinc-600 mt-1 truncate" x-text="treinoDataset || 'nenhum dataset'"></p>
+      <div class="mt-2 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+        <div class="h-full bg-emerald-500 transition-all" :style="treinoIndeterminado ? 'width:33%;' : 'width:' + (treinoProgresso||0) + '%'" :class="treinoIndeterminado ? 'animate-pulse' : ''"></div>
+      </div>
+      <p class="text-[10px] text-zinc-600 mt-1 truncate" x-text="treinoMensagem"></p>
+    </div>
+    <!-- ⚡ CPU -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
+      <p class="text-zinc-500 text-xs mb-1">⚡ CPU</p>
+      <p class="text-lg md:text-xl font-bold" x-text="cpuPct + '%'"></p>
+      <p class="text-xs text-zinc-600 mt-1" x-text="cpuCores + ' núcleos'"></p>
+    </div>
+    <!-- 💾 RAM -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
+      <p class="text-zinc-500 text-xs mb-1">💾 RAM</p>
+      <p class="text-lg md:text-xl font-bold" x-text="ramPct + '%'"></p>
+      <p class="text-xs text-zinc-600 mt-1" x-text="ramInfo"></p>
+    </div>
+    <!-- 💽 Disco -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
+      <p class="text-zinc-500 text-xs mb-1">💽 Disco</p>
+      <p class="text-lg md:text-xl font-bold" x-text="diskPct + '%'"></p>
+      <p class="text-xs text-zinc-600 mt-1" x-text="diskIO"></p>
+    </div>
+    <!-- 📁 Dados -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
+      <p class="text-zinc-500 text-xs mb-1">📁 Dados</p>
+      <p class="text-lg md:text-xl font-bold" x-text="totalFiles?.toLocaleString() || '0'"></p>
+      <p class="text-xs text-zinc-600 mt-1">arquivos processados</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6">
+      <h3 class="text-sm font-semibold mb-3">📋 Log do Dashboard</h3>
+      <pre class="bg-black/40 rounded-xl p-3 text-xs font-mono text-zinc-400 overflow-auto max-h-48 scrollbar-thin leading-relaxed" x-text="logTexto || 'Aguardando...'"></pre>
+    </div>
+    <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6">
+      <h3 class="text-sm font-semibold mb-3">📈 Últimas épocas <span x-show="metricas.length" class="text-[10px] text-zinc-600 font-normal" x-text="metricasFonte"></span></h3>
+      <div x-show="metricas.length === 0"><p class="text-zinc-600 text-sm">Nenhuma métrica de treino ainda.</p></div>
+      <div x-show="metricas.length" class="grid grid-cols-[3.4rem_1fr_1fr_5rem] gap-2 text-[10px] uppercase tracking-wide text-zinc-600 pb-1.5 border-b border-zinc-800">
+        <span>Época</span><span class="text-right">Train</span><span class="text-right">Val</span><span class="text-right">Data</span>
+      </div>
+      <template x-for="m in metricas" :key="m.epoch + (m.fonte||'')">
+        <div class="grid grid-cols-[3.4rem_1fr_1fr_5rem] gap-2 items-center text-xs text-zinc-400 py-1.5 border-b border-zinc-800/50">
+          <span class="font-medium text-zinc-300">Ép. <span x-text="m.epoch"></span></span>
+          <span class="text-right text-amber-400 font-semibold" x-text="m.train_loss != null ? (+m.train_loss).toFixed(2) : '—'"></span>
+          <span class="text-right text-emerald-400 font-semibold" x-text="m.val_loss != null ? (+m.val_loss).toFixed(2) : '—'"></span>
+          <span class="text-right text-zinc-600" x-show="m.timestamp" x-text="(m.timestamp||'').slice(0,16).replace('T',' ')"></span>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- 📦 Backup / Distribuição -->
+  <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6 mt-6">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+      <h3 class="text-sm font-semibold">📦 Backup / Distribuição</h3>
+      <button @click="criarBackup()" :disabled="deployRodando" title="Criar backup para distribuição (mantém só as 2 versões mais recentes)"
+              class="flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50 disabled:cursor-not-allowed">
+        <i class="fa-solid fa-box-archive" :class="{'fa-spin': deployRodando}"></i>
+        <span x-text="deployRodando ? 'Gerando...' : 'Criar backup'"></span>
+      </button>
+    </div>
+    <p class="text-[11px] text-zinc-500 mb-3" x-show="deployMensagem" x-text="deployMensagem"></p>
+    <div x-show="deployVersoes.length === 0 && !deployRodando">
+      <p class="text-zinc-600 text-sm">Nenhum backup ainda. Clique em "Criar backup" para gerar o pacote distribuível (código + modelo, sem dados brutos/checkpoints grandes). Máximo de 2 versões — a mais antiga é apagada.</p>
+    </div>
+    <div class="space-y-2">
+      <template x-for="v in deployVersoes" :key="v.nome">
+        <div class="flex items-center justify-between gap-3 bg-black/30 rounded-xl px-3 py-2 text-xs">
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-zinc-300 font-medium" x-text="v.nome"></p>
+            <p class="text-zinc-600" x-text="v.tamanho_mb + ' MB · ' + v.data"></p>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <a :href="v.url" :download="v.nome" title="Baixar (funciona no celular)"
+               class="text-emerald-400 hover:text-emerald-300 text-base px-2 py-1"><i class="fa-solid fa-download"></i></a>
+            <button @click="removerBackup(v.nome)" title="Apagar esta versão"
+                    class="text-red-500 hover:text-red-400 text-base px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      </template>
+    </div>
+    <div class="mt-3 bg-amber-950/30 border border-amber-600/30 rounded-lg p-2 text-[10px] text-amber-300 leading-relaxed">
+      🪟 <b>Regra de instalação:</b> extraia o ZIP em uma pasta <b>NOVA/Vazia</b>.
+      <b>NÃO</b> extraia por cima de uma instalação existente do RigelSLM — assim como
+      programas do Windows exigem desinstalar antes de reinstalar, se a pasta de destino
+      já contém o sistema, mova/renomeie ou apague antes. <b>A responsabilidade é do usuário.</b>
+    </div>
+    <p class="text-[10px] text-zinc-600 mt-2">💡 No celular: acesse <span class="text-zinc-400">http://<span x-text="window.location.hostname"></span>:8000</span> na mesma rede Wi-Fi e toque em 📥 para baixar.</p>
+  </div>
+
+  <!-- 📲 Celular ↔ PC (exportar/importar colaborativo) -->
+  <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6 mt-6">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+      <h3 class="text-sm font-semibold">📲 Celular ↔ PC <span class="text-[10px] text-zinc-600 font-normal">(colaborativo)</span></h3>
+      <button @click="exportarDados()" :disabled="celRodando"
+              title="Exportar só o que foi gerado aqui (scrap/chat/rss/feedback) — leve p/ Google Drive"
+              class="flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-sky-600/20 text-sky-300 hover:bg-sky-600/30 disabled:opacity-50 disabled:cursor-not-allowed">
+        <i class="fa-solid fa-cloud-arrow-up" :class="{'fa-spin': celRodando && celOperacao==='exportar'}"></i>
+        <span x-text="celRodando && celOperacao==='exportar' ? 'Exportando...' : 'Exportar dados'"></span>
+      </button>
+    </div>
+    <p class="text-[11px] text-zinc-500 mb-3" x-show="celMensagem" x-text="celMensagem"></p>
+    <p class="text-[11px] text-zinc-600 mb-3">Exporta <b class="text-zinc-300">apenas o que foi gerado</b> nesta máquina (scrap, chat salvos, RSS, feedback, diálogos) — <b>sem</b> datasets baixados, <b>sem</b> a pasta <code class="text-zinc-400">dados</code> inteira. Leve o suficiente para ir por Google Drive e treinar no PC.
+    Se quiser mais dados, baixe datasets, faça scraping ou crie — e depois exporte o que produziu. 🤝</p>
+
+    <!-- Exportações geradas -->
+    <div class="space-y-2" x-show="celExportacoes.length">
+      <p class="text-[10px] uppercase tracking-wide text-zinc-600">Exportações geradas</p>
+      <template x-for="v in celExportacoes" :key="v.nome">
+        <div class="flex items-center justify-between gap-3 bg-black/30 rounded-xl px-3 py-2 text-xs">
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-zinc-300 font-medium" x-text="v.nome"></p>
+            <p class="text-zinc-600" x-text="v.tamanho_mb + ' MB · ' + v.data"></p>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <a :href="v.url" :download="v.nome" title="Baixar (salvar no Google Drive / celular)"
+               class="text-sky-400 hover:text-sky-300 text-base px-2 py-1"><i class="fa-solid fa-download"></i></a>
+            <button @click="removerExportacao(v.nome)" title="Apagar esta exportação"
+                    class="text-red-500 hover:text-red-400 text-base px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- Importar -->
+    <div class="mt-3 bg-black/20 border border-zinc-800 rounded-xl p-3">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <div class="min-w-0">
+          <p class="text-xs text-zinc-300 font-medium">⬇️ Importar exportações externas</p>
+          <p class="text-[10px] text-zinc-600 mt-0.5">Pasta comum: <code class="text-zinc-400">dados/Celular</code> — no PC, baixe o zip do Google Drive e solte aqui, depois clique em Importar.</p>
+        </div>
+        <button @click="importarDados()" :disabled="celRodando"
+                title="Importar tudo de dados/Celular (jsonl→gerados, txt→raw, parquet→processed)"
+                class="flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50 disabled:cursor-not-allowed">
+          <i class="fa-solid fa-cloud-arrow-down" :class="{'fa-spin': celRodando && celOperacao==='importar'}"></i>
+          <span>Importar de dados/Celular</span>
+        </button>
+      </div>
+      <div x-show="celPendentes.zips.length || celPendentes.soltos.length" class="mt-2 text-[10px] text-zinc-500">
+        <span x-show="celPendentes.zips.length" x-text="'📦 ' + celPendentes.zips.length + ' zip(s) aguardando'"></span>
+        <span x-show="celPendentes.soltos.length" x-text="(celPendentes.zips.length ? ' · ' : '') + '📄 ' + celPendentes.soltos.length + ' arquivo(s) solto(s)'"></span>
+      </div>
+      <div x-show="!celPendentes.zips.length && !celPendentes.soltos.length" class="mt-2 text-[10px] text-zinc-600">
+        Nada aguardando em dados/Celular.
+      </div>
+    </div>
+  </div>
+  </div> <!-- fim x-show="carregou" -->
+</div>
+
+<script>
+console.log("[DASHBOARD] Página carregada");
+function homeState() {
+  return {
+    carregou: false, loading: false, statusTime: '',
+    modeloStatus: '❓', modeloData: '', modeloNome: '', modeloTamanho: '', modeloCheckpoint: '',
+    maturidadePct: null, maturidadeLoss: null, maturidadeEpoca: null,
+    treinando: false, treinoEtapa: 'idle', treinoDataset: '', treinoMensagem: '', treinoProgresso: 0, treinoIndeterminado: false,
+    cpuPct: 0, cpuCores: '?', ramPct: 0, ramInfo: '', diskPct: 0, diskIO: '',
+    totalFiles: 0, logTexto: '', metricas: [], metricasFonte: '',
+    deployRodando: false, deployMensagem: '', deployVersoes: [], _deployTimer: null,
+    celRodando: false, celOperacao: '', celMensagem: '', celExportacoes: [], celPendentes: {zips: [], soltos: []}, _celTimer: null,
+    init() {
+      console.log("[DASHBOARD] Inicializando...");
+      this.pollAll();
+      setInterval(() => this.pollAll(), 15000);
+    },
+    async carregarDeploy() {
+      try {
+        const r = await fetch('/api/deploy/status');
+        if (r.ok) {
+          const d = await r.json();
+          this.deployRodando = !!d.rodando;
+          this.deployMensagem = d.mensagem || '';
+          this.deployVersoes = d.versoes || [];
+          if (!this.deployRodando && this._deployTimer) {
+            clearInterval(this._deployTimer);
+            this._deployTimer = null;
+          }
+        }
+      } catch(e) { console.error("[DASHBOARD] Erro deploy:", e); }
+    },
+    async criarBackup() {
+      try {
+        const r = await fetch('/api/deploy/criar', { method: 'POST' });
+        const d = await r.json();
+        this.deployMensagem = d.mensagem || '';
+        this.deployRodando = true;
+        if (!this._deployTimer) this._deployTimer = setInterval(() => this.carregarDeploy(), 2000);
+      } catch(e) { console.error("[DASHBOARD] Erro criar backup:", e); }
+    },
+    async removerBackup(nome) {
+      try {
+        await fetch('/api/deploy/remover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome })
+        });
+        this.carregarDeploy();
+      } catch(e) { console.error("[DASHBOARD] Erro remover backup:", e); }
+    },
+    async carregarCelular() {
+      try {
+        const r = await fetch('/api/celular/status');
+        if (r.ok) {
+          const d = await r.json();
+          this.celRodando = !!d.rodando;
+          this.celOperacao = d.operacao || '';
+          this.celMensagem = d.mensagem || '';
+          this.celExportacoes = d.exportacoes || [];
+          this.celPendentes = d.pendentes || {zips: [], soltos: []};
+          if (!this.celRodando && this._celTimer) { clearInterval(this._celTimer); this._celTimer = null; }
+        }
+      } catch(e) { console.error("[DASHBOARD] Erro celular:", e); }
+    },
+    async exportarDados() {
+      try {
+        const r = await fetch('/api/celular/exportar', { method: 'POST' });
+        const d = await r.json();
+        this.celMensagem = d.mensagem || '';
+        this.celRodando = true; this.celOperacao = 'exportar';
+        if (!this._celTimer) this._celTimer = setInterval(() => this.carregarCelular(), 2000);
+      } catch(e) { console.error("[DASHBOARD] Erro exportar:", e); }
+    },
+    async removerExportacao(nome) {
+      try {
+        await fetch('/api/celular/remover_exportacao', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome })
+        });
+        this.carregarCelular();
+      } catch(e) { console.error("[DASHBOARD] Erro remover export:", e); }
+    },
+    async importarDados() {
+      try {
+        const r = await fetch('/api/celular/importar', { method: 'POST' });
+        const d = await r.json();
+        this.celMensagem = d.mensagem || '';
+        this.celRodando = true; this.celOperacao = 'importar';
+        if (!this._celTimer) this._celTimer = setInterval(() => this.carregarCelular(), 2000);
+      } catch(e) { console.error("[DASHBOARD] Erro importar:", e); }
+    },
+    async pollAll() {
+      this.loading = true; // gira o ícone do botão de atualizar
+      try {
+        const r = await fetch('/api/system/details');
+        this.carregou = true; // primeira carga concluída
+        if (r.ok) {
+          const d = await r.json();
+          this.cpuPct = d.cpu?.percent || 0;
+          this.cpuCores = d.cpu?.cores || '?';
+          this.ramPct = d.memory?.percent || 0;
+          this.ramInfo = (d.memory?.used_gb||0) + 'GB / ' + (d.memory?.total_gb||0) + 'GB';
+          this.diskPct = d.disk || 0;
+          this.diskIO = '📖' + (d.disk_io?.read_mb||0) + 'MB | 💾' + (d.disk_io?.write_mb||0) + 'MB';
+          this.totalFiles = d.processed_files || 0;
+          // 🧠 Modelo + 🎯 Treino (novos campos)
+          const ma = d.maturidade || null;
+          this.maturidadePct = ma ? ma.percentual : null;
+          this.maturidadeLoss = ma ? ma.loss : null;
+          this.maturidadeEpoca = ma ? ma.epoca : null;
+          const mi = d.modelo_info || {};
+          this.modeloStatus = mi.existe ? '✅ Pronto' : '❌ Ausente';
+          this.modeloData = mi.data || d.model_date || '';
+          this.modeloNome = mi.existe ? (mi.nome || 'modelo_melhor.pt') : 'sem modelo';
+          this.modeloTamanho = mi.tamanho_mb ? mi.tamanho_mb + ' MB' : '';
+          this.modeloCheckpoint = mi.checkpoint ? ('💾 ckpt ' + (mi.checkpoint.data||'') + (mi.checkpoint.tamanho_mb ? ' · ' + mi.checkpoint.tamanho_mb + ' MB' : '')) : '';
+          const ti = d.treino_info || {};
+          this.treinando = !!ti.rodando || ti.etapa === 'treinando';
+          this.treinoEtapa = ti.etapa || 'idle';
+          this.treinoDataset = ti.dataset || '';
+          this.treinoMensagem = ti.mensagem || '';
+          const pr = ti.progresso || {};
+          this.treinoProgresso = pr.percentual || pr.percent || (pr.epoca && pr.total_epocas ? Math.round(100 * pr.epoca / pr.total_epocas) : 0) || 0;
+          this.treinoIndeterminado = this.treinando && !this.treinoProgresso;
+          // 📈 Métricas de treino (SFT jsonl tem prioridade)
+          this.metricas = (d.metricas || []).slice(-10);
+          this.metricasFonte = this.metricas.length ? '(fonte: ' + (this.metricas[0].fonte === 'jsonl' ? 'SFT jsonl' : 'TXT') + ')' : '';
+          this.statusTime = d.timestamp ? new Date(d.timestamp).toLocaleTimeString() : '';
+          console.log("[DASHBOARD] Sistema atualizado:", this.cpuPct + '% CPU', '| treinando:', this.treinando);
+        }
+      } catch(e) { console.error("[DASHBOARD] Erro sistema:", e); }
+      try {
+        const r = await fetch('/api/logs/ultimas?arquivo=dashboard.log&linhas=15');
+        if (r.ok) { const d = await r.json(); this.logTexto = d.conteudo || ''; }
+      } catch(e) { console.error("[DASHBOARD] Erro log:", e); }
+      await this.carregarDeploy();
+      await this.carregarCelular();
+      this.loading = false; // para o giro do botão
+    }
+  };
+}
+</script>
+{% endblock %}

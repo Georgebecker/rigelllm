@@ -1,0 +1,1022 @@
+{
+  "rodando": true,
+  "status": "explodindo",
+  "repo": "dominguesm_restore-punctuation-ptbr-dataset",
+  "nome": "dominguesm_restore-punctuation-ptbr-dataset",
+  "caminho": "D:\\Projetos\\rigelllm\\dados\\raw\\dominguesm_restore-punctuation-ptbr-dataset\\dataset.jsonl",
+  "inicio": "2026-08-06T19:19:37.633560",
+  "fim": null,
+  "total_exemplos": 61400,
+  "total_arquivos": 61,
+  "total_pastas": 0,
+  "estimativa": null,
+  "eventos": [
+    {
+      "data": "2026-08-06T19:20:01.746969",
+      "tipo": "progresso",
+      "msg": "51900 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:01.766553",
+      "tipo": "progresso",
+      "msg": "51950 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:01.785846",
+      "tipo": "progresso",
+      "msg": "52000 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:01.796790",
+      "tipo": "arquivo",
+      "msg": "Arquivo criado: dados\\gerados\\jsonl\\dominguesm_restore-punctuation-ptbr-dataset\\dominguesm_restore-punctuation-ptbr-dataset_00052.jsonl"
+    },
+    {
+      "data": "2026-08-06T19:20:01.816830",
+      "tipo": "progresso",
+      "msg": "52050 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:01.835657",
+      "tipo": "progresso",
+      "msg": "52100 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:01.854891",
+      "tipo": "progresso",
+      "msg": "52150 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:01.873575",
+      "tipo": "progresso",
+      "msg": "52200 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:01.892545",
+      "tipo": "progresso",
+      "msg": "52250 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:01.911544",
+      "tipo": "progresso",
+      "msg": "52300 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:01.930247",
+      "tipo": "progresso",
+      "msg": "52350 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:01.948611",
+      "tipo": "progresso",
+      "msg": "52400 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:01.968793",
+      "tipo": "progresso",
+      "msg": "52450 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:01.987579",
+      "tipo": "progresso",
+      "msg": "52500 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.006515",
+      "tipo": "progresso",
+      "msg": "52550 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.027455",
+      "tipo": "progresso",
+      "msg": "52600 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.048944",
+      "tipo": "progresso",
+      "msg": "52650 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.070976",
+      "tipo": "progresso",
+      "msg": "52700 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.092452",
+      "tipo": "progresso",
+      "msg": "52750 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.124210",
+      "tipo": "progresso",
+      "msg": "52800 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.147293",
+      "tipo": "progresso",
+      "msg": "52850 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.169572",
+      "tipo": "progresso",
+      "msg": "52900 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.195409",
+      "tipo": "progresso",
+      "msg": "52950 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.217984",
+      "tipo": "progresso",
+      "msg": "53000 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.231208",
+      "tipo": "arquivo",
+      "msg": "Arquivo criado: dados\\gerados\\jsonl\\dominguesm_restore-punctuation-ptbr-dataset\\dominguesm_restore-punctuation-ptbr-dataset_00053.jsonl"
+    },
+    {
+      "data": "2026-08-06T19:20:02.252580",
+      "tipo": "progresso",
+      "msg": "53050 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.274214",
+      "tipo": "progresso",
+      "msg": "53100 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.295292",
+      "tipo": "progresso",
+      "msg": "53150 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.315177",
+      "tipo": "progresso",
+      "msg": "53200 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.335536",
+      "tipo": "progresso",
+      "msg": "53250 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.356352",
+      "tipo": "progresso",
+      "msg": "53300 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.376711",
+      "tipo": "progresso",
+      "msg": "53350 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.412281",
+      "tipo": "progresso",
+      "msg": "53400 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.437303",
+      "tipo": "progresso",
+      "msg": "53450 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.461514",
+      "tipo": "progresso",
+      "msg": "53500 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.486435",
+      "tipo": "progresso",
+      "msg": "53550 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.511695",
+      "tipo": "progresso",
+      "msg": "53600 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.536781",
+      "tipo": "progresso",
+      "msg": "53650 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.561848",
+      "tipo": "progresso",
+      "msg": "53700 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.587186",
+      "tipo": "progresso",
+      "msg": "53750 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.622769",
+      "tipo": "progresso",
+      "msg": "53800 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.642950",
+      "tipo": "progresso",
+      "msg": "53850 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.662774",
+      "tipo": "progresso",
+      "msg": "53900 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.682540",
+      "tipo": "progresso",
+      "msg": "53950 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.702167",
+      "tipo": "progresso",
+      "msg": "54000 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.713757",
+      "tipo": "arquivo",
+      "msg": "Arquivo criado: dados\\gerados\\jsonl\\dominguesm_restore-punctuation-ptbr-dataset\\dominguesm_restore-punctuation-ptbr-dataset_00054.jsonl"
+    },
+    {
+      "data": "2026-08-06T19:20:02.733146",
+      "tipo": "progresso",
+      "msg": "54050 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.752422",
+      "tipo": "progresso",
+      "msg": "54100 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.772365",
+      "tipo": "progresso",
+      "msg": "54150 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.792594",
+      "tipo": "progresso",
+      "msg": "54200 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.812706",
+      "tipo": "progresso",
+      "msg": "54250 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.832958",
+      "tipo": "progresso",
+      "msg": "54300 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.852563",
+      "tipo": "progresso",
+      "msg": "54350 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.872537",
+      "tipo": "progresso",
+      "msg": "54400 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.891587",
+      "tipo": "progresso",
+      "msg": "54450 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.911406",
+      "tipo": "progresso",
+      "msg": "54500 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.930297",
+      "tipo": "progresso",
+      "msg": "54550 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.949782",
+      "tipo": "progresso",
+      "msg": "54600 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.969125",
+      "tipo": "progresso",
+      "msg": "54650 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:02.987812",
+      "tipo": "progresso",
+      "msg": "54700 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.006145",
+      "tipo": "progresso",
+      "msg": "54750 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.025698",
+      "tipo": "progresso",
+      "msg": "54800 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.053796",
+      "tipo": "progresso",
+      "msg": "54850 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.087703",
+      "tipo": "progresso",
+      "msg": "54900 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.113972",
+      "tipo": "progresso",
+      "msg": "54950 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.138910",
+      "tipo": "progresso",
+      "msg": "55000 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.152839",
+      "tipo": "arquivo",
+      "msg": "Arquivo criado: dados\\gerados\\jsonl\\dominguesm_restore-punctuation-ptbr-dataset\\dominguesm_restore-punctuation-ptbr-dataset_00055.jsonl"
+    },
+    {
+      "data": "2026-08-06T19:20:03.175498",
+      "tipo": "progresso",
+      "msg": "55050 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.197565",
+      "tipo": "progresso",
+      "msg": "55100 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.219161",
+      "tipo": "progresso",
+      "msg": "55150 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.240139",
+      "tipo": "progresso",
+      "msg": "55200 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.261373",
+      "tipo": "progresso",
+      "msg": "55250 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.282037",
+      "tipo": "progresso",
+      "msg": "55300 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.302077",
+      "tipo": "progresso",
+      "msg": "55350 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.322445",
+      "tipo": "progresso",
+      "msg": "55400 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.342588",
+      "tipo": "progresso",
+      "msg": "55450 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.363420",
+      "tipo": "progresso",
+      "msg": "55500 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.384479",
+      "tipo": "progresso",
+      "msg": "55550 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.405767",
+      "tipo": "progresso",
+      "msg": "55600 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.426716",
+      "tipo": "progresso",
+      "msg": "55650 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.446839",
+      "tipo": "progresso",
+      "msg": "55700 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.468036",
+      "tipo": "progresso",
+      "msg": "55750 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.488800",
+      "tipo": "progresso",
+      "msg": "55800 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.509465",
+      "tipo": "progresso",
+      "msg": "55850 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.530380",
+      "tipo": "progresso",
+      "msg": "55900 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.551041",
+      "tipo": "progresso",
+      "msg": "55950 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.571300",
+      "tipo": "progresso",
+      "msg": "56000 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.584245",
+      "tipo": "arquivo",
+      "msg": "Arquivo criado: dados\\gerados\\jsonl\\dominguesm_restore-punctuation-ptbr-dataset\\dominguesm_restore-punctuation-ptbr-dataset_00056.jsonl"
+    },
+    {
+      "data": "2026-08-06T19:20:03.604549",
+      "tipo": "progresso",
+      "msg": "56050 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.625074",
+      "tipo": "progresso",
+      "msg": "56100 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.646530",
+      "tipo": "progresso",
+      "msg": "56150 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.666669",
+      "tipo": "progresso",
+      "msg": "56200 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.699534",
+      "tipo": "progresso",
+      "msg": "56250 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.728909",
+      "tipo": "progresso",
+      "msg": "56300 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.754281",
+      "tipo": "progresso",
+      "msg": "56350 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.779481",
+      "tipo": "progresso",
+      "msg": "56400 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.805315",
+      "tipo": "progresso",
+      "msg": "56450 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.830191",
+      "tipo": "progresso",
+      "msg": "56500 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.855712",
+      "tipo": "progresso",
+      "msg": "56550 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.881020",
+      "tipo": "progresso",
+      "msg": "56600 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.914285",
+      "tipo": "progresso",
+      "msg": "56650 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.939791",
+      "tipo": "progresso",
+      "msg": "56700 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.964704",
+      "tipo": "progresso",
+      "msg": "56750 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:03.990477",
+      "tipo": "progresso",
+      "msg": "56800 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.018431",
+      "tipo": "progresso",
+      "msg": "56850 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.038509",
+      "tipo": "progresso",
+      "msg": "56900 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.057999",
+      "tipo": "progresso",
+      "msg": "56950 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.077498",
+      "tipo": "progresso",
+      "msg": "57000 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.088587",
+      "tipo": "arquivo",
+      "msg": "Arquivo criado: dados\\gerados\\jsonl\\dominguesm_restore-punctuation-ptbr-dataset\\dominguesm_restore-punctuation-ptbr-dataset_00057.jsonl"
+    },
+    {
+      "data": "2026-08-06T19:20:04.108211",
+      "tipo": "progresso",
+      "msg": "57050 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.130150",
+      "tipo": "progresso",
+      "msg": "57100 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.152091",
+      "tipo": "progresso",
+      "msg": "57150 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.172339",
+      "tipo": "progresso",
+      "msg": "57200 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.192206",
+      "tipo": "progresso",
+      "msg": "57250 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.212949",
+      "tipo": "progresso",
+      "msg": "57300 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.243527",
+      "tipo": "progresso",
+      "msg": "57350 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.263817",
+      "tipo": "progresso",
+      "msg": "57400 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.283733",
+      "tipo": "progresso",
+      "msg": "57450 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.303821",
+      "tipo": "progresso",
+      "msg": "57500 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.323163",
+      "tipo": "progresso",
+      "msg": "57550 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.357062",
+      "tipo": "progresso",
+      "msg": "57600 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.387000",
+      "tipo": "progresso",
+      "msg": "57650 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.413655",
+      "tipo": "progresso",
+      "msg": "57700 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.441100",
+      "tipo": "progresso",
+      "msg": "57750 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.471460",
+      "tipo": "progresso",
+      "msg": "57800 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.493943",
+      "tipo": "progresso",
+      "msg": "57850 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.516106",
+      "tipo": "progresso",
+      "msg": "57900 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.541244",
+      "tipo": "progresso",
+      "msg": "57950 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.566643",
+      "tipo": "progresso",
+      "msg": "58000 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.581994",
+      "tipo": "arquivo",
+      "msg": "Arquivo criado: dados\\gerados\\jsonl\\dominguesm_restore-punctuation-ptbr-dataset\\dominguesm_restore-punctuation-ptbr-dataset_00058.jsonl"
+    },
+    {
+      "data": "2026-08-06T19:20:04.609913",
+      "tipo": "progresso",
+      "msg": "58050 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.634647",
+      "tipo": "progresso",
+      "msg": "58100 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.659688",
+      "tipo": "progresso",
+      "msg": "58150 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.685457",
+      "tipo": "progresso",
+      "msg": "58200 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.710873",
+      "tipo": "progresso",
+      "msg": "58250 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.736133",
+      "tipo": "progresso",
+      "msg": "58300 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.761391",
+      "tipo": "progresso",
+      "msg": "58350 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.784789",
+      "tipo": "progresso",
+      "msg": "58400 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.805606",
+      "tipo": "progresso",
+      "msg": "58450 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.827224",
+      "tipo": "progresso",
+      "msg": "58500 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.848463",
+      "tipo": "progresso",
+      "msg": "58550 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.889478",
+      "tipo": "progresso",
+      "msg": "58600 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.916467",
+      "tipo": "progresso",
+      "msg": "58650 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.943790",
+      "tipo": "progresso",
+      "msg": "58700 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.970480",
+      "tipo": "progresso",
+      "msg": "58750 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:04.997581",
+      "tipo": "progresso",
+      "msg": "58800 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.024174",
+      "tipo": "progresso",
+      "msg": "58850 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.050759",
+      "tipo": "progresso",
+      "msg": "58900 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.076857",
+      "tipo": "progresso",
+      "msg": "58950 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.103752",
+      "tipo": "progresso",
+      "msg": "59000 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.124291",
+      "tipo": "arquivo",
+      "msg": "Arquivo criado: dados\\gerados\\jsonl\\dominguesm_restore-punctuation-ptbr-dataset\\dominguesm_restore-punctuation-ptbr-dataset_00059.jsonl"
+    },
+    {
+      "data": "2026-08-06T19:20:05.152547",
+      "tipo": "progresso",
+      "msg": "59050 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.179879",
+      "tipo": "progresso",
+      "msg": "59100 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.206479",
+      "tipo": "progresso",
+      "msg": "59150 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.245167",
+      "tipo": "progresso",
+      "msg": "59200 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.265501",
+      "tipo": "progresso",
+      "msg": "59250 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.285503",
+      "tipo": "progresso",
+      "msg": "59300 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.304805",
+      "tipo": "progresso",
+      "msg": "59350 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.333479",
+      "tipo": "progresso",
+      "msg": "59400 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.353518",
+      "tipo": "progresso",
+      "msg": "59450 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.373050",
+      "tipo": "progresso",
+      "msg": "59500 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.392585",
+      "tipo": "progresso",
+      "msg": "59550 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.413137",
+      "tipo": "progresso",
+      "msg": "59600 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.433186",
+      "tipo": "progresso",
+      "msg": "59650 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.452281",
+      "tipo": "progresso",
+      "msg": "59700 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.471935",
+      "tipo": "progresso",
+      "msg": "59750 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.491416",
+      "tipo": "progresso",
+      "msg": "59800 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.510755",
+      "tipo": "progresso",
+      "msg": "59850 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.530200",
+      "tipo": "progresso",
+      "msg": "59900 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.549738",
+      "tipo": "progresso",
+      "msg": "59950 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.569155",
+      "tipo": "progresso",
+      "msg": "60000 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.579960",
+      "tipo": "arquivo",
+      "msg": "Arquivo criado: dados\\gerados\\jsonl\\dominguesm_restore-punctuation-ptbr-dataset\\dominguesm_restore-punctuation-ptbr-dataset_00060.jsonl"
+    },
+    {
+      "data": "2026-08-06T19:20:05.600342",
+      "tipo": "progresso",
+      "msg": "60050 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.622649",
+      "tipo": "progresso",
+      "msg": "60100 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.644784",
+      "tipo": "progresso",
+      "msg": "60150 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.667031",
+      "tipo": "progresso",
+      "msg": "60200 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.688064",
+      "tipo": "progresso",
+      "msg": "60250 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.711095",
+      "tipo": "progresso",
+      "msg": "60300 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.733156",
+      "tipo": "progresso",
+      "msg": "60350 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.756161",
+      "tipo": "progresso",
+      "msg": "60400 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.778397",
+      "tipo": "progresso",
+      "msg": "60450 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.800146",
+      "tipo": "progresso",
+      "msg": "60500 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.821701",
+      "tipo": "progresso",
+      "msg": "60550 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.842413",
+      "tipo": "progresso",
+      "msg": "60600 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.862581",
+      "tipo": "progresso",
+      "msg": "60650 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.883530",
+      "tipo": "progresso",
+      "msg": "60700 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.904962",
+      "tipo": "progresso",
+      "msg": "60750 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.925254",
+      "tipo": "progresso",
+      "msg": "60800 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.945238",
+      "tipo": "progresso",
+      "msg": "60850 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.965801",
+      "tipo": "progresso",
+      "msg": "60900 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:05.987396",
+      "tipo": "progresso",
+      "msg": "60950 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:06.009320",
+      "tipo": "progresso",
+      "msg": "61000 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:06.022000",
+      "tipo": "arquivo",
+      "msg": "Arquivo criado: dados\\gerados\\jsonl\\dominguesm_restore-punctuation-ptbr-dataset\\dominguesm_restore-punctuation-ptbr-dataset_00061.jsonl"
+    },
+    {
+      "data": "2026-08-06T19:20:06.042427",
+      "tipo": "progresso",
+      "msg": "61050 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:06.063963",
+      "tipo": "progresso",
+      "msg": "61100 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:06.084494",
+      "tipo": "progresso",
+      "msg": "61150 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:06.103753",
+      "tipo": "progresso",
+      "msg": "61200 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:06.123626",
+      "tipo": "progresso",
+      "msg": "61250 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:06.142514",
+      "tipo": "progresso",
+      "msg": "61300 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:06.162119",
+      "tipo": "progresso",
+      "msg": "61350 exemplos processados"
+    },
+    {
+      "data": "2026-08-06T19:20:06.181368",
+      "tipo": "progresso",
+      "msg": "61400 exemplos processados"
+    }
+  ],
+  "erro": null,
+  "diagnostico": null
+}

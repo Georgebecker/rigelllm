@@ -1,7 +1,8 @@
 # Perfil do Projeto RigelSLM
 
 **Versão:** 1.0.0  
-**Última atualização:** 15 de Julho de 2026  
+**Última atualização:** 31 de Julho de 2026  
+**Arquivos de treino:** 1.089  
 **Autor:** George Herman Becker  
 
 ---

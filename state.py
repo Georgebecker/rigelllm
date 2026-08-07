@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 state.py - Gerenciamento de estado persistente do gerador.
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 Mantém histórico de temas/respostas, contagens, controle de repetição e tópicos externos usados.
 """
 import os

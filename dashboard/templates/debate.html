@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block title %}Debate e Podcast{% endblock %}
+{% block content %}
+<div x-data="debateState()" x-cloak>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">🎙️ Debate e Podcast</h2>
+  <p class="text-zinc-500 text-sm mb-4">Geração factual via <strong class="text-emerald-400">DeepSeek</strong> com pesquisa na web</p>
+
+  <!-- Cards de Status -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+    <div class="bg-zinc-900 p-4 rounded-2xl" title="Status da chave DeepSeek">
+      <p class="text-zinc-500 text-xs">🔑 DeepSeek</p>
+      <p class="text-xl font-bold mt-1" x-text="deepseekOk ? '✅' : '⚠️'"></p>
+      <p class="text-[10px] mt-1" :class="deepseekOk?'text-emerald-400':'text-amber-400'" x-text="deepseekOk?'Key ativa':'Configure .env'"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl" title="Perfis disponíveis">
+      <p class="text-zinc-500 text-xs">👥 Perfis</p>
+      <p class="text-xl font-bold mt-1" x-text="perfis.length"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl" title="Pesquisa web disponível">
+      <p class="text-zinc-500 text-xs">🌐 Pesquisa</p>
+      <p class="text-xl font-bold mt-1" x-text="pesquisaOnline ? '✅' : '⚠️'"></p>
+      <p class="text-[10px] mt-1" :class="pesquisaOnline?'text-sky-400':'text-zinc-500'" x-text="pesquisaOnline ? 'Ativa' : 'Indisponível'"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl" title="Tópicos disponíveis">
+      <p class="text-zinc-500 text-xs">📡 Tópicos</p>
+      <p class="text-xl font-bold mt-1" x-text="topicos.length"></p>
+    </div>
+  </div>
+
+  <!-- Formulário Principal -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+    <h3 class="text-base font-semibold mb-4">⚙️ Configuração</h3>
+
+    <!-- Seletor de Modo -->
+    <div class="flex gap-2 mb-5">
+      <button @click="modo='debate'" class="flex-1 px-5 py-3 rounded-xl text-sm font-semibold transition-all border-2"
+              :class="modo==='debate'?'bg-emerald-600/20 border-emerald-500 text-emerald-400':'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500'">
+        <i class="fa-solid fa-comments"></i> Debate<br><span class="text-[10px] font-normal">2 pessoas do mesmo perfil</span>
+      </button>
+      <button @click="modo='podcast'" class="flex-1 px-5 py-3 rounded-xl text-sm font-semibold transition-all border-2"
+              :class="modo==='podcast'?'bg-sky-600/20 border-sky-500 text-sky-400':'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500'">
+        <i class="fa-solid fa-microphone"></i> Podcast<br><span class="text-[10px] font-normal">Apresentador + Convidados</span>
+      </button>
+    </div>
+
+    <!-- Campos comuns: tema + turnos lado a lado, quebram em mobile -->
+    <div class="flex flex-col sm:flex-row gap-3 mb-4 items-start sm:items-end">
+      <div class="flex-1 w-full sm:w-auto min-w-0">
+        <label class="text-xs text-zinc-500 block mb-1">🎯 Tema</label>
+        <div class="flex gap-2">
+          <select x-model="tema" class="flex-1 min-w-0 bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none truncate">
+            <option value="">🔀 Aleatório</option>
+            <template x-for="t in topicos" :key="t"><option :value="t" x-text="t.length>50?t.slice(0,50)+'...':t"></option></template>
+          </select>
+          <input type="text" x-model="temaCustom" placeholder="Ou digite..." @focus="tema=''" class="flex-1 min-w-0 bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+          <button @click="sortearTopico()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 px-3 rounded-xl text-xs shrink-0" title="Tópico aleatório">🎲</button>
+        </div>
+      </div>
+      <div class="shrink-0">
+        <label class="text-xs text-zinc-500 block mb-1">🔄 Turnos</label>
+        <input type="number" x-model="turnos" min="1" max="99" step="1" class="w-20 bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+      </div>
+    </div>
+
+    <!-- Modo Debate: seleciona UM perfil -->
+    <div x-show="modo==='debate'" class="mb-4">
+      <label class="text-xs text-zinc-500 block mb-2">👤 Perfil dos debatedores (ambos serão deste perfil):</label>
+      <select x-model="perfil" class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+        <template x-for="p in perfis" :key="p.id">
+          <option :value="p.id" x-text="p.nome + ' — ' + p.descricao"></option>
+        </template>
+      </select>
+      <p class="text-xs text-zinc-600 mt-1">ℹ️ Dois debatedores (A e B) com o <strong>mesmo perfil</strong> debaterão o tema.</p>
+    </div>
+
+    <!-- Modo Podcast: seleciona CONVIDADOS -->
+    <div x-show="modo==='podcast'" class="mb-4">
+      <label class="text-xs text-zinc-500 block mb-2">🎤 Convidados (selecione um ou mais):</label>
+      <div class="flex flex-wrap gap-2">
+        <template x-for="p in perfis" :key="p.id">
+          <label class="flex items-center gap-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-xl cursor-pointer transition-all"
+                 :class="convidados.includes(p.id) ? 'ring-2 ring-sky-500 bg-zinc-700' : ''">
+            <input type="checkbox" :value="p.id" x-model="convidados" class="accent-sky-500 w-3 h-3">
+            <span x-text="p.nome"></span>
+            <span class="text-[10px] text-zinc-500" x-text="p.embasamento==='alto'?'🔍':'📝'"></span>
+          </label>
+        </template>
+      </div>
+      <p class="text-xs text-zinc-600 mt-1">ℹ️ O apresentador (🎙️ Podcaster) é fixo. Os convidados alternam conforme selecionados.</p>
+    </div>
+
+    <!-- Pesquisa -->
+    <div class="flex items-center gap-4 mb-4">
+      <label class="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer">
+        <input type="checkbox" x-model="pesquisar" class="accent-sky-500 w-3 h-3">
+        🌐 Pesquisar na web para embasar falas
+      </label>
+      <span class="text-[10px] text-zinc-600" x-show="pesquisaOnline">🔍 Disponível</span>
+      <span class="text-[10px] text-amber-500" x-show="!pesquisaOnline">⚠️ Indisponível</span>
+    </div>
+
+    <!-- Botão Gerar -->
+    <button @click="gerar()" :disabled="!podeGerar || gerando"
+            class="w-full py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2"
+            :class="podeGerar ? (modo==='debate' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-sky-600 hover:bg-sky-500') : 'bg-zinc-700 cursor-not-allowed'">
+      <i class="fa-solid" :class="gerando?'fa-spinner fa-spin':'fa-wand-magic-sparkles'"></i>
+      <span x-text="gerando ? 'Gerando... (pode levar 1-2 min)' : (modo==='debate' ? '🎙️ Gerar Debate' : '🎙️ Gerar Podcast')"></span>
+    </button>
+    <p x-show="msgErro" class="text-xs mt-2 text-red-400" x-text="msgErro"></p>
+    <p x-show="msg" class="text-xs mt-2" :class="msg.startsWith('✅')?'text-emerald-400':msg.startsWith('❌')?'text-red-400':'text-zinc-400'" x-text="msg"></p>
+  </div>
+
+  <!-- Resultado -->
+  <div x-show="resultado" class="bg-zinc-900 rounded-2xl p-4 md:p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold" x-text="titulo||'📄 Resultado'"></h3>
+      <div class="flex gap-2">
+        <button @click="copiar()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-400 px-3 py-1.5 rounded-lg">📋 Copiar</button>
+        <button @click="salvar()" class="text-xs bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-3 py-1.5 rounded-lg">💾 Salvar</button>
+      </div>
+    </div>
+    <pre class="bg-black/40 rounded-xl p-3 text-xs font-mono text-zinc-400 overflow-auto max-h-96 scrollbar-thin leading-relaxed whitespace-pre-wrap" x-text="resultado"></pre>
+    <p x-show="resultado && avisoPesquisa" class="text-xs mt-2 text-amber-500">⚠️ Gerado sem pesquisa externa. Pode conter informações desatualizadas.</p>
+  </div>
+</div>
+
+<script>
+console.log("[DEBATE_PAGE] Carregada");
+function debateState() {
+  return {
+    // Status
+    deepseekOk: false, pesquisaOnline: false, topicos: [], perfis: [],
+    // Form
+    modo: 'debate', perfil: 'Jornalista', convidados: ['Cientista'],
+    tema: '', temaCustom: '', turnos: 2, pesquisar: true,
+    // Resultado
+    gerando: false, msg: '', msgErro: '', resultado: '', titulo: '', avisoPesquisa: false,
+
+    get podeGerar() {
+      if (!this.deepseekOk) return false;
+      if (this.modo === 'debate') return true;
+      return this.convidados.length >= 1;
+    },
+
+    init() {
+      console.log("[DEBATE_PAGE] Inicializando...");
+      this.carregarPerfis();
+      this.carregarTopicos();
+      this.verificarDeepSeek();
+      this.verificarPesquisa();
+    },
+
+    async carregarPerfis() {
+      try {
+        const r = await fetch('/api/debate/perfis', {signal: AbortSignal.timeout(5000)});
+        if (r.ok) {
+          const d = await r.json();
+          this.perfis = d.perfis || [];
+          if (this.perfis.length > 0 && !this.perfil) this.perfil = this.perfis[0].id;
+        }
+      } catch(e) { console.error("[DEBATE_PAGE] Erro perfis:", e); }
+    },
+    async sortearTopico() {
+      try{const r=await fetch('/api/topicos/sortear'); if(r.ok){const d=await r.json(); if(d.topico) this.temaCustom=d.topico; this.tema='';}}catch(e){}
+    },
+    async carregarTopicos() {
+      try { const r = await fetch('/api/topicos/listar', {signal: AbortSignal.timeout(5000)}); if(r.ok) this.topicos = (await r.json()).topicos||[]; } catch(e) {}
+    },
+    async verificarDeepSeek() {
+      try {
+        const r = await fetch('/api/generate/deepseek-status', {signal: AbortSignal.timeout(5000)});
+        if (r.ok) { const d = await r.json(); this.deepseekOk = !!d.ok; }
+      } catch(e) {}
+    },
+    async verificarPesquisa() {
+      try {
+        const r = await fetch('/api/chat/search-status', {signal: AbortSignal.timeout(5000)});
+        if (r.ok) { const d = await r.json(); this.pesquisaOnline = !!d.online; }
+      } catch(e) {}
+    },
+
+    async gerar() {
+      const temaFinal = this.temaCustom || this.tema || '';
+      if (!this.deepseekOk) { this.msgErro = '❌ DeepSeek key não configurada'; return; }
+      if (this.modo === 'podcast' && this.convidados.length < 1) { this.msgErro = '❌ Selecione pelo menos um convidado'; return; }
+
+      this.gerando = true; this.msg = ''; this.msgErro = ''; this.resultado = '';
+      const label = this.modo === 'debate' ? 'Debate' : 'Podcast';
+
+      let body;
+      if (this.modo === 'debate') {
+        body = { modo: 'debate', perfil: this.perfil, tema: temaFinal || undefined, turnos: parseInt(this.turnos) || 2, pesquisar: this.pesquisar };
+        console.log("[DEBATE_PAGE] Debate:", body);
+      } else {
+        body = { modo: 'podcast', convidados: this.convidados, tema: temaFinal || undefined, turnos: parseInt(this.turnos) || 2, pesquisar: this.pesquisar };
+        console.log("[DEBATE_PAGE] Podcast:", body);
+      }
+
+      this.msg = '⏳ Gerando ' + label + (temaFinal ? ' "' + temaFinal + '"' : '') + '...';
+
+      try {
+        const r = await fetch('/api/debate/gerar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(body)
+        });
+        const d = await r.json();
+        console.log("[DEBATE_PAGE] Resposta:", d);
+        if (r.ok && d.status === 'ok') {
+          this.resultado = d.resultado || '';
+          this.titulo = d.titulo || '🎙️ ' + label;
+          this.msg = d.mensagem || '✅ ' + label + ' gerado!';
+          this.avisoPesquisa = !!d.aviso_pesquisa;
+        } else {
+          this.msg = '❌ ' + (d.message || d.mensagem || 'Erro ' + r.status);
+        }
+      } catch(e) {
+        this.msg = '❌ ' + e.message;
+        console.error("[DEBATE_PAGE] Erro:", e);
+      }
+      this.gerando = false;
+    },
+
+    copiar() {
+      navigator.clipboard?.writeText(this.resultado).then(() => {
+        this.msg = '✅ Copiado!';
+        setTimeout(() => { if (this.msg === '✅ Copiado!') this.msg = this.resultado ? '✅ ' + (this.modo === 'debate' ? 'Debate' : 'Podcast') + ' gerado!' : ''; }, 3000);
+      }).catch(() => {});
+    },
+    async salvar() {
+      try {
+        const nome = (this.modo === 'debate' ? 'debate' : 'podcast') + '_' + Date.now() + '.txt';
+        const r = await fetch('/api/local-generate/salvar-texto', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({conteudo: this.resultado, nome: nome, pasta: 'debates'})
+        });
+        this.msg = r.ok ? '✅ Salvo em debates/' : '❌ Erro ao salvar';
+      } catch(e) { this.msg = '❌ ' + e.message; }
+    }
+  };
+}
+</script>
+{% endblock %}

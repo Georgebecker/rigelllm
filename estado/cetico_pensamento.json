@@ -1,0 +1,1052 @@
+[
+  {
+    "data": "2026-08-05T17:11:46.118525",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:11:46.143937",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:12:46.169191",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:12:46.190111",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:13:46.214028",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:13:46.233452",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:14:46.259329",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:14:46.279644",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:15:46.303999",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:15:46.323266",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:16:46.349016",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:16:46.368807",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:17:46.393805",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:17:46.413233",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:18:46.454328",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:18:46.473790",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:19:46.498772",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:19:46.519179",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:20:46.544770",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:20:46.564470",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:21:46.591510",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:21:46.612580",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:22:46.634774",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:22:46.660638",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:23:46.679804",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:23:46.699492",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:24:46.725495",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:24:46.766565",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:25:47.575846",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:25:47.598797",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:26:47.613614",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:26:47.633188",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:27:47.658556",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:27:47.684707",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:28:47.737023",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:28:47.769217",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:29:48.134192",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:29:48.160138",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:30:48.185958",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:30:48.211694",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Violação de regra de ouro: dados\\gerados\\jsonl/rigeljsonl_20260805_0414: pasta VAZIA (lixo)",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:31:48.230408",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:31:48.248293",
+    "origem": "cetico_online",
+    "tipo": "resultado",
+    "msg": "Regras de ouro de organização: OK agora (violações anteriores resolvidas).",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:32:48.263099",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:33:48.307854",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:34:48.351567",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:35:48.385715",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:36:48.420207",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:37:48.469110",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:37:48.516351",
+    "origem": "cetico_online",
+    "tipo": "ideia",
+    "msg": "Datasets baixados ainda não explodidos: dominguesm_alpaca-data-pt-br, dominguesm_Canarim-Instruct-PTBR-Dataset, Madras1_corpus-ptbr-v1 — quer que eu analise e exploda?",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:38:48.530321",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:39:48.573336",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:40:48.613234",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:41:48.652362",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:42:48.695067",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:43:48.745415",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:44:48.789914",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:45:48.833243",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:46:48.870187",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:47:48.903976",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:48:48.979119",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:49:49.010037",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:50:49.045558",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:51:49.077188",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:52:49.107166",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:53:49.139618",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:54:49.187765",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:55:49.225345",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:56:49.267769",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:57:49.299182",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:58:49.364098",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T17:59:49.411780",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:00:49.443224",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:01:49.474900",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:02:49.506466",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:03:49.537843",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:04:49.586222",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:05:49.635405",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:06:49.679468",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:07:49.714826",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:08:49.784559",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:09:49.824546",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:10:49.875417",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:11:49.922903",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:12:49.964977",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:13:49.997377",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:14:50.029236",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:15:50.066687",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:16:50.112348",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:17:50.151094",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:18:50.224447",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:19:50.258676",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:20:50.291420",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:21:50.328583",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:22:50.370402",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:23:50.413705",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:24:50.455379",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:25:47.136172",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:25:53.854698",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:26:53.908795",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:27:54.903997",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:28:20.901533",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:29:21.147093",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:30:21.268173",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:31:21.335728",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:32:21.376214",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:33:21.419839",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:34:21.481768",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:35:21.566422",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:36:21.624566",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:37:21.728432",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:38:21.779129",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:39:21.843456",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:40:21.915663",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:41:21.966143",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:42:22.007219",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:43:22.056182",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:44:22.132966",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:45:22.209231",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:46:22.294760",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:47:22.451971",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:48:22.527427",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:49:22.599027",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:50:22.676095",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:51:22.755768",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:52:22.839630",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:53:22.902612",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:54:22.949794",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:55:22.993665",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:56:23.040092",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:57:23.156601",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:58:23.210301",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T18:59:23.256869",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:00:23.333981",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:01:23.393169",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:02:23.452409",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:03:23.526567",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:04:23.610450",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:05:23.672572",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:06:23.721656",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:07:23.815772",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:08:23.856023",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:09:23.928770",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:10:24.018821",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:11:24.099624",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:12:24.164262",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:13:24.263158",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:14:24.894704",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:15:24.933516",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:16:24.988711",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  },
+  {
+    "data": "2026-08-05T19:17:25.125688",
+    "origem": "cetico_online",
+    "tipo": "observacao",
+    "msg": "Checagem detectou: Explosão com erro",
+    "detalhe": ""
+  }
+]

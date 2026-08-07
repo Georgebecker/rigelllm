@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}RSS{% endblock %}
+{% block content %}
+<div x-data="rssState()" x-cloak>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">🌐 RSS & Web</h2>
+  <p class="text-zinc-500 text-sm mb-4">Feeds em <code class="text-emerald-400">feeds.txt</code></p>
+
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
+    <div class="bg-zinc-900 p-4 rounded-2xl"><p class="text-zinc-500 text-xs">📡 Feeds</p><p class="text-xl font-bold mt-1" x-text="dados?.feeds_cadastrados||0"></p></div>
+    <div class="bg-zinc-900 p-4 rounded-2xl"><p class="text-zinc-500 text-xs">📄 Curtos</p><p class="text-xl font-bold mt-1" x-text="dados?.arquivos_gerados?.curtos||0"></p></div>
+    <div class="bg-zinc-900 p-4 rounded-2xl"><p class="text-zinc-500 text-xs">📄 Longos</p><p class="text-xl font-bold mt-1" x-text="dados?.arquivos_gerados?.longos||0"></p></div>
+    <div class="bg-zinc-900 p-4 rounded-2xl"><p class="text-zinc-500 text-xs">📄 Completos</p><p class="text-xl font-bold mt-1" x-text="dados?.arquivos_gerados?.completos||0"></p></div>
+    <div class="bg-zinc-900 p-4 rounded-2xl"><p class="text-zinc-500 text-xs">🗑️ Descartados</p><p class="text-xl font-bold mt-1" x-text="dados?.arquivos_gerados?.descartados||0"></p></div>
+  </div>
+
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+    <h3 class="text-sm font-semibold mb-3">📋 Último log</h3>
+    <pre class="bg-black/40 rounded-xl p-3 text-xs font-mono text-zinc-400 overflow-auto max-h-32 scrollbar-thin leading-relaxed" x-text="dados?.ultimo_log || 'Nenhum log.'"></pre>
+  </div>
+
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+    <h3 class="text-sm font-semibold mb-3">📋 Feeds</h3>
+    <div class="space-y-1 max-h-56 overflow-auto scrollbar-thin">
+      <template x-for="(feed, idx) in (dados?.feeds_lista||[])" :key="idx">
+        <div class="flex items-center gap-2 p-2 rounded-xl hover:bg-zinc-800/50 transition-colors text-xs">
+          <input type="checkbox" :value="feed" x-model="sel" class="accent-emerald-500 w-3.5 h-3.5 shrink-0">
+          <i class="fa-solid fa-rss text-emerald-500/50 shrink-0"></i>
+          <span class="flex-1 truncate text-zinc-400" x-text="feed"></span>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-3 mb-4">
+    <label class="text-xs text-zinc-400">Resumo local (Ollama):</label>
+    <select x-model="modelo" class="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-200">
+      <option value="">(padrão: llama3.2:3b)</option>
+      <template x-for="m in (dados?.modelos_ollama||[])" :key="m">
+        <option :value="m" x-text="m"></option>
+      </template>
+    </select>
+    <span class="text-xs" :class="dados?.ollama_online?'text-emerald-400':'text-red-400'" x-text="dados?.ollama_online?'🟢 Ollama online':'🔴 Ollama offline — textos virarão COMPLETO'"></span>
+    <button @click="processar()" :disabled="carregando" class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 px-6 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
+      <i class="fa-solid" :class="carregando?'fa-spinner fa-spin':'fa-play'"></i>
+      <span x-text="carregando?'Processando...':'▶️ Processar '+ (sel.length||'todos') "></span>
+    </button>
+    <button @click="sel=(dados?.feeds_lista||[]).slice()" class="text-xs text-zinc-300 hover:text-zinc-100 px-3 py-2 rounded-xl bg-zinc-700"><i class="fa-regular fa-square-check"></i> Selecionar todos</button>
+    <button @click="sel=[]" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-2 rounded-xl bg-zinc-800">Limpar</button>
+  </div>
+  <p x-show="msg" class="text-sm mb-4" :class="msg.startsWith('❌')?'text-red-400':'text-emerald-400'" x-text="msg"></p>
+</div>
+
+<script>
+console.log("[RSS] Página carregada");
+function rssState() {
+  return { dados: null, sel: [], carregando: false, msg: '', modelo: '',
+    init() { console.log("[RSS] Inicializando..."); this.poll(); },
+    async poll() { try{const r=await fetch('/api/rss/status'); if(r.ok){ this.dados=await r.json();
+        if(!this.modelo && (this.dados?.modelos_ollama||[]).length){ const ms=this.dados.modelos_ollama; this.modelo=ms.includes('llama3.2:3b')?'llama3.2:3b':ms[0]; }
+      }}catch(e){console.error("[RSS] Erro:",e);} },
+    async processar() {
+      this.carregando=true; this.msg='';
+      try{const r=await fetch('/api/rss/processar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantidade:this.sel.length||10,feeds:this.sel.length?this.sel:null,modelo_resumo:this.modelo||null})}); const d=await r.json(); this.msg=r.ok?'✅ RSS: '+this.sel.length+' feed(s) em 2º plano (resumo local: '+(this.modelo||'padrão')+')':'❌ '+(d.message||'Erro'); if(r.ok) setTimeout(()=>this.poll(),3000);}catch(e){this.msg='❌ '+e.message;}
+      this.carregando=false;
+    }
+  };
+}
+</script>
+{% endblock %}

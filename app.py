@@ -1,6 +1,6 @@
 # ============================================================================
 # RIGELSLM - Interface Web
-# Versão: 1.0.0
+# Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 # ============================================================================
 # 
 # Esta é a interface web para testar o modelo RigelSLM.

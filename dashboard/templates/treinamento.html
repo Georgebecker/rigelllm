@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+{% block title %}Treinamento{% endblock %}
+{% block content %}
+<div x-data="treinamentoState()" x-cloak>
+  <div x-show="!carregou" class="flex items-center justify-center py-20">
+    <div class="text-center">
+      <i class="fa-solid fa-spinner fa-spin text-4xl text-emerald-400 mb-4"></i>
+      <p class="text-zinc-500">Carregando dados de treinamento...</p>
+    </div>
+  </div>
+  <div x-show="carregou">
+  <div class="flex items-start justify-between flex-wrap gap-2 mb-1">
+    <h2 class="text-2xl md:text-4xl font-bold">🎓 Treinamento</h2>
+    <a href="/converter_txt" class="bg-zinc-800 hover:bg-zinc-700 text-sky-300 px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0"
+       title="Converter arquivos .txt para JSONL SFT (messages) antes de treinar">
+      <i class="fa-solid fa-file-arrow-down"></i> Converter TXT → JSONL
+    </a>
+  </div>
+  <p class="text-zinc-500 text-sm mb-4">
+    Três formatos de treino local: <b class="text-emerald-400">TXT</b> (<code class="text-zinc-400">treino.py</code>),
+    <b class="text-sky-400">JSONL</b> (<code class="text-zinc-400">treinar_com_jsonl.py</code>) e
+    <b class="text-violet-400">PARQUET</b> (<code class="text-zinc-400">treinoparquet.py</code>).
+    A seleção é <b>exclusiva</b>: marcar pastas de um tipo limpa os outros — o mesmo modelo
+    não treina 2 formatos ao mesmo tempo.
+  </p>
+
+  <!-- Barra de progresso do treino -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs" :class="trainProgresso?.em_andamento ? 'text-emerald-400' : 'text-zinc-500'"
+            x-text="trainProgresso?.em_andamento ? '🔄 Em andamento' : (trainProgresso?.epoch_atual ? '⏸️ Parado — última execução' : '⏸️ Sem treinos ainda')"></span>
+      <span class="text-xs text-zinc-500" x-text="trainProgresso?.epoch_atual ? 'Época ' + trainProgresso.epoch_atual + '/' + trainProgresso.total_epochs : ''"></span>
+    </div>
+    <div class="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
+      <div :class="trainProgresso?.em_andamento ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' : 'bg-gradient-to-r from-amber-300 to-amber-500'" class="h-3 rounded-full barra-progresso flex items-center justify-center text-[10px] font-bold text-black"
+           :style="'width:'+(trainProgresso?.percentual||0)+'%'" x-text="(trainProgresso?.percentual||0)+'%'"></div>
+    </div>
+    <div class="flex gap-4 text-xs text-zinc-500 mt-2">
+      <span>📉 Loss: <span class="text-emerald-400 font-mono" x-text="trainProgresso?.loss_atual || '—'"></span></span>
+      <span>📦 Batch: <span x-text="trainProgresso?.batch_atual || '—'"></span></span>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5">
+    <div class="bg-zinc-900 p-4 rounded-2xl">
+      <p class="text-zinc-500 text-xs">Última época</p>
+      <p class="text-xl font-bold mt-1" x-text="train?.ultima_epoch||'—'"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl">
+      <p class="text-zinc-500 text-xs">🎯 Melhor loss</p>
+      <p class="text-xl font-bold mt-1" x-text="train?.melhor_loss?.toFixed(4)||'—'"></p>
+      <p class="text-[10px] text-zinc-600" x-show="train?.melhor_loss_epoch" x-text="train ? ('época ' + train.melhor_loss_epoch) : ''"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl">
+      <p class="text-zinc-500 text-xs">📦 Checkpoint</p>
+      <p class="text-xl font-bold mt-1" x-text="train?.checkpoint_existe ? '✅' : (train?.modelo_existe ? '🧠' : '❌')"></p>
+      <p class="text-[10px] text-zinc-600" x-text="train?.checkpoint_existe ? 'checkpoint.pt' : (train?.modelo_existe ? 'modelo salvo' : 'não existe')"></p>
+    </div>
+  </div>
+
+  <!-- 🖥️ Hardware & Limites (regra 70% — teto, só baixa) -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-zinc-700/40">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold">🖥️ Hardware &amp; Limites <span class="text-zinc-500 text-xs font-normal">(teto 70% — pode baixar, nunca subir)</span></h3>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+      <div class="bg-zinc-800/50 rounded-xl p-3">
+        <p class="text-zinc-500">CPU</p>
+        <p class="text-sm font-bold text-zinc-100" x-text="(rec?.hardware?.cpu_logicos||0) + ' log / ' + (rec?.hardware?.cpu_fisicos||0) + ' fís'"></p>
+        <div class="mt-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden"><div class="h-full bg-emerald-500" :style="'width:'+Math.min(100,(rec?.uso?.cpu_atual_pct||0))+'%'"></div></div>
+        <p class="text-[10px] text-zinc-500 mt-1">Agora: <b x-text="(rec?.uso?.cpu_atual_pct||0)+'%'"></b> · limite <b x-text="(rec?.limites?.CPU_MAX_USO_PCT||70)+'%'"></b></p>
+      </div>
+      <div class="bg-zinc-800/50 rounded-xl p-3">
+        <p class="text-zinc-500">RAM</p>
+        <p class="text-sm font-bold text-zinc-100" x-text="(rec?.hardware?.ram_total_gb||0) + ' GB total'"></p>
+        <div class="mt-1 h-1.5 bg-zinc-700 rounded-full overflow-hidden"><div class="h-full bg-sky-500" :style="'width:'+Math.min(100,(rec?.uso?.ram_usada_pct||0))+'%'"></div></div>
+        <p class="text-[10px] text-zinc-500 mt-1">Usada: <b x-text="(rec?.uso?.ram_usada_pct||0)+'%'"></b> · sobra mín <b x-text="(rec?.limites?.MEM_MIN_LIVRE_PCT||30)+'%'"></b></p>
+      </div>
+      <div class="bg-zinc-800/50 rounded-xl p-3">
+        <p class="text-zinc-500">🧠 Treino (memória)</p>
+        <p class="text-sm font-bold text-zinc-100" x-text="rec?.uso?.treino_memoria_mb != null ? (rec.uso.treino_memoria_mb + ' MB') : '—'"></p>
+        <p class="text-[10px] text-zinc-500 mt-1">PID: <span x-text="rec?.uso?.treino_pid || '—'"></span></p>
+      </div>
+      <div class="bg-zinc-800/50 rounded-xl p-3">
+        <p class="text-zinc-500">🗂️ Dados parquet (entrada)</p>
+        <p class="text-sm font-bold text-zinc-100" x-text="rec?.uso?.dados_parquet_mb != null ? (rec.uso.dados_parquet_mb.toFixed(1) + ' MB') : '—'"></p>
+        <p class="text-[10px] text-zinc-500 mt-1">Disco livre: <b x-text="(rec?.hardware?.disco_livre_gb||'—') + ' GB' + (rec?.hardware?.disco_tipo ? ' (' + rec.hardware.disco_tipo + ')' : '')"></b></p>
+      </div>
+    </div>
+    <div class="mt-3 grid grid-cols-2 md:grid-cols-5 gap-3 items-start text-xs">
+      <div><label class="text-zinc-500 block mb-1">CPU máx (1-70%)</label>
+        <input type="number" x-model="reguaCpu" min="1" max="70" class="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 w-full text-sm"></div>
+      <div><label class="text-zinc-500 block mb-1">RAM livre mín (1-70%)</label>
+        <input type="number" x-model="reguaRam" min="1" max="70" class="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 w-full text-sm"></div>
+      <div><label class="text-zinc-500 block mb-1">Núcleos a usar (CPU)</label>
+        <select x-model="nucleosSel" class="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 w-full text-sm">
+          <option :value="null">Auto (deixa margem)</option>
+          <template x-for="n in (rec?.parametros?.nucleos_total || 36)" :key="'n'+n">
+            <option :value="n" x-text="n + ' núcleos'"></option>
+          </template>
+        </select></div>
+      <div><label class="text-zinc-500 block mb-1">Workers (memória)</label>
+        <select x-model="workersSel" class="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 w-full text-sm">
+          <option value="1">1 (menos memória)</option>
+          <option value="2">2 (padrão)</option>
+          <option value="3">3</option>
+          <option value="4">4 (mais rápido)</option>
+        </select></div>
+      <div><label class="text-zinc-500 block mb-1">Batch (memória)</label>
+        <select x-model="batchSel" class="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1.5 w-full text-sm">
+          <option value="2">2 (menos memória)</option>
+          <option value="4">4</option>
+          <option value="8">8 (padrão)</option>
+          <option value="16">16</option>
+          <option value="32">32 (mais memória)</option>
+        </select></div>
+    </div>
+    <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+      <button @click="salvarLimites()" class="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5">
+        <i class="fa-solid fa-floppy-disk"></i> 💾 Salvar configurações
+      </button>
+      <p class="text-[10px] text-zinc-600" x-show="rec?.parametros">
+        <span x-show="nucleosSel==null">Auto: <b x-text="rec?.parametros?.nucleos_total + ' totais → usar ' + rec?.parametros?.nucleos_usar + ' (deixa ' + rec?.parametros?.margem + ' livres)'"></b></span>
+        <span x-show="nucleosSel!=null">Deixa <b x-text="(rec?.parametros?.nucleos_total - (nucleosSel||0)) + ' núcleos livres'"></b></span>
+      </p>
+    </div>
+    <p class="text-[10px] text-zinc-600 mt-2">Vale p/ os próximos treinos. Núcleos/workers/batch controlam uso de CPU e memória; o guardião impede iniciar treino se a RAM livre estiver abaixo do mínimo.</p>
+  </div>
+
+  <!-- ══════════ FRAME TXT ══════════ -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-emerald-600/20">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-sm font-semibold">📄 Pastas TXT <span class="text-zinc-500 text-xs">(<span x-text="(train?.total_pastas_txt||0)"></span> pastas · <span x-text="(train?.total_arquivos_txt||0).toLocaleString()"></span> arqs)</span></h3>
+      <button @click="recontar('txt')" :disabled="recontando || scanTxt?.rodando"
+              class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 disabled:opacity-40">
+        <i class="fa-solid fa-rotate" :class="{'fa-spin': scanTxt?.rodando || recontando==='txt'}"></i>
+        <span x-text="(scanTxt?.rodando || recontando==='txt') ? 'Lendo...' : '🔍 Ler estrutura'"></span>
+      </button>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 max-h-14 overflow-auto scrollbar-thin">
+      <template x-for="pasta in (train?.pastas_txt||[])" :key="'t'+pasta.nome">
+        <label class="flex items-center gap-2 p-2 rounded-xl hover:bg-zinc-800 cursor-pointer text-xs"
+               :class="ativoTipo==='txt' && pastasSelTxt.includes(pasta.nome) ? 'bg-emerald-600/20 border border-emerald-600/30' : 'bg-zinc-800/50 border border-transparent'">
+          <input type="checkbox" :checked="pastasSelTxt.includes(pasta.nome)" @change="togglePasta('txt', pasta.nome)" class="accent-emerald-500 w-3 h-3 shrink-0">
+          <div class="min-w-0"><p class="font-medium truncate" x-text="pasta.nome"></p><p class="text-xs text-zinc-500" x-text="pasta.arquivos + ' arqs'"></p></div>
+        </label>
+      </template>
+    </div>
+    <div class="flex gap-2 mt-2">
+      <button @click="todas('txt')" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1 rounded-lg bg-zinc-800">Todas</button>
+      <button @click="pastasSelTxt=[]" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1 rounded-lg bg-zinc-800">Limpar</button>
+    </div>
+    <div x-show="scanTxt?.rodando" class="mt-3 bg-zinc-800/40 rounded-xl p-3 border border-sky-600/30">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs text-sky-300 flex items-center gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Lendo estrutura TXT — <b x-text="scanTxt?.pasta_atual || '...'"></b></span>
+        <span class="text-sky-400 font-bold" x-text="(scanTxt?.percentual||0) + '%'"></span>
+      </div>
+      <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+        <div class="bg-gradient-to-r from-sky-600 to-sky-400 h-2 rounded-full transition-all duration-300" :style="'width:'+(scanTxt?.percentual||0)+'%'"></div>
+      </div>
+      <p class="text-[10px] text-zinc-500 mt-1" x-text="(scanTxt?.itens_processados||0) + ' de ' + (scanTxt?.total_itens||0) + ' pastas · ' + (scanTxt?.encontrados||0) + ' com .txt'"></p>
+    </div>
+  </div>
+
+  <!-- ══════════ FRAME JSONL ══════════ -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-sky-600/20">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-sm font-semibold">🧾 Pastas JSONL <span class="text-zinc-500 text-xs">(<span x-text="(train?.total_pastas_jsonl||0)"></span> pastas · <span x-text="(train?.total_arquivos_jsonl||0).toLocaleString()"></span> arqs)</span></h3>
+      <button @click="recontar('jsonl')" :disabled="recontando || scanJsonl?.rodando"
+              class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 disabled:opacity-40">
+        <i class="fa-solid fa-rotate" :class="{'fa-spin': scanJsonl?.rodando || recontando==='jsonl'}"></i>
+        <span x-text="(scanJsonl?.rodando || recontando==='jsonl') ? 'Lendo...' : '🔍 Ler estrutura'"></span>
+      </button>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 max-h-14 overflow-auto scrollbar-thin">
+      <template x-for="pasta in (train?.pastas_jsonl||[])" :key="'j'+pasta.nome">
+        <label class="flex items-center gap-2 p-2 rounded-xl hover:bg-zinc-800 cursor-pointer text-xs"
+               :class="ativoTipo==='jsonl' && pastasSelJsonl.includes(pasta.nome) ? 'bg-sky-600/20 border border-sky-600/30' : 'bg-zinc-800/50 border border-transparent'">
+          <input type="checkbox" :checked="pastasSelJsonl.includes(pasta.nome)" @change="togglePasta('jsonl', pasta.nome)" class="accent-sky-500 w-3 h-3 shrink-0">
+          <div class="min-w-0">
+            <p class="font-medium truncate" x-text="pasta.nome"></p>
+            <p class="text-xs text-zinc-500" x-text="pasta.arquivos + ' arqs'"></p>
+            <p class="text-[9px] leading-3">
+              <span x-show="pasta.formato==='sft'" class="text-sky-300 bg-sky-500/10 px-1 rounded">sft</span>
+              <span x-show="pasta.formato==='pretrain'" class="text-amber-300 bg-amber-500/10 px-1 rounded" title="Formato pretrain (text) — NÃO vale para treino SFT">pretrain ⚠️</span>
+            </p>
+          </div>
+        </label>
+      </template>
+    </div>
+    <div class="flex gap-2 mt-2">
+      <button @click="todas('jsonl')" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1 rounded-lg bg-zinc-800">Todas</button>
+      <button @click="pastasSelJsonl=[]" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1 rounded-lg bg-zinc-800">Limpar</button>
+    </div>
+    <div x-show="scanJsonl?.rodando" class="mt-3 bg-zinc-800/40 rounded-xl p-3 border border-sky-600/30">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs text-sky-300 flex items-center gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Lendo estrutura JSONL — <b x-text="scanJsonl?.pasta_atual || '...'"></b></span>
+        <span class="text-sky-400 font-bold" x-text="(scanJsonl?.percentual||0) + '%'"></span>
+      </div>
+      <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+        <div class="bg-gradient-to-r from-sky-600 to-sky-400 h-2 rounded-full transition-all duration-300" :style="'width:'+(scanJsonl?.percentual||0)+'%'"></div>
+      </div>
+      <p class="text-[10px] text-zinc-500 mt-1" x-text="(scanJsonl?.itens_processados||0) + ' de ' + (scanJsonl?.total_itens||0) + ' pastas · ' + (scanJsonl?.encontrados||0) + ' com .jsonl'"></p>
+    </div>
+  </div>
+
+  <!-- ══════════ FRAME PARQUET ══════════ -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-violet-600/20">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-sm font-semibold">🗂️ Pastas PARQUET <span class="text-zinc-500 text-xs">(<span x-text="(train?.total_pastas_parquet||0)"></span> pastas · <span x-text="(train?.total_arquivos_parquet||0).toLocaleString()"></span> arqs)</span></h3>
+      <button @click="recontar('parquet')" :disabled="recontando || scanParquet?.rodando"
+              class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 disabled:opacity-40">
+        <i class="fa-solid fa-rotate" :class="{'fa-spin': scanParquet?.rodando || recontando==='parquet'}"></i>
+        <span x-text="(scanParquet?.rodando || recontando==='parquet') ? 'Lendo...' : '🔍 Ler estrutura'"></span>
+      </button>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 max-h-14 overflow-auto scrollbar-thin">
+      <template x-for="pasta in (train?.pastas_parquet||[])" :key="'p'+pasta.nome">
+        <label class="flex items-center gap-2 p-2 rounded-xl hover:bg-zinc-800 cursor-pointer text-xs"
+               :class="ativoTipo==='parquet' && pastasSelParquet.includes(pasta.nome) ? 'bg-violet-600/20 border border-violet-600/30' : 'bg-zinc-800/50 border border-transparent'">
+          <input type="checkbox" :checked="pastasSelParquet.includes(pasta.nome)" @change="togglePasta('parquet', pasta.nome)" class="accent-violet-500 w-3 h-3 shrink-0">
+          <div class="min-w-0"><p class="font-medium truncate" x-text="pasta.nome"></p><p class="text-xs text-zinc-500" x-text="pasta.arquivos + ' arqs'"></p></div>
+        </label>
+      </template>
+    </div>
+    <div class="flex gap-2 mt-2">
+      <button @click="todas('parquet')" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1 rounded-lg bg-zinc-800">Todas</button>
+      <button @click="pastasSelParquet=[]" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1 rounded-lg bg-zinc-800">Limpar</button>
+    </div>
+    <div x-show="scanParquet?.rodando" class="mt-3 bg-zinc-800/40 rounded-xl p-3 border border-sky-600/30">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs text-sky-300 flex items-center gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Lendo estrutura PARQUET — <b x-text="scanParquet?.pasta_atual || '...'"></b></span>
+        <span class="text-sky-400 font-bold" x-text="(scanParquet?.percentual||0) + '%'"></span>
+      </div>
+      <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+        <div class="bg-gradient-to-r from-sky-600 to-sky-400 h-2 rounded-full transition-all duration-300" :style="'width:'+(scanParquet?.percentual||0)+'%'"></div>
+      </div>
+      <p class="text-[10px] text-zinc-500 mt-1" x-text="(scanParquet?.itens_processados||0) + ' de ' + (scanParquet?.total_itens||0) + ' pastas · ' + (scanParquet?.encontrados||0) + ' com .parquet'"></p>
+    </div>
+  </div>
+
+  <!-- Controles -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+    <div class="flex flex-wrap gap-3 items-center">
+      <div><label class="text-xs text-zinc-500 block mb-1">Máx arquivos</label>
+        <input type="number" x-model="maxArq" min="100" max="100000" step="100" class="bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm w-28"></div>
+      <div class="flex gap-2 mt-4">
+        <button @click="iniciarTreino(false)" :disabled="treinando || !ativoTipo" class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:opacity-40 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
+          <i class="fa-solid" :class="treinando?'fa-spinner fa-spin':'fa-play'"></i>▶️ Treinar
+        </button>
+        <button @click="iniciarTreino(true)" :disabled="treinando || !ativoTipo" class="bg-amber-600 hover:bg-amber-500 disabled:bg-zinc-700 disabled:opacity-40 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all">⏯️ Continuar</button>
+        <button @click="pararTreino()" :disabled="!treinando" class="bg-red-600 hover:bg-red-500 disabled:bg-zinc-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">⏹️ Parar</button>
+        <button @click="testarModelo()" class="bg-sky-600 hover:bg-sky-500 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">🧪 Testar</button>
+      </div>
+    </div>
+    <p x-show="ativoTipo" class="text-xs text-zinc-400 mt-3">
+      Treinando: <b class="text-emerald-400" x-text="(ativoTipo||'—').toUpperCase()"></b> ·
+      <span x-text="pastasAtivas().length"></span> pasta(s) selecionada(s)
+      <span class="text-zinc-600">(marcar outro tipo limpa esta seleção)</span>
+    </p>
+    <p x-show="msg" class="text-sm mt-2" :class="msg.startsWith('❌')?'text-red-400':'text-emerald-400'" x-text="msg"></p>
+  </div>
+
+  <!-- Log do treino -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-sm font-semibold">📋 Log</h3>
+      <button @click="limparLog()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-red-400 px-2 py-1 rounded-lg text-xs transition-all">🧹 Limpar log</button>
+    </div>
+    <pre class="bg-black/40 rounded-xl p-3 text-xs font-mono text-zinc-400 overflow-auto max-h-64 scrollbar-thin leading-relaxed" x-text="treinoLog || 'Nenhum log...'"></pre>
+  </div>
+</div>
+
+<script>
+console.log("[TREINAMENTO] Página carregada");
+function treinamentoState() {
+  return {
+    train: null, trainProgresso: {}, treinoLog: '', msg: '',
+    carregou: false, maxArq: 20000, treinando: false,
+    ativoTipo: null,
+    pastasSelTxt: [], pastasSelJsonl: [], pastasSelParquet: [],
+    scanTxt: null, scanJsonl: null, scanParquet: null,
+    recontando: null, scanPoll: null,
+    rec: null, reguaCpu: 70, reguaRam: 30, reguaInit: false,
+    nucleosSel: null, workersSel: 2, batchSel: 8, paramsInit: false,
+    init() {
+      console.log("[TREINAMENTO] Inicializando...");
+      this.poll();
+      setInterval(() => this.poll(), 5000);
+    },
+    listaDe(tipo) {
+      if (tipo === 'jsonl') return this.pastasSelJsonl;
+      if (tipo === 'parquet') return this.pastasSelParquet;
+      return this.pastasSelTxt;
+    },
+    pastasDe(tipo) {
+      if (tipo === 'jsonl') return this.train?.pastas_jsonl || [];
+      if (tipo === 'parquet') return this.train?.pastas_parquet || [];
+      return this.train?.pastas_txt || [];
+    },
+    pastasAtivas() { return this.ativoTipo ? this.listaDe(this.ativoTipo) : []; },
+    async poll() {
+      try {
+        const r = await fetch('/api/train/status');
+        if (r.ok) {
+          const d = await r.json();
+          this.train = d;
+          this.trainProgresso = d.progresso || {};
+          // Parar fica ATIVO quando há treino de verdade rodando no servidor
+          this.treinando = !!(d.progresso && d.progresso.em_andamento);
+          this.rec = d.recursos || this.rec;
+          if (d.recursos && !this.reguaInit) {
+            this.reguaCpu = d.recursos.limites?.CPU_MAX_USO_PCT ?? 70;
+            this.reguaRam = d.recursos.limites?.MEM_MIN_LIVRE_PCT ?? 30;
+            this.reguaInit = true;
+          }
+          if (d.recursos && !this.paramsInit) {
+            this.nucleosSel = d.recursos.limites?.NUCLEOS_USO ?? null;
+            this.workersSel = d.recursos.limites?.WORKERS_TREINO ?? 2;
+            this.batchSel = d.recursos.limites?.BATCH_TREINO ?? 8;
+            this.paramsInit = true;
+          }
+          this.carregou = true;
+          this.scanTxt = d.scan_txt || this.scanTxt;
+          this.scanJsonl = d.scan_jsonl || this.scanJsonl;
+          this.scanParquet = d.scan_parquet || this.scanParquet;
+          for (const t of ['txt','jsonl','parquet']) {
+            const sc = t==='txt' ? d.scan_txt : (t==='jsonl' ? d.scan_jsonl : d.scan_parquet);
+            if (sc?.rodando) { this.iniciarPollScan(t); break; }
+          }
+        }
+      } catch(e) { console.warn('[TREINAMENTO] status:', e); }
+      try {
+        const r = await fetch('/api/train/logs');
+        if (r.ok) { const d = await r.json(); this.treinoLog = d.conteudo; }
+      } catch(e) {}
+    },
+    iniciarPollScan(tipo) {
+      if (this.scanPoll) return;
+      this.recontando = tipo;
+      this.scanPoll = setInterval(() => this.pollScan(tipo), 800);
+    },
+    async pollScan(tipo) {
+      try {
+        const r = await fetch('/api/train/reescanear/status?tipo=' + tipo);
+        const d = await r.json();
+        if (tipo==='txt') this.scanTxt = d;
+        else if (tipo==='jsonl') this.scanJsonl = d;
+        else this.scanParquet = d;
+        if (!d.rodando) {
+          clearInterval(this.scanPoll); this.scanPoll = null; this.recontando = null;
+          this.poll();
+        }
+      } catch(e) { console.warn('[TREINAMENTO] pollScan:', e); }
+    },
+    async recontar(tipo) {
+      if (this.recontando) return;
+      if (!confirm("⚠️ A leitura da estrutura pode levar alguns minutos. Continuar?")) return;
+      this.recontando = tipo;
+      try {
+        const r = await fetch('/api/train/reescanear?tipo=' + tipo, { method: 'POST' });
+        const d = await r.json();
+        if (d.ok === false) { this.msg = '❌ ' + (d.erro || 'já existe escaneamento em andamento'); this.recontando = null; return; }
+        clearInterval(this.scanPoll); this.scanPoll = null;
+        this.iniciarPollScan(tipo);
+      } catch(e) { this.msg = '❌ Erro ao iniciar leitura'; this.recontando = null; }
+    },
+    togglePasta(tipo, nome) {
+      // Seleção EXCLUSIVA: marcar pastas de outro tipo limpa os demais
+      if (this.ativoTipo && this.ativoTipo !== tipo) {
+        this.pastasSelTxt = []; this.pastasSelJsonl = []; this.pastasSelParquet = [];
+      }
+      this.ativoTipo = tipo;
+      const lista = this.listaDe(tipo);
+      const i = lista.indexOf(nome);
+      i >= 0 ? lista.splice(i,1) : lista.push(nome);
+    },
+    todas(tipo) {
+      this.ativoTipo = tipo;
+      const lista = this.listaDe(tipo);
+      lista.length = 0;
+      for (const p of this.pastasDe(tipo)) lista.push(p.nome);
+    },
+    async iniciarTreino(resume) {
+      if (!this.ativoTipo) { this.msg = '❌ Selecione pastas de um tipo (txt, jsonl ou parquet).'; return; }
+      const lista = this.listaDe(this.ativoTipo);
+      if (!lista.length) { this.msg = '❌ Nenhuma pasta selecionada em ' + this.ativoTipo.toUpperCase() + '.'; return; }
+      this.treinando = true; this.msg = '';
+      try {
+        const r = await fetch('/api/train/start', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ pastas: lista, max_arquivos: this.maxArq, resume, tipo: this.ativoTipo })
+        });
+        const d = await r.json().catch(()=>({}));
+        this.msg = r.ok ? ('✅ Treino ' + this.ativoTipo.toUpperCase() + ' iniciado') : '❌ '+(d.message||'Erro');
+      } catch(e) { this.msg = '❌ '+e.message; }
+      this.treinando = false;
+    },
+    async pararTreino() {
+      this.msg = '⏳ Enviando sinal de parada...';
+      try {
+        const r = await fetch('/api/train/stop', { method:'POST' });
+        const d = await r.json();
+        console.log("[TREINO] Resposta stop:", d);
+        if (d.processo_morto) {
+          this.msg = '✅ Treino interrompido com sucesso';
+          this.treinando = false;
+        } else {
+          this.msg = '⚠️ Sinal enviado, mas processo pode ja ter encerrado';
+          this.treinando = false;
+        }
+      } catch(e) { this.msg = '❌ '+e.message; }
+    },
+    async salvarLimites() {
+      const cpu = parseFloat(this.reguaCpu);
+      const ram = parseFloat(this.reguaRam);
+      const body = {
+        cpu_max_pct: isNaN(cpu) ? null : Math.max(1, Math.min(70, cpu)),
+        mem_min_livre_pct: isNaN(ram) ? null : Math.max(1, Math.min(70, ram)),
+        nucleos: this.nucleosSel ? Number(this.nucleosSel) : 0,
+        workers: Number(this.workersSel) || 2,
+        batch: Number(this.batchSel) || 8
+      };
+      if (body.cpu_max_pct==null && body.mem_min_livre_pct==null) { this.msg = '❌ Informe ao menos um limite (1-70).'; return; }
+      try {
+        const r = await fetch('/api/train/limites', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(body)
+        });
+        const d = await r.json();
+        this.msg = d.ok ? ('✅ ' + (d.mensagem||'salvo')) : ('❌ ' + (d.erro||'erro'));
+        if (d.ok) { this.paramsInit = false; this.reguaInit = false; this.poll(); }
+      } catch(e) { this.msg = '❌ ' + e.message; }
+    },
+    async testarModelo() {
+      if (this.ativoTipo && this.ativoTipo !== 'txt') {
+        this.msg = '⚠️ Teste rápido só para TXT — parquet/jsonl podem rodar horas (sem limite de arquivos).';
+        return;
+      }
+      try {
+        const r = await fetch('/api/train/start', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ max_arquivos: 5, tipo: 'txt' }) });
+        this.msg = '✅ Teste iniciado';
+      } catch(e) { this.msg = '❌ '+e.message; }
+    },
+    async limparLog() {
+      if (!confirm("Apagar todo o conteúdo do log de treino?")) return;
+      try {
+        const r = await fetch('/api/train/logs/limpar', { method: 'POST' });
+        const d = await r.json();
+        if (d.ok) { this.treinoLog = ''; this.msg = '✅ Log de treino limpo'; }
+        else { this.msg = '❌ ' + (d.erro||'erro ao limpar'); }
+      } catch(e) { this.msg = '❌ '+e.message; }
+    }
+  };
+}
+</script>
+{% endblock %}

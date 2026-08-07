@@ -1,4 +1,9 @@
-"""Rota de Conversão GGUF - Converter modelo .pt para GGUF"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+convert.py - Conversão .pt → GGUF para o Dashboard RigelSLM
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
+"""
 from fastapi import APIRouter, BackgroundTasks
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -6,14 +11,83 @@ from pathlib import Path
 import subprocess
 import json
 from datetime import datetime
+import threading
 
 from dashboard.services.runner import stream_subprocess_to_log
+from dashboard.services.converter_state import (
+    get_conversion_state, update_conversion_state, reset_conversion_state,
+    get_ollama_state, update_ollama_state, reset_ollama_state,
+    run_conversion_with_progress, run_ollama_create_with_progress,
+)
 
 router = APIRouter(prefix="/api/convert", tags=["Conversão GGUF"])
 
 BASE_DIR = Path(__file__).parent.parent.parent
 MODEL_DIR = BASE_DIR / "modelo"
 LOGS_DIR = BASE_DIR / "logs"
+GGUF_DIR = BASE_DIR / "gguf"
+
+# Descrição dos modelos .pt (mostrada como tooltip na página de conversão)
+DESCRICOES_MODELOS = {
+    "modelo.pt": "Modelo FINAL salvo ao fim de cada treino (pesos limpos). "
+                 "Alternativa segura para conversão.",
+    "modelo_melhor.pt": "Melhor modelo por VALIDAÇÃO durante o treino. "
+                         "RECOMENDADO para conversão.",
+    "checkpoint.pt": "Checkpoint de RETOMADA do treino CAUSAL (contém optimizer/época/estado). "
+                      "Serve para retomar um treino interrompido — NÃO converter.",
+    "checkpoint_jsonl.pt": "Checkpoint de RETOMADA do treino SFT/JSONL (contém optimizer/época/estado). "
+                            "Serve para retomar um treino interrompido — NÃO converter.",
+}
+RECOMENDADOS_MODELOS = {"modelo_melhor.pt"}
+
+
+def _e_checkpoint(nome: str) -> bool:
+    """True se o arquivo é um checkpoint/backup (não pode virar GGUF)."""
+    n = nome.lower()
+    return "checkpoint" in n or "backup" in n or n.endswith((".bak", ".backup"))
+
+# Os 3 tipos mais usados (mesmos do dropdown da página de treino)
+TIPOS_RAPIDOS = [
+    {"quant": "Q4_K_M", "desc": "Recomendado — bom equilíbrio (≈50 MB)"},
+    {"quant": "Q8_0", "desc": "Mais preciso (≈100 MB)"},
+    {"quant": "F16", "desc": "Precisão total (≈200 MB)"},
+]
+
+
+def _matar_processos_com_arquivo(nome: str):
+    """Mata processos Windows que estão com o arquivo GGUF aberto (ex.: Ollama)."""
+    try:
+        cmd = (
+            "powershell -NoProfile -Command "
+            f"\"Get-CimInstance Win32_Process | Where-Object {{ $_.CommandLine -like '*{nome}*' }} "
+            "| ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }\""
+        )
+        subprocess.run(cmd, capture_output=True, timeout=30)
+    except Exception:
+        pass
+
+
+def _apagar_gguf(nome: str) -> dict:
+    """Apaga um GGUF, liberando antes o modelo no Ollama e matando processos em uso."""
+    caminho = GGUF_DIR / nome
+    if not caminho.exists():
+        return {"ok": False, "erro": f"GGUF '{nome}' não encontrado em gguf/"}
+    # Libera o modelo no Ollama (se registrado) para o arquivo não ficar em uso
+    try:
+        subprocess.run(["ollama", "rm", "rigelslm"], capture_output=True, timeout=30)
+    except Exception:
+        pass
+    try:
+        caminho.unlink()
+    except PermissionError:
+        _matar_processos_com_arquivo(nome)
+        try:
+            caminho.unlink()
+        except Exception as e:
+            return {"ok": False, "erro": f"GGUF em uso e não pôde ser liberado: {e}"}
+    except Exception as e:
+        return {"ok": False, "erro": str(e)}
+    return {"ok": True, "nome": nome}
 
 
 class ConvertRequest(BaseModel):
@@ -25,20 +99,21 @@ class ConvertRequest(BaseModel):
 async def convert_status():
     """Status dos modelos e conversões disponíveis."""
     modelos = []
-    for f in ["modelo.pt", "modelo_melhor.pt", "checkpoint.pt"]:
-        path = MODEL_DIR / f
-        if path.exists():
-            modelos.append({
-                "nome": f,
-                "tamanho_mb": round(path.stat().st_size / (1024 * 1024), 1),
-                "data": datetime.fromtimestamp(path.stat().st_mtime).strftime("%d/%m/%Y %H:%M")
-            })
+    for path in sorted(MODEL_DIR.glob("*.pt"), key=lambda x: x.stat().st_mtime, reverse=True):
+        nome = path.name
+        modelos.append({
+            "nome": nome,
+            "tamanho_mb": round(path.stat().st_size / (1024 * 1024), 1),
+            "data": datetime.fromtimestamp(path.stat().st_mtime).strftime("%d/%m/%Y %H:%M"),
+            "descricao": DESCRICOES_MODELOS.get(nome, ""),
+            "recomendado": nome in RECOMENDADOS_MODELOS,
+            "conversivel": not _e_checkpoint(nome),
+        })
 
     # Verifica GGUF já convertidos
     ggufs = []
-    gguf_dir = BASE_DIR / "gguf"
-    if gguf_dir.exists():
-        for f in gguf_dir.glob("*.gguf"):
+    if GGUF_DIR.exists():
+        for f in GGUF_DIR.glob("*.gguf"):
             ggufs.append({
                 "nome": f.name,
                 "tamanho_mb": round(f.stat().st_size / (1024 * 1024), 1)
@@ -48,7 +123,47 @@ async def convert_status():
         "modelos_disponiveis": modelos,
         "ggufs_existentes": ggufs,
         "pode_converter": len(modelos) > 0,
+        "modelo_path": str(MODEL_DIR.resolve()),
+        "projeto_path": str(BASE_DIR.resolve()),
+        "pasta_gguf": str(GGUF_DIR.resolve()),
+        "tipos_rapidos": TIPOS_RAPIDOS,
         "timestamp": datetime.now().isoformat()
+    }
+
+
+@router.get("/progress")
+async def conversion_progress():
+    """Retorna o progresso atual da conversão."""
+    state = get_conversion_state()
+    return {
+        "running": state["running"],
+        "status": state["status"],
+        "progress_pct": state["progress_pct"],
+        "stage": state["stage"],
+        "message": state["message"],
+        "start_time": state["start_time"],
+        "end_time": state["end_time"],
+        "exit_code": state["exit_code"],
+        "log_lines": state["log_lines"][-50:],  # últimas 50 linhas
+        "modelo": state["modelo"],
+        "quantizacao": state["quantizacao"],
+        "gguf_path": state["gguf_path"],
+        "tamanho_mb": state["tamanho_mb"],
+    }
+
+
+@router.get("/ollama-progress")
+async def ollama_progress():
+    """Retorna o progresso da criação do modelo Ollama."""
+    state = get_ollama_state()
+    return {
+        "running": state["running"],
+        "status": state["status"],
+        "start_time": state["start_time"],
+        "end_time": state["end_time"],
+        "exit_code": state["exit_code"],
+        "log_lines": state["log_lines"][-30:],
+        "last_create": state["last_create"],
     }
 
 
@@ -66,9 +181,29 @@ async def start_conversion(
             status_code=400,
             content={"status": "error", "message": f"Modelo {modelo} não encontrado"}
         )
+    if _e_checkpoint(modelo):
+        return JSONResponse(
+            status_code=400,
+            content={"status": "error",
+                     "message": "Checkpoint não pode ser convertido — use modelo.pt ou modelo_melhor.pt."}
+        )
+
+    # Verifica se já está convertendo
+    current = get_conversion_state()
+    if current["running"]:
+        return JSONResponse(
+            status_code=409,
+            content={"status": "error", "message": "Já existe uma conversão em andamento"}
+        )
+
+    # Sobrescreve: apaga o GGUF de destino anterior (não acumula versões velhas)
+    GGUF_DIR.mkdir(exist_ok=True)
+    destino_gguf = GGUF_DIR / f"rigelslm_{quantizacao}.gguf"
+    if destino_gguf.exists():
+        _apagar_gguf(destino_gguf.name)
 
     cmd = [
-        "python", "src/converter_para_gguf.py",
+        "python", "converter_para_gguf.py",
         "--model", str(modelo_path),
         "--quant", quantizacao
     ]
@@ -79,7 +214,12 @@ async def start_conversion(
         f.write(f"[{datetime.now().isoformat()}] Iniciando conversão: {' '.join(cmd)}\n")
 
     log_path = LOGS_DIR / "conversao.log"
-    background_tasks.add_task(stream_subprocess_to_log, cmd, BASE_DIR, log_path)
+
+    # Usa o runner com progresso em vez do stream simples
+    background_tasks.add_task(
+        run_conversion_with_progress, cmd, BASE_DIR, log_path, modelo, quantizacao
+    )
+
     return {
         "status": "started",
         "message": f"Conversão de {modelo} para GGUF ({quantizacao}) iniciada",
@@ -87,14 +227,58 @@ async def start_conversion(
     }
 
 
+@router.delete("/gguf")
+async def apagar_gguf(nome: str = ""):
+    """Apaga UM arquivo GGUF (libera do Ollama antes)."""
+    nome = (nome or "").strip()
+    if not nome or ".." in nome or "/" in nome or "\\" in nome:
+        return JSONResponse(status_code=400, content={"ok": False, "erro": "nome inválido"})
+    return _apagar_gguf(nome)
+
+
+@router.delete("/gguf/todos")
+async def apagar_todos_gguf():
+    """Apaga TODOS os arquivos GGUF de gguf/ (um a um, liberando do Ollama)."""
+    apagados = []
+    erros = []
+    if GGUF_DIR.exists():
+        for f in sorted(GGUF_DIR.glob("*.gguf")):
+            r = _apagar_gguf(f.name)
+            (apagados if r.get("ok") else erros).append(f.name)
+    return {"ok": True, "apagados": apagados, "erros": erros}
+
+
 @router.post("/criar-ollama")
 async def criar_modelo_ollama(background_tasks: BackgroundTasks):
     """Cria um modelo Ollama a partir do GGUF (rigelslm_Q4_K.gguf)."""
-    gguf_path = BASE_DIR / "gguf" / "rigelslm_Q4_K.gguf"
-    if not gguf_path.exists():
-        return JSONResponse(status_code=400, content={"status": "error", "message": "GGUF não encontrado"})
+    # Procura qualquer GGUF disponível
+    gguf_dir = BASE_DIR / "gguf"
+    gguf_files = list(gguf_dir.glob("*.gguf"))
+    if not gguf_files:
+        return JSONResponse(status_code=400, content={"status": "error", "message": "Nenhum arquivo GGUF encontrado em gguf/"})
 
-    modelfile_content = f"FROM {gguf_path}\n"
+    # Usa o primeiro GGUF encontrado (ou tenta rigelslm_Q4_K.gguf primeiro)
+    gguf_path = gguf_dir / "rigelslm_Q4_K.gguf"
+    if not gguf_path.exists():
+        gguf_path = gguf_files[0]
+
+    # Verifica se já está criando
+    current_ollama = get_ollama_state()
+    if current_ollama["running"]:
+        return JSONResponse(
+            status_code=409,
+            content={"status": "error", "message": "Já existe uma criação Ollama em andamento"}
+        )
+
+    # IMPORTANTE: num_ctx no Modelfile. Sem ele o Ollama usa o context_length
+    # do GGUF (512) e o chat estoura o contexto (erro 400 exceed_context_size).
+    modelfile_content = (
+        f"FROM {gguf_path}\n\n"
+        "PARAMETER num_ctx 2048\n"
+        "PARAMETER temperature 0.7\n"
+        "PARAMETER top_p 0.9\n"
+        "PARAMETER num_predict 256\n"
+    )
     modelfile_path = BASE_DIR / "gguf" / "Modelfile"
     modelfile_path.write_text(modelfile_content, encoding="utf-8")
 
@@ -106,10 +290,15 @@ async def criar_modelo_ollama(background_tasks: BackgroundTasks):
         f.write(f"[{datetime.now().isoformat()}] Criando modelo Ollama: {' '.join(cmd)}\n")
 
     log_path = LOGS_DIR / "ollama_create.log"
-    background_tasks.add_task(stream_subprocess_to_log, cmd, BASE_DIR, log_path)
+
+    # Usa o runner com progresso
+    background_tasks.add_task(
+        run_ollama_create_with_progress, cmd, BASE_DIR, log_path
+    )
+
     return {
         "status": "started",
-        "message": "Criação do modelo Ollama 'rigelslm' iniciada a partir do GGUF",
+        "message": f"Criação do modelo Ollama 'rigelslm' iniciada a partir de {gguf_path.name}",
         "timestamp": datetime.now().isoformat()
     }
 

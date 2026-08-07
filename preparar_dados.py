@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-preparar_dados.py - PREPARAÇÃO DE DADOS PARA TREINO DO RIGELSLM (v3.1)
+preparar_dados.py - PREPARAÇÃO DE DADOS PARA TREINO DO RIGELSLM
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 ================================================================
 
 ESTRUTURA DE PASTAS:
@@ -1263,7 +1264,7 @@ def crawlar_wikipedia(paginas_maximas=500, profundidade_maxima=3, delay=1,
 # ============================================================================
 
 def main():
-    parser = argparse.ArgumentParser(description="Prepara dados para treino do RigelSLM (v3.1)")
+    parser = argparse.ArgumentParser(description="Prepara dados para treino do RigelSLM (v1.0.0)")
     parser.add_argument("--qualificar", action="store_true", help="Aplica validação, limpeza e reconstrução, e copia dados válidos para dados/processed/")
     parser.add_argument("--fonte", type=str, choices=list(FONTES.keys()), help="Especifica uma fonte para operações (ex: tucano, ultrachat)")
     parser.add_argument("--validar", action="store_true", help="Lista arquivos inválidos (estruturalmente) em processed/ (ou na fonte se --fonte)")
@@ -1367,7 +1368,7 @@ def main():
         return
 
     log("=" * 70)
-    log("🤖 PREPARAÇÃO DE DADOS PARA TREINO - RIGELSLM v3.1")
+    log("🤖 PREPARAÇÃO DE DADOS PARA TREINO - RIGELSLM v1.0.0")
     log(f"📅 Data/hora: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     log(f"📁 Dados serão salvos em: {PASTA_GERADOS}/<fonte>/")
     log("=" * 70)

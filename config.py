@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 config.py - Configurações globais, variáveis de ambiente e cliente da API
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 """
 import os
 import sys
@@ -10,13 +11,13 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 # ----------------------------------------------------------------------------
-# Pastas (mantidas da v2.0)
+# Pastas (mantidas da v1.0.0)
 # ----------------------------------------------------------------------------
 PASTA_SAIDA = "dados/gerados"
 PASTA_DADOS_CURTOS = os.path.join(PASTA_SAIDA, "curtos")
 PASTA_DADOS_LONGOS = os.path.join(PASTA_SAIDA, "longos")
 PASTA_LOGS = os.path.join(PASTA_SAIDA, "logs")
-PASTA_DESCARTES = os.path.join(PASTA_SAIDA, "descartados")
+PASTA_DESCARTES = "dados/descartados"
 PASTA_ESTADO = os.path.join(PASTA_SAIDA, "estado")
 
 # Criar pastas se não existirem
@@ -40,7 +41,7 @@ ARQUIVO_HISTORICO_TOPICOS = os.path.join(PASTA_ESTADO, "topicos_usados.txt")
 ARQUIVO_TOPICOS_EXTERNOS = "topicos.txt"
 
 # ----------------------------------------------------------------------------
-# Tokens e limites (mantidos da v2.0)
+# Tokens e limites (mantidos da v1.0.0)
 # ----------------------------------------------------------------------------
 TOKENS_BASE_DICIONARIO = 256
 TOKENS_ESCALONADOS_DICIONARIO = [256, 384, 512]
@@ -104,10 +105,15 @@ load_dotenv()
 
 API_KEY = os.getenv("DEEPSEEK_API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME", "deepseek-v4-flash")
+API_BASE_URL = "https://api.deepseek.com/v1"
+DEEPSEEK_MODEL = MODEL_NAME
 
-if not API_KEY:
-    print("❌ ERRO: DEEPSEEK_API_KEY não encontrada no arquivo .env")
-    sys.exit(1)
+# Aliases para compatibilidade com dashboard/diagnóstico
+DEEPSEEK_API_KEY = API_KEY
+DEEPSEEK_MODEL_NAME = MODEL_NAME
+
+if not API_KEY or API_KEY == "deepseek-aqui":
+    print("⚠️ DEEPSEEK_API_KEY não configurada. Geração via API desabilitada.")
 
 # Cria cliente com timeout maior para evitar erros de rede
 client = OpenAI(
@@ -130,7 +136,7 @@ def atualizar_config(args) -> None:
 
 
 # ----------------------------------------------------------------------------
-# Controle de gastos (mantido da v2.0)
+# Controle de gastos (mantido da v1.0.0)
 # ----------------------------------------------------------------------------
 def carregar_gastos():
     """Carrega o histórico de gastos do arquivo JSON."""

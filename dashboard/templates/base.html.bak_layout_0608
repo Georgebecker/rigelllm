@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RigelSLM Dashboard - {% block title %}Home{% endblock %}</title>
+  <link rel="icon" type="image/png" href="/images/favicon-32x32.png">
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    /* ============================================================
+       TEMA ESCURO (padrão) + TEMA ALEGRE (claro)
+       ============================================================ */
+    :root, .theme-dark {
+      /* RIGELSLM V2 – NAVY ESCURO + laranja/menta/azul */
+      --primary: #f4a261;
+      --primary-dark: #e08e4a;
+      --secondary: #6cbfa5;
+      --secondary-dark: #52a88e;
+      --accent: #7aa9d9;
+      --bg-body: #0b1120;
+      --bg-card: rgba(255,255,255,0.05);
+      --bg-card2: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.14);
+      --text-primary: #e8edf5;
+      --text-secondary: #b0c4de;
+      --text-muted: #7a8fa6;
+      --color-accent: #f4a261;
+      --color-accent-hover: #e08e4a;
+      --color-blue: #7aa9d9;
+      --color-purple: #a78bfa;
+      --color-red: #e74c3c;
+      --color-yellow: #f4c95d;
+      --shadow-card: 0 8px 32px rgba(0,0,0,0.35);
+      --radius: 16px;
+      --scrollbar-thumb: rgba(255,255,255,0.2);
+    }
+
+    .theme-light {
+      /* MATRIX CLARO – fósforo mais vivo (mesmo terminal, mais brilho) */
+      --primary: #00ff41;
+      --primary-dark: #00cc33;
+      --secondary: #00ff9d;
+      --secondary-dark: #00cc7d;
+      --accent: #00e5ff;
+      --bg-body: #06130a;
+      --bg-card: rgba(0,255,65,0.06);
+      --bg-card2: rgba(0,255,65,0.1);
+      --border: rgba(0,255,65,0.3);
+      --border2: rgba(0,255,65,0.5);
+      --text-primary: #00ff41;
+      --text-secondary: #00e06a;
+      --text-muted: #2fbf5f;
+      --color-accent: #00ff41;
+      --color-accent-hover: #00cc33;
+      --color-blue: #00e5ff;
+      --color-purple: #b14dff;
+      --color-red: #ff3355;
+      --color-yellow: #ffdf00;
+      --shadow-card: 0 0 26px rgba(0,255,65,0.18);
+      --radius: 6px;
+      --scrollbar-thumb: rgba(0,255,65,0.5);
+    }
+
+    /* Base do corpo + overrides Tailwind para OS DOIS temas */
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    body.theme-dark, body:not(.theme-light) { background: #0b1120 !important; color: var(--text-primary) !important; }
+    body.theme-light {
+      background:
+        radial-gradient(ellipse 90% 55% at 50% -5%, rgba(0,255,65,0.14), transparent 70%),
+        #06130a !important;
+      color: var(--text-primary) !important;
+      font-family: 'Fira Code', 'Courier New', Consolas, 'Courier', monospace !important;
+      text-shadow: 0 0 6px rgba(0,255,65,0.35);
+    }
+
+    /* Scanlines CRT (só no tema MATRIX — estáticas, não gastam bateria) */
+    body.theme-light::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9998;
+      background: repeating-linear-gradient(0deg,
+        rgba(0,0,0,0.22) 0px, rgba(0,0,0,0.22) 1px,
+        transparent 1px, transparent 3px);
+      opacity: 0.45;
+    }
+
+    /* ---- Cards/painéis: glass no ESCURO (V2 navy) ---- */
+    body:not(.theme-light) [class*="bg-zinc-9"], body:not(.theme-light) .card {
+      background-color: rgba(255,255,255,0.05) !important;
+      border-color: rgba(255,255,255,0.08) !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    body:not(.theme-light) [class*="bg-zinc-8"] { background-color: rgba(255,255,255,0.07) !important; }
+    body:not(.theme-light) [class*="text-zinc-1"] { color: var(--text-primary) !important; }
+    body:not(.theme-light) [class*="text-zinc-3"], body:not(.theme-light) [class*="text-zinc-4"] { color: var(--text-secondary) !important; }
+    body:not(.theme-light) [class*="text-zinc-5"], body:not(.theme-light) [class*="text-zinc-6"] { color: var(--text-muted) !important; }
+    body:not(.theme-light) [class*="border-zinc-7"], body:not(.theme-light) [class*="border-zinc-8"] { border-color: rgba(255,255,255,0.08) !important; }
+    body:not(.theme-light) .msg-bot { background-color: rgba(255,255,255,0.06) !important; }
+
+    /* ---- Cards/painéis: monitor CRT no CLARO (matrix vivo) ---- */
+    body.theme-light [class*="bg-zinc-9"], body.theme-light .card {
+      background-color: rgba(0,0,0,0.6) !important;
+      border-color: rgba(0,255,65,0.28) !important;
+      box-shadow: inset 0 0 24px rgba(0,255,65,0.06), 0 0 18px rgba(0,255,65,0.08);
+    }
+    body.theme-light [class*="bg-zinc-8"] { background-color: rgba(0,255,65,0.08) !important; }
+    body.theme-light [class*="bg-black/40"] { background-color: rgba(0,0,0,0.4) !important; }
+    body.theme-light [class*="text-zinc-1"] { color: var(--text-primary) !important; }
+    body.theme-light [class*="text-zinc-3"], body.theme-light [class*="text-zinc-4"] { color: var(--text-secondary) !important; }
+    body.theme-light [class*="text-zinc-5"], body.theme-light [class*="text-zinc-6"] { color: var(--text-muted) !important; }
+    body.theme-light [class*="border-zinc-7"], body.theme-light [class*="border-zinc-8"] { border-color: rgba(0,255,65,0.25) !important; }
+    body.theme-light .msg-bot { background-color: rgba(0,255,65,0.06) !important; }
+    body.theme-light .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb) !important; }
+    body.theme-light .nav-link { color: var(--text-secondary) !important; }
+    body.theme-light .nav-link:hover { background-color: var(--bg-card2) !important; color: var(--text-primary) !important; }
+
+    /* === Seletor de modelos / selects (leitura garantida nos 2 temas) === */
+    body:not(.theme-light) select,
+    body:not(.theme-light) select[class*="bg-zinc"] {
+      background-color: #16233a !important;
+      color: #e8edf5 !important;
+      border-color: rgba(255,255,255,0.14) !important;
+    }
+    body:not(.theme-light) option { background-color: #0b1120 !important; color: #e8edf5 !important; }
+    body.theme-light select,
+    body.theme-light select[class*="bg-zinc"] {
+      background-color: #0d1a12 !important;
+      color: #00ff41 !important;
+      border-color: rgba(0,255,65,0.3) !important;
+    }
+    body.theme-light option { background-color: #06130a !important; color: #00ff41 !important; }
+
+    /* ============================================================
+       RIGELSLM V2 – COMPONENTES (laranja / menta / azul suave)
+       ============================================================ */
+    .container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: start; }
+    .main { display: flex; flex-direction: column; gap: 24px; }
+    .card { background: var(--bg-card); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 26px; box-shadow: var(--shadow-card); transition: transform 0.25s ease, box-shadow 0.25s ease; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .card-header h2 { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); }
+    .card-header .badge { background: rgba(108,191,165,0.2); color: var(--secondary); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin: 12px 0 8px; }
+    .metric-item { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 14px 16px; text-align: center; border: 1px solid rgba(255,255,255,0.04); }
+    .metric-item .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+    .metric-item .value { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-top: 2px; }
+    .metric-item .value.good { color: var(--secondary); }
+    .metric-item .value.warn { color: var(--primary); }
+    .metric-item .value.bad { color: var(--color-red); }
+    .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+    .progress-bar .fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--secondary), var(--primary)); transition: width 0.6s ease; }
+    .folder-list { display: flex; flex-direction: column; gap: 8px; }
+    .folder-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255,255,255,0.02); border-radius: 10px; border-left: 3px solid var(--secondary); transition: background 0.25s ease; }
+    .folder-item:hover { background: rgba(255,255,255,0.05); }
+    .folder-item .name { font-weight: 500; }
+    .folder-item .count { font-size: 0.8rem; background: rgba(255,255,255,0.06); padding: 2px 10px; border-radius: 12px; color: var(--text-secondary); }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: all 0.25s ease; background: rgba(255,255,255,0.06); color: var(--text-primary); }
+    .btn:hover { background: var(--primary); color: #0b1120; border-color: var(--primary); transform: scale(1.02); }
+    .btn-primary { background: var(--secondary); color: #0b1120; border-color: var(--secondary); }
+    .btn-primary:hover { background: var(--primary); border-color: var(--primary); color: #0b1120; }
+    .btn-outline { background: transparent; border: 1px solid var(--secondary); color: var(--secondary); }
+    .btn-outline:hover { background: var(--secondary); color: #0b1120; }
+    .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+    .status-dot.online { background: var(--secondary); animation: pulse-dot 2s infinite; }
+    .status-dot.offline { background: var(--color-red); }
+    @keyframes pulse-dot { 0%{opacity:0.6;transform:scale(0.9)} 50%{opacity:1;transform:scale(1.1)} 100%{opacity:0.6;transform:scale(0.9)} }
+    .log-area { background: rgba(0,0,0,0.25); border-radius: 10px; padding: 14px 16px; max-height: 180px; overflow-y: auto; font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.04); }
+    .log-area::-webkit-scrollbar { width: 5px; }
+    .log-area::-webkit-scrollbar-track { background: transparent; }
+    .log-area::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
+    body.theme-light .metric-item { background: rgba(0,255,65,0.06); }
+    body.theme-light .folder-item { background: rgba(0,255,65,0.04); }
+    body.theme-light .folder-item .count { background: rgba(0,255,65,0.12); color: var(--text-primary); }
+    body.theme-light .progress-bar { background: rgba(0,255,65,0.12); }
+    body.theme-light .log-area { background: rgba(0,0,0,0.4); }
+
+    /* Redução de movimento (economia de bateria) — vale nos dois temas */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .card:hover { transform: none !important; }
+      .status-dot.online { animation: none !important; }
+    }
+
+    /* === Estilos base (funcionam com ambos os temas) === */
+    [x-cloak] { display: none !important; }
+    .card { transition: all 0.3s ease; }
+    .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-card); }
+    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+    .msg-user { background: rgba(108,191,165,0.15); margin-left: auto; }
+    .msg-bot { background: rgba(255,255,255,0.06); }
+    .barra-progresso { transition: width 0.8s ease; }
+    .pisca { animation: pisca 1.5s infinite; }
+    @keyframes pisca { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    /* === Navegação mais receptiva (hover/tooltip) === */
+    .nav-link {
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.15s ease, color 0.15s ease,
+                  transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .nav-link i { transition: transform 0.15s ease, color 0.15s ease; }
+    .nav-link:hover {
+      background-color: rgba(108,191,165,0.15) !important;
+      color: #6cbfa5 !important;
+      border-color: rgba(108,191,165,0.35) !important;
+      box-shadow: inset 0 0 0 1px rgba(108,191,165,0.25);
+      transform: translateY(-1px);
+    }
+    .nav-link:hover i { transform: scale(1.2); }
+    .nav-link:active { transform: translateY(0) scale(0.98); }
+
+    /* === Sidebar V2 (navy glass + laranja/menta) — TEMA ESCURO === */
+    body:not(.theme-light) .sidebar {
+      background-color: #0e1626 !important;
+      background-image: linear-gradient(180deg, rgba(244,162,97,0.08) 0%, rgba(11,17,32,0.95) 30%, #0b1120 100%) !important;
+      border-color: rgba(255,255,255,0.08) !important;
+    }
+    body:not(.theme-light) .sidebar .brand-bar { border-bottom-color: rgba(255,255,255,0.08) !important; }
+    body:not(.theme-light) .sidebar .brand-foot { border-top-color: rgba(255,255,255,0.08) !important; }
+    body:not(.theme-light) .sidebar .brand-title {
+      background: linear-gradient(90deg, #f4a261 0%, #6cbfa5 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    body:not(.theme-light) .sidebar nav a { color: #b0c4de !important; border: 1px solid transparent !important; }
+    body:not(.theme-light) .sidebar nav a i { color: #7aa9d9 !important; }
+    body:not(.theme-light) .sidebar nav a:hover {
+      background-color: rgba(108,191,165,0.12) !important;
+      color: #6cbfa5 !important;
+      border-color: rgba(108,191,165,0.35) !important;
+    }
+    body:not(.theme-light) .sidebar nav a:hover i { color: #6cbfa5 !important; }
+    body:not(.theme-light) .sidebar nav a.nav-link-active {
+      background: linear-gradient(90deg, rgba(244,162,97,0.18), rgba(108,191,165,0.08)) !important;
+      color: #f4a261 !important;
+      border-left: 3px solid #f4a261 !important;
+    }
+    /* Sidebar MATRIX claro (fósforo vivo) */
+    body.theme-light .sidebar {
+      background-color: #06130a !important;
+      background-image: linear-gradient(180deg, rgba(0,255,65,0.08) 0%, #06130a 40%) !important;
+      border-color: rgba(0,255,65,0.35) !important;
+    }
+    body.theme-light .sidebar .brand-bar { border-bottom-color: rgba(0,255,65,0.3) !important; }
+    body.theme-light .sidebar .brand-foot { border-top-color: rgba(0,255,65,0.3) !important; }
+    body.theme-light .sidebar .brand-title {
+      color: #00ff41 !important;
+      text-shadow: 0 0 12px rgba(0,255,65,0.7);
+      -webkit-background-clip: initial;
+      background-clip: initial;
+    }
+    body.theme-light .sidebar .brand-title::after {
+      content: "▮";
+      margin-left: 2px;
+      color: #00ff41;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    body.theme-light .sidebar nav a { color: #00ff41 !important; border: 1px solid transparent !important; }
+    body.theme-light .sidebar nav a i { color: #00ff41 !important; }
+    body.theme-light .sidebar nav a:hover {
+      background-color: #00ff41 !important;
+      color: #06130a !important;
+      border-color: #00ff41 !important;
+      box-shadow: 0 0 14px rgba(0,255,65,0.45);
+    }
+    body.theme-light .sidebar nav a:hover i { color: #06130a !important; }
+    body.theme-light .sidebar nav a.nav-link-active {
+      background-color: #00ff41 !important;
+      color: #06130a !important;
+      border-left: 3px solid #00ff41 !important;
+      box-shadow: 0 0 14px rgba(0,255,65,0.45);
+    }
+    /* Legibilidade no terminal: textos verdes claros */
+    body.theme-light .sidebar p,
+    body.theme-light .sidebar .text-zinc-600,
+    body.theme-light .sidebar .text-zinc-500,
+    body.theme-light .sidebar .text-zinc-400 {
+      color: rgba(0,255,65,0.9) !important;
+    }
+    body.theme-light .sidebar .text-green-400 { color: #00ff41 !important; }
+    body.theme-light .sidebar .theme-toggle-btn,
+    body.theme-light .sidebar button { border-color: rgba(0,255,65,0.3) !important; }
+    @media (max-width: 768px) {
+      .sidebar { width:100% !important; height:auto !important; flex-direction:row !important; overflow-x:auto !important; }
+      .sidebar nav { display:flex !important; gap:0.25rem !important; padding:0.5rem !important; }
+      .sidebar nav a { white-space:nowrap !important; padding:0.5rem 0.75rem !important; font-size:0.75rem !important; min-height:2.5rem !important; }
+      .sidebar nav a span { display:inline !important; } /* mostra o nome do item no mobile também */
+      .main-content { padding:1rem !important; }
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100">
+<div class="flex flex-col md:flex-row h-screen overflow-hidden" x-data="baseState()" x-cloak>
+
+  <!-- MENU LATERAL -->
+  <div class="sidebar w-full md:w-72 border-b md:border-b-0 md:border-r flex flex-col shrink-0">
+    <div class="brand-bar p-4 md:p-6 border-b flex items-center gap-3">
+      <img src="/images/android-chrome-192x192.png" alt="R" class="w-10 h-10 rounded-xl">
+      <div class="min-w-0">
+        <h1 class="brand-title text-xl md:text-2xl font-bold tracking-tight truncate">RigelSLM</h1>
+        <p class="text-xs text-emerald-400/70">Dashboard v1.0.0</p>
+      </div>
+    </div>
+
+    <nav class="flex md:flex-col flex-1 p-2 md:p-4 gap-1 overflow-auto scrollbar-thin">
+      <a href="/" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-house w-4 md:w-5 text-center"></i><span class="hidden md:inline">Dashboard</span>
+      </a>
+      <a href="/treinamento" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-graduation-cap w-4 md:w-5 text-center"></i><span class="hidden md:inline">Treinamento</span>
+      </a>
+      <a href="/chat" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-comments w-4 md:w-5 text-center"></i><span class="hidden md:inline">Chat</span>
+      </a>
+      <a href="/rss" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-rss w-4 md:w-5 text-center"></i><span class="hidden md:inline">RSS & Web</span>
+      </a>
+      <a href="/converter" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-file-export w-4 md:w-5 text-center"></i><span class="hidden md:inline">Converter GGUF</span>
+      </a>
+      <a href="/gerar_dados" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-wand-magic-sparkles w-4 md:w-5 text-center"></i><span class="hidden md:inline">Gerar Dados</span>
+      </a>
+      <a href="/gerar_local" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-microchip w-4 md:w-5 text-center"></i><span class="hidden md:inline">Gerar Local</span>
+      </a>
+      <a href="/datasets" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-database w-4 md:w-5 text-center"></i><span class="hidden md:inline">Datasets HF</span>
+      </a>
+      <a href="/scrap" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-earth-americas w-4 md:w-5 text-center"></i><span class="hidden md:inline">Scrap</span>
+      </a>
+      <a href="/tratamento" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-broom w-4 md:w-5 text-center"></i><span class="hidden md:inline">Tratamento</span>
+      </a>
+      <a href="/treino_local" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-dumbbell w-4 md:w-5 text-center"></i><span class="hidden md:inline">Treino Local</span>
+      </a>
+      <a href="/treino_colab" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-brands fa-google w-4 md:w-5 text-center"></i><span class="hidden md:inline">Google Colab</span>
+      </a>
+      <a href="/debate" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-microphone-lines w-4 md:w-5 text-center"></i><span class="hidden md:inline">Debate/Podcast</span>
+      </a>
+      <a href="/executor" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-robot w-4 md:w-5 text-center"></i><span class="hidden md:inline">Executor</span>
+      </a>
+      <a href="/debate_local" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-microchip w-4 md:w-5 text-center"></i><span class="hidden md:inline">Debate Local</span>
+      </a>
+      <a href="/logs" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
+        <i class="fa-solid fa-book w-4 md:w-5 text-center"></i><span class="hidden md:inline">Logs</span>
+      </a>
+    </nav>
+
+    <!-- Rodapé do menu -->
+    <div class="brand-foot hidden md:block p-4 border-t border-zinc-800 space-y-2 text-xs">
+      <div class="flex items-center gap-1 flex-wrap">
+        <div class="w-2 h-2 rounded-full transition-all duration-700" :class="[_heartbeatAlive ? 'opacity-100' : 'opacity-30', baseOllamaOnline ? 'bg-green-500' : 'bg-red-500']"></div>
+        <span class="text-zinc-500">Ollama:</span>
+        <span x-text="baseOllamaOnline ? 'Online' : 'Offline'" :class="baseOllamaOnline ? 'text-green-400' : 'text-red-400'"></span>
+      </div>
+      <div class="flex items-center gap-1 flex-wrap">
+        <div class="w-2 h-2 rounded-full transition-all duration-700" :class="[_heartbeatAlive ? 'opacity-100' : 'opacity-30', baseSearchOnline ? 'bg-sky-500' : 'bg-zinc-600']"></div>
+        <span class="text-zinc-500">Busca:</span>
+        <span x-text="baseSearchOnline ? 'Online' : 'Offline'" :class="baseSearchOnline ? 'text-sky-400' : 'text-zinc-500'"></span>
+        <span title="Busca via DuckDuckGo" :class="baseSearchOnline ? 'opacity-100' : 'opacity-40'">🦆</span>
+      </div>
+      <div class="flex justify-between text-zinc-600">
+        <span class="truncate">CPU <span x-text="(baseCpu||0)+'%'" class="text-zinc-400"></span></span>
+        <span class="truncate ml-2">RAM <span x-text="(baseRam||0)+'%'" class="text-zinc-400"></span></span>
+      </div>
+      <div class="text-zinc-600 truncate" title="Acesso remoto">
+        🌐 <span class="text-zinc-500">http://</span><span class="text-zinc-400" x-text="window.location.hostname+':8000'"></span>
+      </div>
+      <!-- Botão alternar tema -->
+      <button @click="toggleTheme()" class="w-full mt-2 flex items-center justify-center gap-2 text-xs px-3 py-2 rounded-xl transition-all"
+              :class="isLightTheme ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'">
+        <i class="fa-solid" :class="isLightTheme ? 'fa-sun' : 'fa-moon'"></i>
+        <span x-text="isLightTheme ? 'Tema Matrix' : 'Tema Escuro'"></span>
+      </button>
+
+      <!-- 💚 Card de doação: PIX + Buy Me a Coffee -->
+      <div class="mt-3 bg-zinc-800/50 border border-zinc-700/60 rounded-xl p-3 space-y-2">
+        <p class="text-[10px] text-zinc-400 font-semibold uppercase tracking-wide">💚 Apoie o RigelSLM</p>
+        <div class="flex items-center gap-2">
+          <img src="/images/pix-106.svg" alt="PIX" class="w-6 h-6 shrink-0">
+          <div class="min-w-0 flex-1">
+            <p class="text-[10px] text-zinc-500">PIX (chave aleatória)</p>
+            <p class="text-[10px] text-zinc-300 font-mono truncate" x-text="pixChave"></p>
+          </div>
+          <button @click="copiarPix()" class="shrink-0 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-2 py-1 rounded-lg text-[10px]" :title="pixCopiado ? 'Copiado!' : 'Copiar chave PIX'">
+            <i class="fa-regular" :class="pixCopiado ? 'fa-check' : 'fa-copy'"></i>
+          </button>
+        </div>
+        <a href="https://buymeacoffee.com/georgehbecker" target="_blank" rel="noopener"
+           class="flex items-center justify-center gap-2 bg-yellow-500/15 hover:bg-yellow-500/25 border border-yellow-500/30 text-yellow-300 rounded-lg py-1.5 text-[10px] font-semibold transition-colors">
+          <img src="/images/bmc_qr.png" alt="Buy Me a Coffee" class="w-4 h-4 rounded">
+          Buy Me a Coffee
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 💚 Apoie o RigelSLM — barra horizontal (SEMPRE visível, inclusive no mobile) -->
+  <div class="md:hidden px-3 py-2 border-b border-green-500/30 bg-zinc-900/70 flex items-center gap-2 text-xs overflow-x-auto scrollbar-thin shrink-0">
+    <span class="text-[10px] text-zinc-400 font-semibold uppercase tracking-wide whitespace-nowrap">💚 Apoie o RigelSLM</span>
+    <img src="/images/pix-106.svg" alt="PIX" class="w-5 h-5 shrink-0">
+    <p class="text-[10px] text-zinc-500 whitespace-nowrap">PIX (chave aleatória)</p>
+    <p class="text-[10px] text-zinc-300 font-mono truncate min-w-0" x-text="pixChave"></p>
+    <button @click="copiarPix()" class="shrink-0 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-2 py-1 rounded-lg text-[10px]" :title="pixCopiado ? 'Copiado!' : 'Copiar chave PIX'">
+      <i class="fa-regular" :class="pixCopiado ? 'fa-check' : 'fa-copy'"></i>
+    </button>
+    <a href="https://buymeacoffee.com/georgehbecker" target="_blank" rel="noopener"
+       class="shrink-0 flex items-center gap-1.5 bg-yellow-500/15 hover:bg-yellow-500/25 border border-yellow-500/30 text-yellow-300 rounded-lg px-2 py-1 text-[10px] font-semibold whitespace-nowrap">
+      <img src="/images/bmc_qr.png" alt="Buy Me a Coffee" class="w-3.5 h-3.5 rounded">
+      Buy Me a Coffee
+    </a>
+  </div>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="main-content flex-1 overflow-auto p-4 md:p-8 scrollbar-thin">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script>
+  console.log("[BASE] Layout carregado");
+  console.log("[OLLAMA] Modelos em:", "D:\\LLMs");
+  function baseState() {
+    return {
+      baseOllamaOnline: false,
+      baseSearchOnline: false,
+      baseCpu: 0,
+      baseRam: 0,
+      _ollamaOfflineCount: 0,
+      _pollController: null,
+      _heartbeatAlive: false,
+      isLightTheme: (localStorage.getItem('theme') ??
+        (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')) === 'light',
+      pixChave: 'a8b68e14-edfe-4450-88f2-c2af4aca2a6c',
+      pixCopiado: false,
+      copiarPix() {
+        try {
+          navigator.clipboard.writeText(this.pixChave);
+          this.pixCopiado = true;
+          setTimeout(() => { this.pixCopiado = false; }, 2000);
+        } catch(e) { console.warn('[BASE] Copiar PIX:', e); }
+      },
+      init() {
+        console.log("[BASE] Inicializando monitoramento com auto-recuperação...");
+        // Aplica tema salvo ao carregar
+        if (this.isLightTheme) {
+          document.body.classList.add('theme-light');
+        }
+        this.pollStatus();
+        setInterval(() => this.pollStatus(), 10000);
+        // Heartbeat visual a cada 2s
+        setInterval(() => { this._heartbeatAlive = !this._heartbeatAlive; }, 2000);
+        // Destaca link ativo + tooltip com o nome de cada item
+        document.querySelectorAll('.nav-link').forEach(a => {
+          const nome = (a.textContent || '').trim();
+          if (nome) a.title = nome;
+          if (a.getAttribute('href') === window.location.pathname) {
+            a.classList.add('nav-link-active', 'bg-emerald-600/20', 'text-emerald-400', 'font-medium');
+            a.classList.remove('text-zinc-400', 'hover:bg-zinc-800', 'hover:text-zinc-200');
+          } else {
+            a.classList.add('text-zinc-400', 'hover:bg-zinc-800', 'hover:text-zinc-200');
+          }
+        });
+      },
+      async fetchWithTimeout(url, options = {}, timeout = 5000) {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+        try {
+          const r = await fetch(url, { ...options, signal: controller.signal });
+          clearTimeout(id);
+          return r;
+        } catch(e) {
+          clearTimeout(id);
+          throw e;
+        }
+      },
+      async pollStatus() {
+        // Cancela requisição anterior pendente
+        if (this._pollController) this._pollController.abort();
+        this._pollController = new AbortController();
+
+        // Status do sistema (CPU/RAM)
+        try {
+          const r = await this.fetchWithTimeout('/api/status', {}, 3000);
+          if (r.ok) {
+            const d = await r.json();
+            this.baseCpu = d.cpu || 0;
+            this.baseRam = d.memory || 0;
+          }
+        } catch(e) { /* silêncio - não poluir console */ }
+
+        // Status do Ollama com auto-recuperação
+        try {
+          const r = await this.fetchWithTimeout('/api/ollama/status', {}, 3000);
+          if (r.ok) {
+            const d = await r.json();
+            if (d.running) {
+              this.baseOllamaOnline = true;
+              this._ollamaOfflineCount = 0;
+            } else {
+              this.baseOllamaOnline = false;
+              this._ollamaOfflineCount++;
+              console.warn(`[BASE] Ollama offline (${this._ollamaOfflineCount}x consecutivas)`);
+              if (this._ollamaOfflineCount >= 3) {
+                console.log("[BASE] ⚠️ Tentando reiniciar Ollama automaticamente...");
+                try {
+                  const rr = await this.fetchWithTimeout('/api/ollama/restart', { method: 'POST' }, 20000);
+                  const rd = await rr.json();
+                  console.log("[BASE] Resposta do restart:", rd);
+                  this._ollamaOfflineCount = 0;
+                } catch(e2) {
+                  console.error("[BASE] Falha ao reiniciar Ollama:", e2);
+                }
+              }
+            }
+          }
+        } catch(e) { /* silêncio */ }
+
+        // Status da busca
+        try {
+          const r = await this.fetchWithTimeout('/api/chat/search-status', {}, 3000);
+          if (r.ok) {
+            const d = await r.json();
+            this.baseSearchOnline = !!d.online;
+          }
+        } catch(e) { /* silêncio */ }
+      },
+      toggleTheme() {
+        this.isLightTheme = !this.isLightTheme;
+        document.body.classList.toggle('theme-light', this.isLightTheme);
+        localStorage.setItem('theme', this.isLightTheme ? 'light' : 'dark');
+        console.log("[BASE] Tema:", this.isLightTheme ? 'alegre' : 'escuro');
+      }
+    };
+  }
+</script>
+</body>
+</html>

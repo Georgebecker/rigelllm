@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-agrupar.py - AGRUPADOR INTELIGENTE COM MOVIMENTAÇÃO E BACKUP (v2.1)
+agrupar.py - AGRUPADOR INTELIGENTE COM MOVIMENTAÇÃO E BACKUP
+Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 ====================================================================
 Uso:
     python agrupar.py --entrada dados/processed --saida dados/processed_lotes --backup D:/backup/rigelllm/processed --pares 500
@@ -43,16 +44,42 @@ def log(msg, nivel="INFO"):
     print(f"[{timestamp}] [{nivel}] {msg}")
 
 def carregar_checkpoint():
-    """Carrega o checkpoint (lista de arquivos já processados)."""
-    if os.path.exists(CHECKPOINT_FILE):
+    """Carrega o checkpoint (lista de arquivos já processados).
+    Se o JSON estiver corrompido, faz backup e recria vazio."""
+    if not os.path.exists(CHECKPOINT_FILE):
+        return set()
+    try:
         with open(CHECKPOINT_FILE, 'r', encoding='utf-8') as f:
-            return set(json.load(f))
-    return set()
+            dados = json.load(f)
+            if not isinstance(dados, list):
+                raise ValueError("Formato inválido")
+            return set(dados)
+    except (json.JSONDecodeError, ValueError, Exception) as e:
+        log(f"⚠️ Checkpoint corrompido ({e}). Criando backup...", "WARN")
+        backup = CHECKPOINT_FILE + ".bak." + time.strftime("%Y%m%d_%H%M%S")
+        try:
+            os.rename(CHECKPOINT_FILE, backup)
+            log(f"   ✅ Backup salvo: {backup}", "WARN")
+        except:
+            log(f"   ❌ Não foi possível salvar backup", "ERRO")
+        # Pergunta ao usuário se deseja recriar ou ignorar
+        try:
+            resp = input(f"   Checkpoint corrompido. Recriar vazio? (S/n): ").strip().lower()
+            if resp in ('n', 'nao', 'não'):
+                log("   ⏸️  Usuário optou por não recriar. Retornando vazio.", "INFO")
+                return set()
+        except:
+            pass
+        log("   ✅ Checkpoint recriado (vazio).", "INFO")
+        return set()
 
 def salvar_checkpoint(processados):
     """Salva o checkpoint."""
-    with open(CHECKPOINT_FILE, 'w', encoding='utf-8') as f:
-        json.dump(list(processados), f, indent=2)
+    try:
+        with open(CHECKPOINT_FILE, 'w', encoding='utf-8') as f:
+            json.dump(list(processados), f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        log(f"❌ Erro ao salvar checkpoint: {e}", "ERRO")
 
 def extrair_pares(conteudo):
     """
@@ -118,7 +145,7 @@ def main():
         no_move = True
 
     log("=" * 70)
-    log("🚀 INICIANDO AGRUPADOR INTELIGENTE v2.1")
+    log("🚀 INICIANDO AGRUPADOR INTELIGENTE v1.0.0")
     log(f"📂 Entrada: {entrada}")
     log(f"📁 Saída:   {saida}")
     log(f"🗂️ Backup:  {backup if backup else '(não usado)'}")

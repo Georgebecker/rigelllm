@@ -1,2299 +1,370 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RigelSLM Dashboard</title>
-  <link rel="icon" type="image/png" href="/images/favicon-32x32.png">
-  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <style>
-    [x-cloak] { display: none !important; }
-    body { font-family: 'Inter', system-ui, sans-serif; }
-    .card { transition: all 0.3s ease; }
-    .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); }
-    .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
-    .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-    .scrollbar-thin::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
-    .msg-user { background: rgba(5,150,105,0.15); margin-left: auto; }
-    .msg-bot { background: #27272a; }
-    .barra-progresso { transition: width 0.8s ease; }
-    .pisca { animation: pisca 1.5s infinite; }
-    @keyframes pisca { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    @media (max-width: 768px) {
-      .sidebar { width:100% !important; height:auto !important; flex-direction:row !important; overflow-x:auto !important; }
-      .sidebar nav { display:flex !important; gap:0.25rem !important; padding:0.5rem !important; }
-      .sidebar nav button { white-space:nowrap !important; padding:0.5rem 0.75rem !important; font-size:0.75rem !important; }
-      .main-content { padding:1rem !important; }
-    }
-  </style>
-</head>
-<body class="bg-zinc-950 text-zinc-100">
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div x-data="homeState()" x-cloak>
+  <!-- Loading inicial -->
+  <div x-show="!carregou" class="flex items-center justify-center py-20">
+    <div class="text-center">
+      <i class="fa-solid fa-spinner fa-spin text-4xl text-emerald-400 mb-4"></i>
+      <p class="text-zinc-500">Carregando métricas do sistema...</p>
+    </div>
+  </div>
+  <div x-show="carregou">
+  <div class="flex items-center justify-between mb-6 md:mb-10">
+    <div class="min-w-0">
+      <h2 class="text-2xl md:text-4xl font-bold">📊 Visão Geral</h2>
+      <p class="text-zinc-500 mt-1 text-sm" x-text="'🔄 ' + (statusTime || '—')"></p>
+    </div>
+    <button @click="pollAll()" title="Atualizar dados do sistema" aria-label="Atualizar dados do sistema"
+            class="text-zinc-500 hover:text-emerald-400 text-xl shrink-0 ml-2 transition-transform active:scale-90">
+      <i class="fa-solid fa-rotate" :class="{'fa-spin': loading}"></i>
+    </button>
+  </div>
 
-<div class="flex flex-col md:flex-row h-screen overflow-hidden" x-data="appState()" x-cloak>
-
-  <!-- MENU LATERAL -->
-  <div class="sidebar w-full md:w-72 bg-zinc-900 border-b md:border-b-0 md:border-r border-zinc-800 flex flex-col shrink-0">
-    <div class="p-4 md:p-6 border-b border-zinc-800 flex items-center gap-3">
-      <img src="/images/android-chrome-192x192.png" alt="R" class="w-10 h-10 rounded-xl">
-      <div class="min-w-0">
-        <h1 class="text-xl md:text-2xl font-bold tracking-tight truncate">RigelSLM</h1>
-        <p class="text-xs text-emerald-400/70">Dashboard v3.0</p>
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_20rem] gap-6 items-start">
+  <!-- 📊 Dados de apoio — coluna à direita no desktop; logo abaixo da Visão Geral no celular -->
+  <aside class="order-1 lg:order-2 grid grid-cols-2 lg:grid-cols-1 gap-3 md:gap-4">
+    <!-- 🧠 Modelo (hero) -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card border border-emerald-600/20">
+      <p class="text-zinc-500 text-xs mb-1">🧠 Modelo</p>
+      <p class="text-lg md:text-xl font-bold" :class="treinando ? 'text-emerald-400' : 'text-zinc-100'" x-text="modeloStatus"></p>
+      <p class="text-xs text-zinc-600 mt-1 truncate" x-text="modeloNome"></p>
+      <p class="text-xs text-zinc-600" x-text="modeloData"></p>
+      <p class="text-xs text-zinc-600" x-show="modeloTamanho" x-text="modeloTamanho"></p>
+      <p class="text-xs text-teal-400 mt-0.5 truncate" x-show="modeloCheckpoint" x-text="modeloCheckpoint"></p>
+      <p x-show="treinando" class="text-xs text-emerald-400 mt-1 animate-pulse">🟢 Treinando agora...</p>
+      <!-- 🧠 Nível do modelo (mesma fórmula do chat.py) -->
+      <div class="mt-2" x-show="maturidadePct !== null">
+        <div class="flex justify-between text-[10px] text-zinc-500 mb-0.5">
+          <span title="Nível do modelo calculado pelo melhor val_loss (igual ao chat.py)">🧠 Nível do modelo</span>
+          <span class="font-bold" :class="maturidadePct >= 60 ? 'text-emerald-400' : (maturidadePct >= 30 ? 'text-amber-400' : 'text-red-400')" x-text="maturidadePct + '%'"></span>
+        </div>
+        <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-amber-500 to-emerald-500 transition-all" :style="'width:' + maturidadePct + '%'"></div>
+        </div>
+        <p class="text-[10px] text-zinc-600 mt-0.5 truncate" x-show="maturidadeLoss !== null" x-text="'melhor val_loss ' + maturidadeLoss + (maturidadeEpoca ? ' · época ' + maturidadeEpoca : '')"></p>
       </div>
     </div>
-
-    <nav class="flex md:flex-col flex-1 p-2 md:p-4 gap-1 overflow-auto scrollbar-thin">
-      <template x-for="item in menuItems" :key="item.id">
-        <button @click="active=item.id; carregarSecao(item.id)"
-                class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0"
-                :class="active===item.id ? 'bg-emerald-600/20 text-emerald-400 font-medium' : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'">
-          <i :class="item.icon" class="w-4 md:w-5 text-center"></i>
-          <span class="hidden md:inline" x-text="item.label"></span>
+    <!-- 🎯 Treinamento (estado ao vivo) -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
+      <p class="text-zinc-500 text-xs mb-1">🎯 Treinamento</p>
+      <p class="text-lg md:text-xl font-bold" :class="treinoEtapa==='treinando' ? 'text-emerald-400' : treinoEtapa==='erro' ? 'text-red-400' : 'text-zinc-300'"
+         x-text="treinoEtapa==='treinando' ? '🟢 Rodando' : (treinoEtapa==='concluido' ? '✅ Concluído' : (treinoEtapa==='erro' ? '❌ Erro' : '⏸️ Parado'))"></p>
+      <p class="text-xs text-zinc-600 mt-1 truncate" x-text="treinoDataset || 'nenhum dataset'"></p>
+      <div class="mt-2 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+        <div class="h-full bg-emerald-500 transition-all" :style="treinoIndeterminado ? 'width:33%;' : 'width:' + (treinoProgresso||0) + '%'" :class="treinoIndeterminado ? 'animate-pulse' : ''"></div>
+      </div>
+      <p class="text-[10px] text-zinc-600 mt-1 truncate" x-text="treinoMensagem"></p>
+    </div>
+    <!-- ⚡ CPU -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
+      <p class="text-zinc-500 text-xs mb-1">⚡ CPU</p>
+      <p class="text-lg md:text-xl font-bold" x-text="cpuPct + '%'"></p>
+      <p class="text-xs text-zinc-600 mt-1" x-text="cpuCores + ' núcleos'"></p>
+    </div>
+    <!-- 💾 RAM -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
+      <p class="text-zinc-500 text-xs mb-1">💾 RAM</p>
+      <p class="text-lg md:text-xl font-bold" x-text="ramPct + '%'"></p>
+      <p class="text-xs text-zinc-600 mt-1" x-text="ramInfo"></p>
+    </div>
+    <!-- 💽 Disco -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
+      <p class="text-zinc-500 text-xs mb-1">💽 Disco</p>
+      <p class="text-lg md:text-xl font-bold" x-text="diskPct + '%'"></p>
+      <p class="text-xs text-zinc-600 mt-1" x-text="diskIO"></p>
+    </div>
+    <!-- 📁 Dados -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
+      <p class="text-zinc-500 text-xs mb-1">📁 Dados</p>
+      <p class="text-lg md:text-xl font-bold" x-text="totalFiles?.toLocaleString() || '0'"></p>
+      <p class="text-xs text-zinc-600 mt-1">arquivos processados</p>
+    </div>
+    <!-- 💚 Apoie o RigelSLM -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card lg:col-span-1 col-span-2">
+      <p class="text-zinc-500 text-xs mb-2">💚 Apoie o RigelSLM</p>
+      <div class="flex items-center gap-2 mb-2">
+        <img src="/images/pix-106.svg" alt="PIX" class="w-6 h-6 shrink-0">
+        <div class="min-w-0 flex-1">
+          <p class="text-[10px] text-zinc-500">PIX (chave aleatória)</p>
+          <p class="text-[10px] text-zinc-300 font-mono truncate" x-text="pixChave"></p>
+        </div>
+        <button @click="copiarPix()" class="shrink-0 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-2 py-1 rounded-lg text-[10px]" :title="pixCopiado ? 'Copiado!' : 'Copiar chave PIX'">
+          <i class="fa-regular" :class="pixCopiado ? 'fa-check' : 'fa-copy'"></i>
         </button>
+      </div>
+      <a href="https://buymeacoffee.com/georgehbecker" target="_blank" rel="noopener"
+         class="flex items-center justify-center gap-2 bg-yellow-500/15 hover:bg-yellow-500/25 border border-yellow-500/30 text-yellow-300 rounded-lg py-1.5 text-[10px] font-semibold transition-colors">
+        <img src="/images/bmc_qr.png" alt="Buy Me a Coffee" class="w-4 h-4 rounded">
+        Buy Me a Coffee
+      </a>
+    </div>
+  </aside>
+
+  <!-- Conteúdo principal -->
+  <div class="min-w-0 space-y-6 order-2 lg:order-1">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6">
+      <h3 class="text-sm font-semibold mb-3">📋 Log do Dashboard</h3>
+      <pre class="bg-black/40 rounded-xl p-3 text-xs font-mono text-zinc-400 overflow-auto max-h-48 scrollbar-thin leading-relaxed" x-text="logTexto || 'Aguardando...'"></pre>
+    </div>
+    <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6">
+      <h3 class="text-sm font-semibold mb-3">📈 Últimas épocas <span x-show="metricas.length" class="text-[10px] text-zinc-600 font-normal" x-text="metricasFonte"></span></h3>
+      <div x-show="metricas.length === 0"><p class="text-zinc-600 text-sm">Nenhuma métrica de treino ainda.</p></div>
+      <div x-show="metricas.length" class="grid grid-cols-[3.4rem_1fr_1fr_5rem] gap-2 text-[10px] uppercase tracking-wide text-zinc-600 pb-1.5 border-b border-zinc-800">
+        <span>Época</span><span class="text-right">Train</span><span class="text-right">Val</span><span class="text-right">Data</span>
+      </div>
+      <template x-for="m in metricas" :key="m.epoch + (m.fonte||'')">
+        <div class="grid grid-cols-[3.4rem_1fr_1fr_5rem] gap-2 items-center text-xs text-zinc-400 py-1.5 border-b border-zinc-800/50">
+          <span class="font-medium text-zinc-300">Ép. <span x-text="m.epoch"></span></span>
+          <span class="text-right text-amber-400 font-semibold" x-text="m.train_loss != null ? (+m.train_loss).toFixed(2) : '—'"></span>
+          <span class="text-right text-emerald-400 font-semibold" x-text="m.val_loss != null ? (+m.val_loss).toFixed(2) : '—'"></span>
+          <span class="text-right text-zinc-600" x-show="m.timestamp" x-text="(m.timestamp||'').slice(0,16).replace('T',' ')"></span>
+        </div>
       </template>
-    </nav>
-
-    <div class="hidden md:block p-4 border-t border-zinc-800 space-y-2 text-xs">
-      <div class="flex items-center gap-2">
-        <template x-if="!usarModoLocal">
-          <div class="flex items-center gap-1">
-            <div class="w-2 h-2 rounded-full" :class="ollamaOnline ? 'bg-green-500' : 'bg-red-500'"></div>
-            <span class="text-zinc-500">Ollama: </span>
-            <span x-text="ollamaOnline ? 'Online' : 'Offline'" :class="ollamaOnline ? 'text-green-400' : 'text-red-400'"></span>
-            <button @click="restartOllama()" title="Reiniciar Ollama" class="ml-1 text-xs px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300">↻</button>
-            <template x-if="modeloAtivo">
-              <span class="text-xs text-zinc-400 ml-2 truncate" title="Modelo ativo no Ollama">• <strong class="text-emerald-400" x-text="modeloAtivo"></strong></span>
-            </template>
-          </div>
-        </template>
-        <template x-if="usarModoLocal">
-          <div class="flex items-center gap-1">
-            <div class="w-2 h-2 rounded-full bg-purple-500"></div>
-            <span class="text-zinc-500">Modelo: </span>
-            <span class="text-purple-400">Local</span>
-          </div>
-        </template>
-      </div>
-      <div class="flex justify-between text-zinc-600">
-        <span class="truncate">CPU <span x-text="(sysInfo?.cpu?.percent||0) + '%'" class="text-zinc-400"></span></span>
-        <span class="truncate ml-2">RAM <span x-text="(sysInfo?.memory?.percent||0) + '%'" class="text-zinc-400"></span></span>
-      </div>
-      <div class="mt-2 flex items-center gap-2 text-xs">
-        <div :class="pesquisaDisponivel ? 'text-emerald-400' : 'text-red-400'" title="Disponibilidade de pesquisa DuckDuckGo">
-          <span x-text="pesquisaDisponivel ? '🌐 DuckDuckGo: On' : '🌐 DuckDuckGo: Off'"></span>
-        </div>
-      </div>
     </div>
   </div>
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <div class="main-content flex-1 overflow-auto p-4 md:p-8 scrollbar-thin">
+  <!-- 📦 Backup / Distribuição -->
+  <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6 mt-6">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+      <h3 class="text-sm font-semibold">📦 Backup / Distribuição</h3>
+      <button @click="criarBackup()" :disabled="deployRodando" title="Criar backup para distribuição (mantém só as 2 versões mais recentes)"
+              class="flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50 disabled:cursor-not-allowed">
+        <i class="fa-solid fa-box-archive" :class="{'fa-spin': deployRodando}"></i>
+        <span x-text="deployRodando ? 'Gerando...' : 'Criar backup'"></span>
+      </button>
+    </div>
+    <p class="text-[11px] text-zinc-500 mb-3" x-show="deployMensagem" x-text="deployMensagem"></p>
+    <div x-show="deployVersoes.length === 0 && !deployRodando">
+      <p class="text-zinc-600 text-sm">Nenhum backup ainda. Clique em "Criar backup" para gerar o pacote distribuível (código + modelo, sem dados brutos/checkpoints grandes). Máximo de 2 versões — a mais antiga é apagada.</p>
+    </div>
+    <div class="space-y-2">
+      <template x-for="v in deployVersoes" :key="v.nome">
+        <div class="flex items-center justify-between gap-3 bg-black/30 rounded-xl px-3 py-2 text-xs">
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-zinc-300 font-medium" x-text="v.nome"></p>
+            <p class="text-zinc-600" x-text="v.tamanho_mb + ' MB · ' + v.data"></p>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <a :href="v.url" :download="v.nome" title="Baixar (funciona no celular)"
+               class="text-emerald-400 hover:text-emerald-300 text-base px-2 py-1"><i class="fa-solid fa-download"></i></a>
+            <button @click="removerBackup(v.nome)" title="Apagar esta versão"
+                    class="text-red-500 hover:text-red-400 text-base px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      </template>
+    </div>
+    <div class="mt-3 bg-amber-950/30 border border-amber-600/30 rounded-lg p-2 text-[10px] text-amber-300 leading-relaxed">
+      🪟 <b>Regra de instalação:</b> extraia o ZIP em uma pasta <b>NOVA/Vazia</b>.
+      <b>NÃO</b> extraia por cima de uma instalação existente do RigelSLM — assim como
+      programas do Windows exigem desinstalar antes de reinstalar, se a pasta de destino
+      já contém o sistema, mova/renomeie ou apague antes. <b>A responsabilidade é do usuário.</b>
+    </div>
+    <p class="text-[10px] text-zinc-600 mt-2">💡 No celular: acesse <span class="text-zinc-400">http://<span x-text="window.location.hostname"></span>:8000</span> na mesma rede Wi-Fi e toque em 📥 para baixar.</p>
+  </div>
 
-    <!-- ═══════ HOME ═══════ -->
-    <div x-show="active==='home'">
-      <div class="flex items-center justify-between mb-6 md:mb-10">
+  <!-- 📲 Celular ↔ PC (exportar/importar colaborativo) -->
+  <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6 mt-6">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+      <h3 class="text-sm font-semibold">📲 Celular ↔ PC <span class="text-[10px] text-zinc-600 font-normal">(colaborativo)</span></h3>
+      <button @click="exportarDados()" :disabled="celRodando"
+              title="Exportar só o que foi gerado aqui (scrap/chat/rss/feedback) — leve p/ Google Drive"
+              class="flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-sky-600/20 text-sky-300 hover:bg-sky-600/30 disabled:opacity-50 disabled:cursor-not-allowed">
+        <i class="fa-solid fa-cloud-arrow-up" :class="{'fa-spin': celRodando && celOperacao==='exportar'}"></i>
+        <span x-text="celRodando && celOperacao==='exportar' ? 'Exportando...' : 'Exportar dados'"></span>
+      </button>
+    </div>
+    <p class="text-[11px] text-zinc-500 mb-3" x-show="celMensagem" x-text="celMensagem"></p>
+    <p class="text-[11px] text-zinc-600 mb-3">Exporta <b class="text-zinc-300">apenas o que foi gerado</b> nesta máquina (scrap, chat salvos, RSS, feedback, diálogos) — <b>sem</b> datasets baixados, <b>sem</b> a pasta <code class="text-zinc-400">dados</code> inteira. Leve o suficiente para ir por Google Drive e treinar no PC.
+    Se quiser mais dados, baixe datasets, faça scraping ou crie — e depois exporte o que produziu. 🤝</p>
+
+    <!-- Exportações geradas -->
+    <div class="space-y-2" x-show="celExportacoes.length">
+      <p class="text-[10px] uppercase tracking-wide text-zinc-600">Exportações geradas</p>
+      <template x-for="v in celExportacoes" :key="v.nome">
+        <div class="flex items-center justify-between gap-3 bg-black/30 rounded-xl px-3 py-2 text-xs">
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-zinc-300 font-medium" x-text="v.nome"></p>
+            <p class="text-zinc-600" x-text="v.tamanho_mb + ' MB · ' + v.data"></p>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <a :href="v.url" :download="v.nome" title="Baixar (salvar no Google Drive / celular)"
+               class="text-sky-400 hover:text-sky-300 text-base px-2 py-1"><i class="fa-solid fa-download"></i></a>
+            <button @click="removerExportacao(v.nome)" title="Apagar esta exportação"
+                    class="text-red-500 hover:text-red-400 text-base px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <!-- Importar -->
+    <div class="mt-3 bg-black/20 border border-zinc-800 rounded-xl p-3">
+      <div class="flex items-center justify-between flex-wrap gap-2">
         <div class="min-w-0">
-          <h2 class="text-2xl md:text-4xl font-bold">📊 Visão Geral</h2>
-          <p class="text-zinc-500 mt-1 text-sm" x-text="'🔄 ' + (sysInfo?.timestamp ? new Date(sysInfo.timestamp).toLocaleTimeString() : '—')"></p>
+          <p class="text-xs text-zinc-300 font-medium">⬇️ Importar exportações externas</p>
+          <p class="text-[10px] text-zinc-600 mt-0.5">Pasta comum: <code class="text-zinc-400">dados/Celular</code> — no PC, baixe o zip do Google Drive e solte aqui, depois clique em Importar.</p>
         </div>
-        <button @click="pollSystem()" class="text-zinc-500 hover:text-emerald-400 text-xl shrink-0 ml-2">
-          <i class="fa-solid fa-rotate" :class="'fa-spin'"></i>
+        <button @click="importarDados()" :disabled="celRodando"
+                title="Importar tudo de dados/Celular (jsonl→gerados, txt→raw, parquet→processed)"
+                class="flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50 disabled:cursor-not-allowed">
+          <i class="fa-solid fa-cloud-arrow-down" :class="{'fa-spin': celRodando && celOperacao==='importar'}"></i>
+          <span>Importar de dados/Celular</span>
         </button>
       </div>
-
-      <!-- Cards com dados REAIS do sistema -->
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4 mb-8">
-        <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
-          <p class="text-zinc-500 text-xs mb-1">🧠 Modelo</p>
-          <p class="text-lg md:text-xl font-bold" x-text="status.model_exists ? '✅ Pronto' : '❌ Ausente'"></p>
-          <p class="text-xs text-zinc-600 mt-1" x-text="status.model_exists ? status.model_date : '—'"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
-          <p class="text-zinc-500 text-xs mb-1">⚡ CPU <span x-text="'(' + (sysInfo?.cpu?.cores||'?') + ' núcleos)'"></span></p>
-          <p class="text-lg md:text-xl font-bold" x-text="(sysInfo?.cpu?.percent||0) + '%'"></p>
-          <div class="mt-2 w-full bg-zinc-800 rounded-full h-2">
-            <div class="bg-emerald-500 h-2 rounded-full barra-progresso" :style="'width:'+(sysInfo?.cpu?.percent||0)+'%'"></div>
-          </div>
-          <div class="flex gap-0.5 mt-1.5" x-show="sysInfo?.cpu?.per_core">
-            <template x-for="(c,i) in (sysInfo?.cpu?.per_core||[])" :key="i">
-              <div class="flex-1 h-1 rounded-full" :style="'background:' + (c>50?'#ef4444':c>20?'#f59e0b':'#22c55e') + ';opacity:' + (0.3+c/100*0.7)"></div>
-            </template>
-          </div>
-        </div>
-        <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
-          <p class="text-zinc-500 text-xs mb-1">💾 RAM</p>
-          <p class="text-lg md:text-xl font-bold" x-text="(sysInfo?.memory?.percent||0) + '%'"></p>
-          <p class="text-xs text-zinc-600" x-text="(sysInfo?.memory?.used_gb||0) + 'GB / ' + (sysInfo?.memory?.total_gb||0) + 'GB'"></p>
-          <div class="mt-2 w-full bg-zinc-800 rounded-full h-2">
-            <div class="bg-amber-500 h-2 rounded-full barra-progresso" :style="'width:'+(sysInfo?.memory?.percent||0)+'%'"></div>
-          </div>
-        </div>
-        <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
-          <p class="text-zinc-500 text-xs mb-1">💽 Disco</p>
-          <p class="text-lg md:text-xl font-bold" x-text="status.disk + '%'"></p>
-          <p class="text-xs text-zinc-600" x-text="'📖 ' + (sysInfo?.disk_io?.read_mb||0) + 'MB | 💾 ' + (sysInfo?.disk_io?.write_mb||0) + 'MB'"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
-          <p class="text-zinc-500 text-xs mb-1">📁 Dados</p>
-          <p class="text-lg md:text-xl font-bold" x-text="(status.processed_files||0).toLocaleString()"></p>
-          <p class="text-xs text-zinc-600">arquivos processados</p>
-        </div>
+      <div x-show="celPendentes.zips.length || celPendentes.soltos.length" class="mt-2 text-[10px] text-zinc-500">
+        <span x-show="celPendentes.zips.length" x-text="'📦 ' + celPendentes.zips.length + ' zip(s) aguardando'"></span>
+        <span x-show="celPendentes.soltos.length" x-text="(celPendentes.zips.length ? ' · ' : '') + '📄 ' + celPendentes.soltos.length + ' arquivo(s) solto(s)'"></span>
       </div>
-
-      <!-- Log do sistema ao vivo -->
-      <div class="bg-zinc-900 rounded-2xl p-4 md:p-6 mb-6">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm md:text-base font-semibold">📋 Log do Dashboard</h3>
-          <span class="text-xs text-zinc-600 pisca" x-show="logDashboard">● ao vivo</span>
-        </div>
-        <pre class="bg-black/40 rounded-xl p-3 text-xs font-mono text-zinc-400 overflow-auto max-h-40 scrollbar-thin leading-relaxed" x-text="logDashboard || 'Aguardando...'"></pre>
-      </div>
-
-      <!-- Últimas épocas -->
-      <div class="bg-zinc-900 rounded-2xl p-4 md:p-6 overflow-hidden">
-        <h3 class="text-sm md:text-base font-semibold mb-4">📈 Últimas épocas</h3>
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs md:text-sm" x-show="metricas.length > 0">
-            <thead><tr class="text-zinc-500 border-b border-zinc-800">
-              <th class="text-left py-2 px-2 md:px-3">Época</th>
-              <th class="text-right py-2 px-2 md:px-3">Train Loss</th>
-              <th class="text-right py-2 px-2 md:px-3">Val Loss</th>
-              <th class="text-right py-2 px-2 md:px-3">⏱️</th>
-            </tr></thead>
-            <tbody>
-              <template x-for="m in metricas" :key="m.epoch">
-                <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
-                  <td class="py-2 px-2 md:px-3" x-text="'Ep ' + m.epoch"></td>
-                  <td class="text-right py-2 px-2 md:px-3 font-mono" x-text="m.train_loss?.toFixed(4)"></td>
-                  <td class="text-right py-2 px-2 md:px-3 font-mono" x-text="m.val_loss?.toFixed(4)"></td>
-                  <td class="text-right py-2 px-2 md:px-3 text-zinc-500" x-text="formatarTempo(m.tempo_segundos)"></td>
-                </tr>
-              </template>
-            </tbody>
-          </table>
-          <p x-show="!metricas.length" class="text-zinc-600 text-center py-8 text-sm">Nenhuma métrica.</p>
-        </div>
+      <div x-show="!celPendentes.zips.length && !celPendentes.soltos.length" class="mt-2 text-[10px] text-zinc-600">
+        Nada aguardando em dados/Celular.
       </div>
     </div>
-
-    <!-- ═══════ TREINAMENTO ═══════ -->
-    <div x-show="active==='train'">
-      <h2 class="text-2xl md:text-4xl font-bold mb-1">⚙️ Treinamento</h2>
-      <p class="text-zinc-500 text-sm mb-4">Pastas em <code class="text-emerald-400">dados/processed/</code></p>
-
-      <!-- Barra de progresso do treino atual -->
-      <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5" x-show="trainProgresso?.em_andamento">
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="text-sm font-semibold text-emerald-400 pisca">▶️ Treino em andamento</h3>
-          <span class="text-xs text-zinc-500" x-text="trainProgresso?.epoch_atual + '/' + trainProgresso?.total_epochs + ' épocas'"></span>
-        </div>
-        <div class="w-full bg-zinc-800 rounded-full h-3 mb-2">
-          <div class="bg-emerald-500 h-3 rounded-full barra-progresso flex items-center justify-center text-[10px] font-bold text-black"
-               :style="'width:'+(trainProgresso?.percentual||0)+'%'" x-text="(trainProgresso?.percentual||0) + '%'"></div>
-        </div>
-        <div class="flex gap-4 text-xs text-zinc-500">
-          <span>📉 Loss: <span class="text-emerald-400 font-mono" x-text="trainProgresso?.loss_atual || '—'"></span></span>
-          <span>📦 Batch: <span x-text="trainProgresso?.batch_atual || '—'"></span></span>
-          <span>⏱️ <span x-text="sysInfo?.timestamp ? new Date(sysInfo.timestamp).toLocaleTimeString() : '—'"></span></span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">📁 Arquivos</p>
-          <p class="text-xl font-bold mt-1" x-text="(train.total_arquivos||0).toLocaleString()"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">📂 Pastas</p>
-          <p class="text-xl font-bold mt-1" x-text="train.total_pastas||0"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">Última época</p>
-          <p class="text-xl font-bold mt-1" x-text="train.ultima_epoch||'—'"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">🎯 Melhor loss</p>
-          <p class="text-xl font-bold mt-1" x-text="train.melhor_loss?.toFixed(4)||'—'"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">📦 Checkpoint</p>
-          <p class="text-xl font-bold mt-1" x-text="train.checkpoint_existe ? '✅' : '❌'"></p>
-        </div>
-      </div>
-
-      <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
-        <h3 class="text-sm font-semibold mb-3">📂 Pastas</h3>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 max-h-60 overflow-auto scrollbar-thin">
-          <template x-for="pasta in (train.pastas_disponiveis||[])" :key="pasta.nome">
-            <label class="flex items-center gap-2 p-2 rounded-xl hover:bg-zinc-800 cursor-pointer text-xs"
-                   :class="pastasSelecionadas.includes(pasta.nome)?'bg-emerald-600/20 border border-emerald-600/30':'bg-zinc-800/50 border border-transparent'">
-              <input type="checkbox" :value="pasta.nome" @change="togglePasta(pasta.nome)" class="accent-emerald-500 w-3 h-3 shrink-0">
-              <div class="min-w-0"><p class="font-medium truncate" x-text="pasta.nome"></p><p class="text-xs text-zinc-500" x-text="pasta.arquivos + ' arqs'"></p></div>
-            </label>
-          </template>
-        </div>
-        <div class="flex gap-2 mt-2">
-          <button @click="pastasSelecionadas=(train.pastas_disponiveis||[]).map(p=>p.nome)" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1 rounded-lg bg-zinc-800">Todas</button>
-          <button @click="pastasSelecionadas=[]" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1 rounded-lg bg-zinc-800">Limpar</button>
-          <span class="text-xs text-zinc-600 self-center ml-1" x-text="pastasSelecionadas.length + ' sel'"></span>
-        </div>
-      </div>
-
-      <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
-        <div class="flex flex-wrap gap-3 items-center">
-          <div><label class="text-xs text-zinc-500 block mb-1">Máx arquivos</label>
-            <input type="number" x-model="maxArquivos" min="100" max="100000" step="100" class="bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm w-28 focus:outline-none focus:ring-2 focus:ring-emerald-500"></div>
-          <div class="flex gap-2 mt-4">
-            <button @click="iniciarTreino()" :disabled="treinando" class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 px-5 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
-              <i class="fa-solid" :class="treinando?'fa-spinner fa-spin':'fa-play'"></i><span x-text="treinando?'Enviando...':'🚀 Iniciar'"></span></button>
-            <button @click="iniciarTreino(true)" :disabled="treinando" class="bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 px-4 py-3 rounded-xl text-sm font-semibold"><i class="fa-solid fa-rotate-right"></i> Continuar</button>
-            <button @click="testarModelo()" :disabled="testando" class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-4 py-3 rounded-xl text-sm font-semibold"><i class="fa-solid" :class="testando?'fa-spinner fa-spin':'fa-flask'"></i> Testar</button>
-          </div>
-        </div>
-        <p x-show="mensagemTreino" class="mt-2 text-sm" :class="mensagemTreino.startsWith('❌')?'text-red-400':'text-emerald-400'" x-text="mensagemTreino"></p>
-      </div>
-
-      <!-- Log de treino ao vivo -->
-      <div class="bg-zinc-900 rounded-2xl p-4 md:p-5">
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="text-sm font-semibold">📋 Log de Treino</h3>
-          <span class="text-xs text-zinc-600 pisca" x-show="trainProgresso?.em_andamento">● ao vivo</span>
-        </div>
-        <pre class="bg-black/40 rounded-xl p-3 text-xs font-mono text-zinc-400 overflow-auto max-h-48 scrollbar-thin leading-relaxed" x-text="treinoLog || 'Nenhum log de treino encontrado.'"></pre>
-      </div>
-    </div>
-
-    <!-- ═══════ CHAT ═══════ -->
-    <div x-show="active==='chat'" class="flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-10rem)]">
-      <div class="flex items-center gap-3 mb-4 flex-wrap">
-        <h2 class="text-2xl md:text-3xl font-bold">💬 Chat</h2>
-
-        <!-- Status Ollama / Local -->
-        <span class="inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-full"
-              :class="usarModoLocal ? 'bg-purple-600/20 text-purple-400' : (ollamaOnline ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400')">
-          <span class="w-2 h-2 rounded-full" :class="usarModoLocal ? 'bg-purple-500' : (ollamaOnline ? 'bg-green-500' : 'bg-red-500')"></span>
-          <span x-text="usarModoLocal ? 'Local' : (ollamaOnline ? 'Ollama' : 'Offline')"></span>
-        </span>
-
-        <!-- Seletor de modelo (só quando Ollama online) -->
-        <template x-if="ollamaOnline && modelosDisponiveis.length && !usarModoLocal">
-          <div class="flex items-center gap-1.5">
-            <select x-model="modeloSelecionado" @change="trocarModelo()"
-                    class="bg-zinc-800 border border-zinc-700 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 max-w-[150px]">
-              <template x-for="m in modelosDisponiveis" :key="m">
-                <option :value="m" x-text="m" :selected="m===modeloAtivo"></option>
-              </template>
-            </select>
-            <span class="text-xs text-zinc-500">ativo: <span class="text-emerald-400 font-mono" x-text="modeloAtivo||'—'"></span></span>
-            
-          </div>
-        </template>
-
-        <!-- Botão alternar modo local (quando modelo .pt existe) -->
-        <button @click="alternarModoLocal()"
-                class="text-xs px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1"
-                :class="usarModoLocal ? 'bg-purple-600/30 text-purple-300' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400'"
-                x-show="modeloLocalDisponivel"
-                :title="'Usar modelo PyTorch local (' + modeloLocalTamanho + ')'">
-          <i class="fa-solid fa-microchip"></i>
-          <span x-text="usarModoLocal ? 'Local: ativo' : 'Modo Local'"></span>
-        </button>
-
-        <!-- Botão testar (Ollama) -->
-        <button @click="testarModeloChat()" :disabled="testandoChat || !ollamaOnline"
-                x-show="!usarModoLocal"
-                class="text-xs px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1"
-                :class="testandoChat ? 'bg-amber-600/30 text-amber-400' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400'">
-          <i class="fa-solid" :class="testandoChat ? 'fa-spinner fa-spin' : 'fa-flask'"></i>
-          <span x-text="testandoChat ? 'Testando...' : 'Testar'"></span>
-        </button>
-
-        <!-- Resultado do teste -->
-        <span x-show="testeResultado" class="text-xs" :class="testeOk ? 'text-green-400' : 'text-red-400'" x-text="testeResultado"></span>
-
-        <template x-if="!ollamaOnline && ggufExiste && !usarModoLocal">
-          <span class="text-xs text-amber-400/70 bg-amber-600/10 px-3 py-1 rounded-full">⚡ GGUF disponível</span>
-        </template>
-      </div>
-
-      <!-- Janela do chat -->
-      <div class="flex-1 bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6 mb-4 overflow-auto scrollbar-thin min-h-[300px]" id="chatWindow">
-        <template x-for="(msg, i) in chatMensagens" :key="i">
-          <div class="mb-3 flex" :class="msg.role==='user'?'justify-end':'justify-start'">
-            <div class="max-w-[90%] md:max-w-[75%] p-3 md:p-4 rounded-2xl text-sm leading-relaxed break-words"
-                 :class="msg.role==='user'?'msg-user text-emerald-100':'msg-bot text-zinc-200'">
-              <p class="text-xs mb-1 opacity-60">
-                <span x-text="msg.role==='user'?'Você':'RigelSLM'"></span>
-                <span x-show="msg.erro" class="text-red-400 ml-2">(erro)</span>
-              </p>
-              <p x-text="msg.content"></p>
-            </div>
-          </div>
-        </template>
-        <div x-show="chatCarregando" class="flex justify-start mb-3">
-          <div class="bg-zinc-800 rounded-2xl p-4">
-            <div class="flex gap-2"><div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:0ms"></div><div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:150ms"></div><div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay:300ms"></div></div>
-          </div>
-        </div>
-        <div x-show="!chatMensagens.length && !chatCarregando" class="text-center py-12">
-          <p class="text-zinc-500 text-sm mb-2" x-show="ollamaOnline || usarModoLocal">
-            💬 Inicie uma conversa
-            <span x-show="usarModoLocal" class="text-purple-400"> (modo local)</span>
-          </p>
-          <div x-show="!ollamaOnline && !usarModoLocal">
-            <p class="text-zinc-500 text-sm mb-1">🔴 Ollama offline</p>
-            <p class="text-zinc-600 text-xs">
-              Ative o <button @click="alternarModoLocal()" class="text-purple-400 hover:text-purple-300 underline cursor-pointer" x-show="modeloLocalDisponivel">Modo Local</button>
-              ou inicie com <code class="text-emerald-400">ollama serve</code>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Input -->
-      <div class="flex gap-2 md:gap-3">
-        <input type="text" @keydown.enter="enviarMensagem()" x-model="chatInput"
-               class="flex-1 bg-zinc-800 rounded-2xl px-4 md:px-6 py-3 md:py-4 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-zinc-100 text-sm"
-               placeholder="Digite sua mensagem..." :disabled="!ollamaOnline && !usarModoLocal">
-        <button @click="enviarMensagem()" :disabled="!chatInput.trim() || (!ollamaOnline && !usarModoLocal)"
-                class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:text-zinc-500 px-5 md:px-8 rounded-2xl font-semibold transition-all">
-          <i class="fa-solid fa-paper-plane"></i>
-        </button>
-        <button @click="limparChat()" class="bg-zinc-800 hover:bg-zinc-700 px-3 md:px-4 rounded-2xl text-zinc-400" title="Limpar conversa">
-          <i class="fa-solid fa-trash-can"></i>
-        </button>
-        <button @click="salvarConversa()" :disabled="chatMensagens.length < 2"
-                class="bg-zinc-800 hover:bg-emerald-700 disabled:opacity-40 px-3 md:px-4 rounded-2xl text-zinc-400 hover:text-emerald-300 transition-all"
-                title="Salvar conversa em arquivo (pasta chatssalvos)">
-          <i class="fa-solid fa-floppy-disk"></i>
-        </button>
-      </div>
-      <p x-show="mensagemSalvarChat" class="mt-2 text-xs" :class="mensagemSalvarChat.startsWith('✅')?'text-emerald-400':'text-red-400'" x-text="mensagemSalvarChat"></p>
-    </div>
-
-    <!-- ═══════ RSS ═══════ -->
-    <div x-show="active==='rss'">
-      <h2 class="text-2xl md:text-4xl font-bold mb-1">🌐 RSS & Web</h2>
-      <p class="text-zinc-500 text-sm mb-4">Feeds em <code class="text-emerald-400">feeds.txt</code></p>
-
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">📡 Feeds</p>
-          <p class="text-xl font-bold mt-1" x-text="rss.feeds_cadastrados||0"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">📄 Curtos</p>
-          <p class="text-xl font-bold mt-1" x-text="rss.arquivos_gerados?.curtos||0"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">📄 Longos</p>
-          <p class="text-xl font-bold mt-1" x-text="rss.arquivos_gerados?.longos||0"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">📄 Completos</p>
-          <p class="text-xl font-bold mt-1" x-text="rss.arquivos_gerados?.completos||0"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">🗑️ Descartados</p>
-          <p class="text-xl font-bold mt-1" x-text="rss.arquivos_gerados?.descartados||0"></p>
-        </div>
-      </div>
-
-      <!-- Último log do RSS -->
-      <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="text-sm font-semibold">📋 Último processamento</h3>
-          <span class="text-xs text-zinc-600 pisca" x-show="rssCarregando">● processando</span>
-        </div>
-        <pre class="bg-black/40 rounded-xl p-3 text-xs font-mono text-zinc-400 overflow-auto max-h-32 scrollbar-thin leading-relaxed" x-text="rss.ultimo_log || 'Nenhum log de RSS encontrado.'"></pre>
-      </div>
-
-      <!-- Lista de feeds -->
-      <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
-        <h3 class="text-sm font-semibold mb-3">📋 Feeds</h3>
-        <div class="space-y-1 max-h-56 overflow-auto scrollbar-thin">
-          <template x-for="(feed, idx) in (rss.feeds_lista||[])" :key="idx">
-            <div class="flex items-center gap-2 p-2 rounded-xl hover:bg-zinc-800/50 transition-colors text-xs">
-              <input type="checkbox" :value="feed" @change="toggleRSS(feed)" class="accent-emerald-500 w-3.5 h-3.5 shrink-0">
-              <i class="fa-solid fa-rss text-emerald-500/50 shrink-0"></i>
-              <span class="flex-1 truncate text-zinc-400" x-text="feed"></span>
-              <button @click="processarRSSFeed(feed)" class="text-emerald-400 hover:text-emerald-300 shrink-0 px-2 py-1 rounded-lg hover:bg-emerald-600/10" title="Processar"><i class="fa-solid fa-play"></i></button>
-            </div>
-          </template>
-        </div>
-      </div>
-
-      <!-- Ações -->
-      <div class="flex flex-wrap gap-3 mb-4">
-        <button @click="selecionarTodosRss(); processarRSS()" :disabled="rssCarregando"
-                class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 px-6 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
-          <i class="fa-solid" :class="rssCarregando?'fa-spinner fa-spin':'fa-play'"></i>
-          <span x-text="rssCarregando?'Processando...':'▶️ Processar ' + (rssSelecionados.length||'todos')"></span>
-        </button>
-        <button @click="selecionarTodosRss()" class="text-xs text-zinc-300 hover:text-zinc-100 px-3 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600 font-medium"><i class="fa-regular fa-square-check"></i> Selecionar todos</button>
-        <button @click="rssSelecionados=[]" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-2 rounded-xl bg-zinc-800">Limpar</button>
-        <span class="text-xs text-zinc-600 self-center" x-text="'🧾 Total: ' + totalRSS()"></span>
-      </div>
-      <p x-show="mensagemTreino" class="text-sm mb-4" :class="mensagemTreino.startsWith('❌')?'text-red-400':'text-emerald-400'" x-text="mensagemTreino"></p>
-
-      <!-- ═══ TESTADOR DE FEEDS ═══ -->
-      <div class="bg-zinc-900 rounded-2xl p-4 md:p-5">
-        <h3 class="text-sm font-semibold mb-3">🧪 Testador de feeds</h3>
-        <p class="text-xs text-zinc-500 mb-3">Cole a URL de um site/jornal para detectar se possui RSS</p>
-        <div class="flex gap-2">
-          <input type="url" x-model="rssUrlTeste" @keydown.enter="testarFeedRss()"
-                 class="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-zinc-100"
-                 placeholder="https://exemplo.com.br">
-          <button @click="testarFeedRss()" :disabled="!rssUrlTeste.trim() || rssTestando"
-                  class="bg-sky-600 hover:bg-sky-500 disabled:bg-zinc-700 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 shrink-0">
-            <i class="fa-solid" :class="rssTestando?'fa-spinner fa-spin':'fa-magnifying-glass'"></i>
-            <span x-text="rssTestando?'Testando...':'Testar'"></span>
-          </button>
-        </div>
-
-        <!-- Resultado do teste -->
-        <div x-show="rssTesteResultado" class="mt-4 space-y-3">
-          <template x-for="(feed, idx) in (rssTesteResultado?.feeds||[])" :key="idx">
-            <div class="bg-zinc-800/50 rounded-xl p-3 border" :class="feed.adicionado ? 'border-emerald-600/40' : 'border-zinc-700'">
-              <div class="flex items-start justify-between gap-2">
-                <div class="min-w-0 flex-1">
-                  <p class="text-xs font-medium text-emerald-400 truncate" x-text="feed.url"></p>
-                  <p class="text-[11px] text-zinc-500 mt-0.5" x-text="'Tipo: ' + feed.tipo"></p>
-                  <p x-show="feed.titulos?.length" class="text-xs text-zinc-400 mt-1 line-clamp-2" x-text="'📰 ' + feed.titulos.slice(0,3).join(' | ')" x-init="console.log(feed.titulos)"></p>
-                </div>
-                <div class="flex gap-1 shrink-0">
-                  <button @click="adicionarFeedRss(feed.url)" :disabled="feed.adicionado"
-                          class="text-xs px-2.5 py-1.5 rounded-lg font-medium transition-all"
-                          :class="feed.adicionado ? 'bg-emerald-600/20 text-emerald-400 cursor-default' : 'bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400'">
-                    <span x-text="feed.adicionado ? '✅ Adicionado' : '👍 Sim'"></span>
-                  </button>
-                  <button @click="recusarFeedRss(idx)" x-show="!feed.adicionado"
-                          class="text-xs px-2.5 py-1.5 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-zinc-400 font-medium">
-                    👎 Não
-                  </button>
-                </div>
-              </div>
-            </div>
-          </template>
-
-          <!-- Erro -->
-          <div x-show="rssTesteResultado?.status === 'erro'" class="bg-red-900/20 rounded-xl p-3 text-xs text-red-400">
-            ❌ <span x-text="rssTesteResultado?.detalhe || 'Falha ao testar URL'"></span>
-          </div>
-
-          <!-- Nenhum feed -->
-          <div x-show="rssTesteResultado?.status === 'ok' && (!rssTesteResultado?.feeds?.length)" class="bg-zinc-800/30 rounded-xl p-3 text-xs text-zinc-500">
-            ⚠️ Nenhum feed RSS/Atom encontrado nesta URL.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════ CONVERSÃO GGUF ═══════ -->
-    <div x-show="active==='convert'">
-      <h2 class="text-2xl md:text-4xl font-bold mb-1">🔄 GGUF</h2>
-      <p class="text-zinc-500 text-sm mb-6">Converta <code class="text-emerald-400">modelo/*.pt</code> para GGUF</p>
-
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">Modelos .pt</p>
-          <p class="text-xl md:text-2xl font-bold mt-1" x-text="(convert.modelos_disponiveis||[]).length"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">GGUF</p>
-          <p class="text-xl md:text-2xl font-bold mt-1" x-text="(convert.ggufs_existentes||[]).length"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl col-span-2 md:col-span-1">
-          <p class="text-zinc-500 text-xs">Pasta modelo</p>
-          <p class="text-sm md:text-base font-bold mt-1 truncate">C:\Rigelllm\modelo</p>
-        </div>
-      </div>
-
-      <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6 mb-6">
-        <h3 class="text-base md:text-lg font-semibold mb-4">📦 Modelos .pt</h3>
-        <div class="space-y-2">
-          <template x-for="mod in (convert.modelos_disponiveis||[])" :key="mod.nome">
-            <div class="flex items-center justify-between bg-zinc-800/50 p-3 md:p-4 rounded-xl">
-              <div class="min-w-0 flex-1">
-                <p class="font-medium text-sm md:text-base truncate" x-text="mod.nome"></p>
-                <p class="text-xs md:text-sm text-zinc-500" x-text="mod.tamanho_mb + ' MB • ' + mod.data"></p>
-              </div>
-              <button @click="converterModelo(mod.nome)" :disabled="convertendo"
-                      class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all shrink-0 ml-2">
-                <i class="fa-solid" :class="convertendo ? 'fa-spinner fa-spin' : 'fa-file-export'"></i>
-                <span class="ml-1">Converter</span>
-              </button>
-            </div>
-          </template>
-          <p x-show="!(convert.modelos_disponiveis||[]).length" class="text-zinc-600 text-center py-6 text-sm">Nenhum .pt em <code class="text-zinc-500">modelo/</code></p>
-        </div>
-      </div>
-
-      <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6 mb-6">
-        <h3 class="text-base md:text-lg font-semibold mb-4">📜 GGUF Existentes</h3>
-        <div class="space-y-2 mb-4">
-          <template x-for="g in (convert.ggufs_existentes||[])" :key="g.nome">
-            <div class="flex justify-between items-center bg-zinc-800/30 p-3 rounded-xl text-xs md:text-sm">
-              <div>
-                <span x-text="g.nome"></span>
-                <span class="text-zinc-500 ml-2" x-text="g.tamanho_mb + ' MB'"></span>
-              </div>
-              <button @click="criarModeloOllama()" :disabled="criandoOllama"
-                      class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 ml-2">
-                <i class="fa-solid" :class="criandoOllama ? 'fa-spinner fa-spin' : 'fa-ollama'"></i>
-                <span class="ml-1">Importar p/ Ollama</span>
-              </button>
-            </div>
-          </template>
-          <p x-show="!(convert.ggufs_existentes||[]).length" class="text-zinc-600 text-center py-6 text-sm">Nenhum GGUF convertido.</p>
-        </div>
-        <p x-show="mensagemOllama" class="text-emerald-400 text-xs" x-text="mensagemOllama"></p>
-      </div>
-    </div>
-
-    <!-- ═══════ GERAÇÃO DE DADOS ═══════ -->
-    <div x-show="active==='generate'">
-      <h2 class="text-2xl md:text-4xl font-bold mb-1">📝 Dados</h2>
-      <p class="text-zinc-500 text-sm mb-4">
-        <span x-show="sysInfo?.cpu?.cores">⚡ <span x-text="sysInfo?.cpu?.cores||'?'"></span> núcleos • </span>
-        <span x-show="sysInfo?.memory?.total_gb">💾 <span x-text="sysInfo?.memory?.used_gb||'?'"></span>GB / <span x-text="sysInfo?.memory?.total_gb||'?'"></span>GB RAM • </span>
-        CPU <span x-text="(sysInfo?.cpu?.percent||'0') + '%'"></span>
-        <span class="text-zinc-600">(atualizado a cada 5s)</span>
-      </p>
-
-      <!-- DADOS PROCESSADOS (já existem!) -->
-      <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
-        <h3 class="text-sm font-semibold mb-3">📂 Dados já processados — <span class="text-emerald-400"><span x-text="(status?.processed_files||0).toLocaleString()"></span> arquivos prontos</span></h3>
-        <p class="text-xs text-zinc-500 mb-3">📌 Estes dados já estão prontos para treino. Nenhuma ação necessária.</p>
-        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 gap-1.5 max-h-48 overflow-auto scrollbar-thin">
-          <template x-for="p in (processedPastas||[])" :key="p.nome">
-            <div class="bg-zinc-800/50 px-2 py-1.5 rounded-lg text-center relative group">
-              <p class="text-xs font-medium truncate" x-text="p.nome"></p>
-              <p class="text-[10px] text-zinc-500" x-text="p.arquivos.toLocaleString() + ' arquivos'"></p>
-              <button @click="gerarMaisCategoria(p.nome, 10)" :disabled="gerando"
-                      class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-emerald-600 hover:bg-emerald-500 rounded-full text-[9px] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                      title="Gerar +100 diálogos sintéticos desta categoria (via dialogos2)">
-                +
-              </button>
-            </div>
-          </template>
-        </div>
-      </div>
-
-      <!-- DADOS GERADOS (sintéticos / RSS) -->
-      <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-semibold">🧪 Dados gerados (sintéticos)</h3>
-          <span class="text-xs" :class="(generate.total_arquivos||0) > 0 ? 'text-emerald-400' : 'text-zinc-600'">
-            total: <span x-text="generate.total_arquivos||0"></span>
-          </span>
-        </div>
-        <p class="text-xs text-zinc-500 mb-3">📌 Dados criados por RSS/diálogos. Ficam em <code class="text-emerald-400">dados/gerados/</code></p>
-        <div class="flex flex-wrap gap-2">
-          <template x-for="(qtd, nome) in (generate.arquivos_por_categoria||{})" :key="nome">
-            <div class="bg-zinc-800/50 px-3 py-2 rounded-xl text-center text-xs">
-              <p class="font-medium truncate max-w-[100px]" x-text="nome"></p>
-              <p class="text-zinc-500" x-text="qtd"></p>
-            </div>
-          </template>
-          <p x-show="!Object.keys(generate.arquivos_por_categoria||{}).length" class="text-zinc-600 py-4 w-full text-xs text-center">
-            Nenhum dado sintético gerado ainda. Use os botões abaixo.
-          </p>
-        </div>
-      </div>
-
-      <!-- AÇÕES LOCAIS (funcionam SEM API externa) -->
-      <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
-        <h3 class="text-sm font-semibold mb-3">🖥️ Processamento Local (sem API)</h3>
-        <p class="text-xs text-zinc-500 mb-3">🔒 <strong>Não altera nem apaga dados originais.</strong> Opera apenas sobre cópias em <code class="text-emerald-400">dados/gerados/</code></p>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <button @click="executarScript('preparar_dados.py')" :disabled="processando"
-                  class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
-                  title="PREPARAR DADOS: python preparar_dados.py --qualificar. Valida, limpa e copia dados de dados/raw para dados/processed/. NÃO deleta nada. Gera ~50-200 MB. Veja o progresso em scripts.log (aba Logs).">
-            <i class="fa-solid" :class="processando?'fa-spinner fa-spin':'fa-gear'"></i>
-            <span class="text-left text-xs leading-tight"><span class="text-sm font-bold">Preparar Dados</span><br>Validar e classificar</span>
-          </button>
-          <button @click="executarScript('agrupar.py')" :disabled="processando"
-                  class="bg-sky-600 hover:bg-sky-500 disabled:bg-zinc-700 px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
-                  title="AGRUPAR: python agrupar.py --entrada dados/gerados --saida dados/gerados/agrupados --pares 500. Junta arquivos &lt;5 KB em lotes de 500 pares. Seguro, não deleta originais.">
-            <i class="fa-solid" :class="processando?'fa-spinner fa-spin':'fa-compress'"></i>
-            <span class="text-left text-xs leading-tight"><span class="text-sm font-bold">Agrupar</span><br>Juntar arquivos pequenos</span>
-          </button>
-          <button @click="executarScript('ultra.py')" :disabled="processando"
-                  class="bg-violet-600 hover:bg-violet-500 disabled:bg-zinc-700 px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
-                  title="ULTRA: python ultra.py --shard-size 5000 --checkpoint-interval 100. Limpeza pesada: remove duplicatas, normaliza, elimina ruído. Ideal antes do treino. Pode levar vários minutos.">
-            <i class="fa-solid" :class="processando?'fa-spinner fa-spin':'fa-bolt'"></i>
-            <span class="text-left text-xs leading-tight"><span class="text-sm font-bold">Ultra</span><br>Limpeza avançada</span>
-          </button>
-
-          <!-- NOVO: Botão Organizar Pastas -->
-          <button @click="executarOrganizador()" :disabled="organizando"
-                  class="bg-amber-600 hover:bg-amber-500 disabled:bg-zinc-700 px-4 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
-                  title="ORGANIZAR PASTAS: Divide pastas com >5000 arquivos e explode arquivos >30MB em partes menores. Gera registro_pastas.json.">
-            <i class="fa-solid" :class="organizando?'fa-spinner fa-spin':'fa-folder-tree'"></i>
-            <span class="text-left text-xs leading-tight"><span class="text-sm font-bold">Organizar Pastas</span><br>Dividir e explodir</span>
-          </button>
-        </div>
-
-        <!-- Botão para apenas atualizar registro -->
-        <div class="mt-3">
-          <button @click="executarOrganizador(true)" :disabled="organizando"
-                  class="bg-sky-600 hover:bg-sky-500 disabled:bg-zinc-700 px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2">
-            <i class="fa-solid fa-rotate" :class="organizando?'fa-spinner fa-spin':''"></i>
-            Atualizar Registro (sem reorganizar)
-          </button>
-        </div>
-
-        <!-- Exibição do registro -->
-        <div x-show="registro" class="mt-3 bg-zinc-800/30 rounded-xl p-3 text-xs text-zinc-400">
-          <p><strong class="text-emerald-400">📊 Registro de Pastas</strong></p>
-          <div class="flex gap-4 mt-1">
-            <span>Pastas: <strong class="text-white" x-text="registro?.total_pastas || 0"></strong></span>
-            <span>Arquivos: <strong class="text-white" x-text="registro?.total_arquivos || 0"></strong></span>
-            <span>Última atualização: <strong class="text-zinc-300" x-text="registro?.ultima_atualizacao ? new Date(registro.ultima_atualizacao).toLocaleString() : '—'"></strong></span>
-          </div>
-          <div class="mt-1 flex flex-wrap gap-2 max-h-32 overflow-auto">
-            <template x-for="(info, nome) in (registro?.pastas || {})" :key="nome">
-              <span class="bg-zinc-800 px-2 py-0.5 rounded-full text-[10px]">
-                <span x-text="nome"></span>:
-                <span class="text-emerald-400" x-text="info.arquivos"></span> arqs,
-                <span class="text-amber-400" x-text="info.vezes_treinada + 'x'"></span>
-              </span>
-            </template>
-          </div>
-          <p x-show="!registro" class="text-zinc-500 mt-1">Nenhum registro disponível. Execute "Organizar Pastas" ou "Atualizar Registro".</p>
-        </div>
-
-        <p x-show="mensagemProcessando" class="mt-2 text-xs" :class="mensagemProcessando.startsWith('✅')?'text-emerald-400':'text-red-400'" x-text="mensagemProcessando"></p>
-        <div class="mt-3 bg-zinc-800/40 rounded-xl p-3 text-xs text-zinc-500 leading-relaxed">
-          <p><strong>📋 Explicação resumida:</strong></p>
-          <ul class="list-disc pl-4 mt-1 space-y-1">
-            <li><strong>Preparar Dados</strong> → classifica arquivos brutos em subpastas por tipo (Artigo, Conto, Poema...). Gera ~50-200 MB.</li>
-            <li><strong>Agrupar</strong> → junta arquivos muito pequenos (&lt;5 KB) em lotes (~50 KB). Reduz fragmentação. Seguro.</li>
-            <li><strong>Ultra</strong> → limpeza pesada: remove linhas repetidas, normaliza espaços, elimina ruído. Ideal antes do treino.</li>
-            <li><strong>Organizar Pastas</strong> → divide pastas com >5000 arquivos e explode arquivos >30MB. Gera registro persistente.</li>
-          </ul>
-          <p class="mt-2 text-zinc-600">💾 Espaço estimado adicional: ~200 MB a 1 GB no máximo.</p>
-        </div>
-      </div>
-
-      <!-- AÇÕES EXTERNAS (API key necessária) -->
-      <div class="bg-zinc-900 rounded-2xl p-4 md:p-5">
-        <h3 class="text-sm font-semibold mb-3">🌐 Geração via API (Requer chave)</h3>
-        <p class="text-xs text-zinc-500 mb-3">🔑 Usa serviços externos (DeepSeek, etc.). Você precisa configurar a chave no arquivo <code class="text-emerald-400">.env</code></p>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-          <button @click="gerarDialogos()" :disabled="gerando"
-                  class="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 px-3 py-2.5 rounded-xl text-xs font-medium transition-all border border-zinc-700"
-                  title="DIÁLOGOS v1: Gera pares pergunta-resposta sintéticos via API (DeepSeek). Cria ~500 diálogos. Requer chave de API.">
-            <i class="fa-solid" :class="gerando?'fa-spinner fa-spin':'fa-wand-magic-sparkles'"></i>
-            <span class="ml-1" x-text="gerando?'...':'Diálogos v1'"></span>
-          </button>
-          <button @click="gerarDialogos2()" :disabled="gerando2"
-                  class="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 px-3 py-2.5 rounded-xl text-xs font-medium transition-all border border-zinc-700"
-                  title="DIÁLOGOS v2: Versão 2 com mais variedade de tipos (auto, técnica, criativa). Gera ~200 diálogos. Requer chave de API.">
-            <i class="fa-solid" :class="gerando2?'fa-spinner fa-spin':'fa-wand-magic-sparkles'"></i>
-            <span class="ml-1" x-text="gerando2?'...':'Diálogos v2'"></span>
-          </button>
-          <button @click="baixarDatasets()" :disabled="baixando"
-                  class="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 px-3 py-2.5 rounded-xl text-xs font-medium transition-all border border-zinc-700"
-                  title="DOWNDATA: Baixa datasets públicos da internet (textos, artigos). Pode consumir vários GB de espaço em disco.">
-            <i class="fa-solid" :class="baixando?'fa-spinner fa-spin':'fa-download'"></i>
-            <span class="ml-1" x-text="baixando?'...':'Downdata'"></span>
-          </button>
-          <button @click="downloadDatasets()" :disabled="baixando2"
-                  class="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 px-3 py-2.5 rounded-xl text-xs font-medium transition-all border border-zinc-700"
-                  title="DATASETS: Script alternativo de download de datasets. Baixa coleções específicas. Pode consumir vários GB.">
-            <i class="fa-solid" :class="baixando2?'fa-spinner fa-spin':'fa-database'"></i>
-            <span class="ml-1" x-text="baixando2?'...':'Datasets'"></span>
-          </button>
-        </div>
-      </div>
-
-      <!-- ═══ GERAR MAIS (smart generation) ═══ -->
-      <div x-show="mensagemGerarMais" class="mt-4 bg-zinc-900 rounded-2xl p-4 md:p-5">
-        <p class="text-xs" :class="mensagemGerarMais.startsWith('✅')?'text-emerald-400':'text-red-400'" x-text="mensagemGerarMais"></p>
-      </div>
-    </div>
-
-    <!-- ═══════ GERAÇÃO LOCAL ═══════ -->
-    <div x-show="active==='localgen'" x-data="localGenState()">
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h2 class="text-2xl md:text-4xl font-bold">🖥️ Geração Local</h2>
-          <p class="text-zinc-500 text-sm mt-1">Gere conteúdo usando modelos Ollama rodando localmente — sem API, sem limites</p>
-        </div>
-        <div class="flex items-center gap-2 text-xs">
-          <div class="w-2 h-2 rounded-full" :class="lgOllamaOnline ? 'bg-green-500' : 'bg-red-500'"></div>
-          <span :class="lgOllamaOnline ? 'text-green-400' : 'text-red-400'" x-text="lgOllamaOnline ? 'Ollama Online' : 'Offline'"></span>
-        </div>
-      </div>
-
-      <!-- Status -->
-      <div class="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">🧠 Modelos</p>
-          <p class="text-xl font-bold mt-1" x-text="lgModelos.length"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">📝 Templates</p>
-          <p class="text-xl font-bold mt-1" x-text="lgTemplates.length"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">🎭 Estilos</p>
-          <p class="text-xl font-bold mt-1" x-text="lgEstilos.length"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">⚡ Modelo ativo</p>
-          <p class="text-sm font-bold mt-1 truncate" x-text="lgModeloSelecionado || '—'"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">📊 Gerados</p>
-          <p class="text-xl font-bold mt-1" x-text="lgTotalGerado"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">📁 Tópicos</p>
-          <p class="text-xl font-bold mt-1" x-text="lgTopicos.length"></p>
-        </div>
-      </div>
-
-      <!-- Painel principal -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Coluna da esquerda: Configuração -->
-        <div class="lg:col-span-1 space-y-4">
-          <!-- Seletor de modelo -->
-          <div class="bg-zinc-900 rounded-2xl p-4">
-            <h3 class="text-sm font-semibold mb-3">🎯 Modelo Ollama</h3>
-            <select x-model="lgModeloSelecionado"
-              title="Modelo carregado no Ollama (selecionar para usar)"
-              class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2.5 text-sm border border-zinc-700 focus:border-emerald-500 outline-none">
-              <option value="">Selecione um modelo...</option>
-              <template x-for="m in lgModelos" :key="m">
-                <option :value="m" x-text="m" :selected="m===lgModeloSelecionado"></option>
-              </template>
-            </select>
-            <div class="mt-2 flex gap-2">
-              <button @click="lgAtualizarModelos()" class="text-xs text-zinc-500 hover:text-emerald-400 px-2 py-1 rounded bg-zinc-800">
-                <i class="fa-solid fa-rotate"></i> Atualizar
-              </button>
-              <template x-if="!lgOllamaOnline">
-                <span class="text-xs text-red-400">🔴 Ollama offline — inicie com <code class="text-emerald-400">ollama serve</code></span>
-              </template>
-            </div>
-          </div>
-
-          <!-- Sugestões de tópicos -->
-          <div class="bg-zinc-900 rounded-2xl p-4">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-sm font-semibold">📋 Tópicos Disponíveis</h3>
-              <span class="text-xs text-zinc-500" x-text="lgTopicos.length + ' temas'"></span>
-            </div>
-            <p class="text-[10px] text-zinc-600 mb-1">Clique para usar como tema • <span class="text-violet-400">☐ marque para lote</span></p>
-            <div class="flex items-center gap-2 mb-2">
-              <button @click="lgSelecionarTodosTopicos()" class="text-[10px] text-zinc-500 hover:text-emerald-400 px-2 py-0.5 rounded bg-zinc-800">
-                ✅ Selecionar todos
-              </button>
-              <button @click="lgLimparSelecao()" class="text-[10px] text-zinc-500 hover:text-red-400 px-2 py-0.5 rounded bg-zinc-800">
-                ❌ Limpar
-              </button>
-              <span class="text-[10px] text-violet-400" x-show="lgTopicosSelecionados.length > 0" x-text="lgTopicosSelecionados.length + ' selecionados'"></span>
-            </div>
-            <div class="max-h-48 overflow-y-auto scrollbar-thin space-y-0.5 pr-1">
-              <template x-for="(t, idx) in lgTopicos" :key="idx">
-                <div class="flex items-center gap-1.5 group">
-                  <input type="checkbox"
-                         :checked="lgTopicosSelecionados.includes(t)"
-                         @change="lgToggleTopico(t)"
-                         class="shrink-0 accent-violet-500 cursor-pointer">
-                  <button @click="lgTema = t"
-                          class="flex-1 text-left text-[11px] text-zinc-400 hover:text-emerald-400 hover:bg-zinc-800/50 px-2 py-1 rounded-lg transition-all truncate"
-                          :class="lgTema === t ? 'bg-emerald-600/10 text-emerald-400' : ''">
-                    <span x-text="t"></span>
-                  </button>
-                </div>
-              </template>
-            </div>
-            <button @click="lgCarregarTopicos()" class="mt-2 text-xs text-zinc-500 hover:text-emerald-400 px-2 py-1 rounded bg-zinc-800 w-full">
-              <i class="fa-solid fa-rotate"></i> Recarregar tópicos
-            </button>
-          </div>
-
-          <!-- Seletor de estilo -->
-          <div class="bg-zinc-900 rounded-2xl p-4">
-            <h3 class="text-sm font-semibold mb-3">🎭 Estilo de Escrita</h3>
-            <div class="space-y-1.5 max-h-48 overflow-y-auto scrollbar-thin pr-1">
-              <template x-for="e in lgEstilos" :key="e.id">
-                <button @click="lgEstiloId = e.id"
-                        class="w-full text-left px-3 py-2 rounded-xl text-xs transition-all"
-                        :class="lgEstiloId === e.id ? 'bg-violet-600/20 text-violet-400 border border-violet-700' : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800 border border-transparent'">
-                  <span x-text="e.nome"></span>
-                  <span class="block text-[10px] text-zinc-600 mt-0.5" x-text="e.descricao"></span>
-                </button>
-              </template>
-            </div>
-          </div>
-
-          <!-- Seletor de template -->
-          <div class="bg-zinc-900 rounded-2xl p-4">
-            <h3 class="text-sm font-semibold mb-3">📋 Template de Prompt</h3>
-            <div class="space-y-1.5 max-h-64 overflow-y-auto scrollbar-thin pr-1">
-              <template x-for="t in lgTemplates" :key="t.id">
-                <button @click="lgTemplateId = t.id; lgDescricaoAtiva = t.descricao"
-                        class="w-full text-left px-3 py-2 rounded-xl text-xs transition-all"
-                        :class="lgTemplateId === t.id ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-700' : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800 border border-transparent'">
-                  <span x-text="t.nome"></span>
-                  <span class="block text-[10px] text-zinc-600 mt-0.5" x-text="'🌡️ ' + t.temperatura + ' • 📏 ' + t.max_tokens + ' tokens'"></span>
-                </button>
-              </template>
-            </div>
-            <p x-show="lgDescricaoAtiva" class="mt-2 text-xs text-zinc-500 p-2 bg-zinc-800/30 rounded-lg" x-text="lgDescricaoAtiva"></p>
-          </div>
-        </div>
-
-        <!-- Coluna da direita: Geração -->
-        <div class="lg:col-span-2 space-y-4">
-          <!-- Input -->
-          <div class="bg-zinc-900 rounded-2xl p-4">
-            <h3 class="text-sm font-semibold mb-3">✏️ Tema / Instrução</h3>
-            <textarea x-model="lgTema"
-                      class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2.5 text-sm border border-zinc-700 focus:border-emerald-500 outline-none resize-none"
-                      rows="3"
-                      placeholder='Digite um tema ou clique em um tópico ao lado...'></textarea>
-
-            <div class="flex flex-wrap items-center gap-3 mt-3">
-              <div class="flex items-center gap-2">
-                <label class="text-xs text-zinc-500">Quantidade:</label>
-                <select x-model="lgQuantidade"
-                        class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1.5 text-xs border border-zinc-700 outline-none">
-                  <option value="1">1</option>
-                  <option value="3">3</option>
-                  <option value="5">5</option>
-                  <option value="10">10</option>
-                </select>
-              </div>
-              <div class="flex items-center gap-2" x-show="lgTemplateId === 'traducao'">
-                <label class="text-xs text-zinc-500">Idioma destino:</label>
-                <select x-model="lgIdiomaDestino"
-                        class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1.5 text-xs border border-zinc-700 outline-none">
-                  <option value="inglês">Inglês</option>
-                  <option value="espanhol">Espanhol</option>
-                  <option value="francês">Francês</option>
-                  <option value="alemão">Alemão</option>
-                  <option value="japonês">Japonês</option>
-                  <option value="italiano">Italiano</option>
-                  <option value="português (de Portugal)">Português (Portugal)</option>
-                </select>
-              </div>
-              <button @click="lgGerar()" :disabled="!lgPodeGerar || lgGerando"
-                      class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-white px-5 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
-                <i class="fa-solid" :class="lgGerando ? 'fa-spinner fa-spin' : 'fa-play'"></i>
-                <span x-text="lgGerando ? 'Gerando...' : 'Gerar'"></span>
-              </button>
-              <button @click="lgParar()" x-show="lgGerando"
-                      class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-4 py-2 rounded-xl text-sm font-medium transition-all">
-                <i class="fa-solid fa-stop"></i> Parar
-              </button>
-              <button @click="lgLimpar()" x-show="!lgGerando && lgResultado"
-                      class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg bg-zinc-800">
-                <i class="fa-solid fa-trash-can"></i> Limpar
-              </button>
-            </div>
-          </div>
-
-          <!-- Resultado -->
-          <div class="bg-zinc-900 rounded-2xl p-4" x-show="lgResultado || lgGerando">
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="text-sm font-semibold" x-show="!lgGerando">📄 Resultado</h3>
-              <h3 class="text-sm font-semibold text-emerald-400 pisca" x-show="lgGerando">⏳ Gerando...</h3>
-              <div class="flex gap-2">
-                <button @click="lgCopiarResultado()" x-show="lgResultado"
-                        class="text-xs text-zinc-500 hover:text-emerald-400 px-2 py-1 rounded bg-zinc-800" title="Copiar ao clipboard">
-                  <i class="fa-solid fa-copy"></i> Copiar
-                </button>
-                <button @click="lgSalvarResultado()" x-show="lgResultado"
-                        class="text-xs text-zinc-500 hover:text-emerald-400 px-2 py-1 rounded bg-zinc-800" title="Salvar em dados/gerados/gerados_local/">
-                  <i class="fa-solid fa-floppy-disk"></i> Salvar
-                </button>
-                <button @click="lgFecharResultado()" x-show="lgResultado"
-                        class="text-xs text-zinc-500 hover:text-red-400 px-2 py-1 rounded bg-zinc-800" title="Fechar visualização">
-                  <i class="fa-solid fa-xmark"></i> Fechar
-                </button>
-              </div>
-            </div>
-            <div class="space-y-3" x-show="lgMultiplos.length > 0">
-              <template x-for="(item, idx) in lgMultiplos" :key="idx">
-                <div class="bg-zinc-800/40 rounded-xl p-3">
-                  <p class="text-[10px] text-zinc-600 mb-1">#<span x-text="idx + 1"></span></p>
-                  <pre class="text-xs text-zinc-300 font-sans whitespace-pre-wrap leading-relaxed" x-text="item"></pre>
-                </div>
-              </template>
-            </div>
-            <pre x-show="lgResultado && lgMultiplos.length === 0"
-                 class="bg-zinc-800/40 rounded-xl p-4 text-xs text-zinc-300 font-sans whitespace-pre-wrap leading-relaxed max-h-[500px] overflow-auto scrollbar-thin"
-                 x-text="lgResultado"></pre>
-            <div x-show="lgMensagemStatus" class="mt-2 text-xs" :class="lgMensagemStatus.startsWith('✅') ? 'text-emerald-400' : 'text-red-400'" x-text="lgMensagemStatus"></div>
-          </div>
-
-          <!-- Geração em Lote -->
-          <div class="bg-zinc-900 rounded-2xl p-4 border border-violet-800/50" x-show="lgTopicosSelecionados.length > 0 || lgLoteAtivo">
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="text-sm font-semibold text-violet-400">🌙 Modo Lote</h3>
-              <span class="text-xs text-zinc-500" x-show="!lgLoteAtivo" x-text="lgTopicosSelecionados.length + ' tópicos selecionados'"></span>
-            </div>
-
-            <!-- Configuração do lote -->
-            <template x-if="!lgLoteAtivo">
-              <div>
-                <div class="flex flex-wrap items-center gap-3 mb-3">
-                  <div class="flex items-center gap-2">
-                    <label class="text-xs text-zinc-500">🎭 Estilo:</label>
-                    <select x-model="lgLoteEstilo" title="Escolha o estilo de escrita (hover para descrição)" class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1.5 text-xs border border-zinc-700 outline-none">
-                      <template x-for="e in lgEstilos" :key="e.id">
-                        <option :value="e.id" x-text="e.nome"></option>
-                      </template>
-                    </select>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <label class="text-xs text-zinc-500">📋 Template:</label>
-                    <select x-model="lgLoteTemplate" title="Selecione o template de saída (ex.: diálogo, artigo)" class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1.5 text-xs border border-zinc-700 outline-none">
-                      <template x-for="t in lgTemplates" :key="t.id">
-                        <option :value="t.id" x-text="t.nome"></option>
-                      </template>
-                    </select>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <label class="text-xs text-zinc-500">🧠 Modelo:</label>
-                    <select x-model="lgLoteModelo" title="Modelo Ollama a ser usado para geração" class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1.5 text-xs border border-zinc-700 outline-none">
-                      <template x-for="m in lgModelos" :key="m">
-                        <option :value="m" x-text="m"></option>
-                      </template>
-                    </select>
-                  </div>
-                </div>
-                <label class="flex items-center gap-2 text-xs text-zinc-400 mb-2 cursor-pointer">
-                  <input type="checkbox" x-model="lgLoteAutoFiltro" class="accent-emerald-500">
-                  <span>🔍 <strong>Auto-filtro</strong> — rejeitar conteúdos inventados, repetitivos ou de baixa qualidade</span>
-                </label>
-                <label class="flex items-center gap-2 text-xs text-zinc-400 mb-3 cursor-pointer" x-show="lgPesquisaWebDisponivel">
-                  <input type="checkbox" x-model="lgLotePesquisarWeb" class="accent-sky-500">
-                  <span>🌐 <strong>Pesquisa web real</strong> — busca resultados reais da internet via DuckDuckGo antes de gerar</span>
-                </label>
-                <p class="text-[10px] text-zinc-600 mb-2" x-show="lgLotePesquisarWeb && !lgPesquisaWebDisponivel">
-                  ⚠️ Pacote duckduckgo_search não disponível. A pesquisa web não funcionará.
-                </p>
-                <div class="flex flex-wrap items-center gap-2">
-                  <button @click="lgIniciarLote()" :disabled="!lgOllamaOnline || lgTopicosSelecionados.length === 0"
-                          class="bg-violet-600 hover:bg-violet-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-moon"></i>
-                    <span>🌙 Gerar Lote (<span x-text="lgTopicosSelecionados.length"></span> itens)</span>
-                  </button>
-                  <span class="text-[10px] text-zinc-600">⏱️ Pode levar vários minutos</span>
-                </div>
-              </div>
-            </template>
-
-            <!-- Progresso do lote -->
-            <template x-if="lgLoteAtivo">
-              <div>
-                <div class="w-full bg-zinc-800 rounded-full h-4 mb-2 overflow-hidden">
-                  <div class="bg-violet-500 h-4 rounded-full barra-progresso flex items-center justify-center text-[10px] font-bold text-black transition-all duration-500"
-                       :style="'width:' + lgLoteProgresso + '%'" x-text="lgLoteProgresso + '%'"></div>
-                </div>
-                <div class="flex justify-between text-xs text-zinc-500 mb-2">
-                  <span x-text="'✅ ' + lgLoteAprovados + ' aprovados'"></span>
-                  <span x-text="'❌ ' + lgLoteRejeitados + ' rejeitados'"></span>
-                  <span x-text="'📄 ' + lgLoteAtual + '/' + lgLoteTotal"></span>
-                  <span x-text="'⏱️ ' + lgLoteTempoDecorrido"></span>
-                </div>
-
-                <!-- Status atual -->
-                <div class="bg-zinc-800/40 rounded-xl px-3 py-2 mb-2">
-                  <div class="flex items-center gap-2 text-xs">
-                    <template x-if="lgLotePesquisando">
-                      <span class="text-sky-400 pisca">🌐 Pesquisando na web...</span>
-                    </template>
-                    <template x-if="lgLoteGerando && !lgLotePesquisando">
-                      <span class="text-violet-400 pisca">
-                        <i class="fa-solid fa-spinner fa-spin"></i>
-                        Gerando...
-                      </span>
-                    </template>
-                    <span class="text-zinc-400 truncate flex-1" x-text="lgLoteTopicoAtual?.substring(0, 100)"></span>
-                  </div>
-                  <div class="flex items-center gap-2 mt-1 text-[10px] text-zinc-600">
-                    <span x-show="lgLoteTempoItem > 0" x-text="'Item atual: ' + lgLoteTempoItem"></span>
-                    <span>•</span>
-                    <span x-text="'Total: ' + lgLoteTempoDecorrido"></span>
-                    <span>•</span>
-                    <span x-show="lgLoteUltimoHeartbeat" class="text-emerald-500">💓 vivo</span>
-                  </div>
-                </div>
-
-                <!-- Resultados do lote -->
-                <div class="max-h-40 overflow-y-auto scrollbar-thin space-y-1 mb-2">
-                  <template x-for="(item, idx) in lgLoteResultados" :key="idx">
-                    <div class="flex items-start gap-2 bg-zinc-800/30 px-2 py-1.5 rounded-lg text-[11px]">
-                      <span x-text="item.aprovado ? '✅' : '❌'" class="shrink-0 mt-0.5"></span>
-                      <div class="min-w-0 flex-1">
-                        <p class="truncate text-zinc-400" x-text="item.topico"></p>
-                        <p class="text-[10px] text-zinc-600">
-                          <span x-show="item.tempo_seg" x-text="'⏱️ ' + item.tempo_seg + 's'"></span>
-                          <span x-show="!item.aprovado" x-text="' • Motivo: ' + (item.motivos?.join(', ') || '—')"></span>
-                        </p>
-                      </div>
-                      <button @click="lgLoteVerItem(item)" class="text-zinc-600 hover:text-emerald-400 shrink-0 text-[10px] px-1">
-                        <i class="fa-solid fa-eye"></i>
-                      </button>
-                    </div>
-                  </template>
-                </div>
-
-                <div class="flex gap-2">
-                  <button @click="lgPararLote()" x-show="lgLoteRodando"
-                          class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3 py-1.5 rounded-lg text-xs font-medium">
-                    <i class="fa-solid fa-stop"></i> Parar
-                  </button>
-                  <button @click="lgFinalizarLote()" x-show="!lgLoteRodando && lgLoteResultados.length > 0"
-                          class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-3 py-1.5 rounded-lg text-xs font-medium">
-                    <i class="fa-solid fa-check"></i> Finalizar e salvar aprovados
-                  </button>
-                  <button @click="lgCancelarLote()" x-show="!lgLoteRodando"
-                          class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1.5 rounded-lg bg-zinc-800">
-                    <i class="fa-solid fa-xmark"></i> Descartar
-                  </button>
-                </div>
-              </div>
-            </template>
-          </div>
-
-          <!-- Arquivos salvos -->
-          <div class="bg-zinc-900 rounded-2xl p-4" x-show="lgArquivosSalvos.length > 0">
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="text-sm font-semibold">💾 Arquivos Salvos</h3>
-              <span class="text-xs text-zinc-500" x-text="lgArquivosSalvos.length + ' arquivo(s)'"></span>
-            </div>
-            <p class="text-[10px] text-zinc-600 mb-2">
-              📁 Pasta: <code class="text-emerald-400">dados/gerados/gerados_local/</code>
-              <button @click="lgCarregarArquivosSalvos()" class="ml-2 text-zinc-500 hover:text-emerald-400">
-                <i class="fa-solid fa-rotate"></i>
-              </button>
-            </p>
-            <div class="space-y-1.5 max-h-40 overflow-y-auto scrollbar-thin">
-              <template x-for="arq in lgArquivosSalvos" :key="arq.nome">
-                <div class="flex items-center justify-between bg-zinc-800/30 px-3 py-2 rounded-lg text-xs">
-                  <div class="min-w-0 flex-1">
-                    <p class="truncate font-medium" x-text="arq.nome"></p>
-                    <p class="text-zinc-600 text-[10px]" x-text="arq.data + ' • ' + arq.tamanho_kb + ' KB'"></p>
-                  </div>
-                  <div class="flex gap-1 shrink-0 ml-2">
-                    <button @click="lgToggleVisualizar(arq.nome)" :title="lgVisualizandoNome===arq.nome? 'Fechar visualização' : 'Visualizar arquivo'" class="text-zinc-500 hover:text-emerald-400 px-1.5 py-1">
-                      <i class="fa-solid fa-eye" :class="lgVisualizandoNome===arq.nome? 'text-emerald-300' : ''"></i>
-                    </button>
-                    <button @click="lgCopiarArquivo(arq.nome)" class="text-zinc-500 hover:text-emerald-400 px-1.5 py-1">
-                      <i class="fa-solid fa-copy"></i>
-                    </button>
-                  </div>
-                </div>
-              </template>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════ LOGS ═══════ -->
-    <div x-show="active==='logs'">
-      <h2 class="text-2xl md:text-4xl font-bold mb-1">📁 Logs</h2>
-      <p class="text-zinc-500 text-sm mb-6">Arquivos em <code class="text-emerald-400">logs/</code></p>
-
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">Arquivos</p>
-          <p class="text-xl md:text-2xl font-bold mt-1" x-text="(logs.arquivos||[]).length"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">Épocas</p>
-          <p class="text-xl md:text-2xl font-bold mt-1" x-text="(logs.metricas?.historico||[]).length"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">Feedback</p>
-          <p class="text-xl md:text-2xl font-bold mt-1" x-text="logs.feedback?.total||0"></p>
-        </div>
-        <div class="bg-zinc-900 p-4 rounded-2xl">
-          <p class="text-zinc-500 text-xs">Aprovação</p>
-          <p class="text-xl md:text-2xl font-bold mt-1" x-text="logs.feedback?.taxa_aprovacao||'0%'"></p>
-        </div>
-      </div>
-
-      <div class="bg-zinc-900 rounded-2xl md:rounded-3xl p-4 md:p-6">
-        <h3 class="text-base md:text-lg font-semibold mb-4">📋 Visualizador</h3>
-        <div class="flex flex-wrap gap-1.5 mb-4 max-h-32 overflow-y-auto scrollbar-thin">
-          <template x-for="arq in (logs.arquivos||[])" :key="arq.nome">
-            <button @click="visualizarLog(arq.nome)"
-                    class="text-xs px-2.5 py-1.5 rounded-lg transition-all truncate max-w-[200px]"
-                    :class="logAtivo===arq.nome ? 'bg-emerald-600/30 text-emerald-400' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400'">
-              <i class="fa-solid fa-file-lines mr-1"></i>
-              <span x-text="arq.nome"></span>
-            </button>
-          </template>
-          <p x-show="!(logs.arquivos||[]).length" class="text-zinc-600 text-sm py-4 w-full text-center">Nenhum arquivo de log encontrado.</p>
-        </div>
-        <textarea readonly
-          class="w-full bg-black/40 rounded-xl p-3 md:p-4 text-xs font-mono text-zinc-400 scrollbar-thin leading-relaxed resize-none"
-          style="height:400px"
-          x-model="logConteudo"
-          placeholder="Clique em um arquivo de log acima..."></textarea>
-        <div class="flex gap-2 mt-3">
-          <button @click="autoScrollLog = !autoScrollLog"
-                  class="text-xs px-3 py-1.5 rounded-lg transition-all"
-                  :class="autoScrollLog ? 'bg-emerald-600/30 text-emerald-400' : 'bg-zinc-800 text-zinc-500'">
-            <i class="fa-solid" :class="autoScrollLog ? 'fa-pause' : 'fa-play'"></i>
-            <span class="ml-1" x-text="autoScrollLog ? 'Auto-scroll ON' : 'Auto-scroll OFF'"></span>
-          </button>
-          <button @click="recarregarLog()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-400 px-3 py-1.5 rounded-lg">
-            <i class="fa-solid fa-rotate"></i> Recarregar
-          </button>
-        </div>
-      </div>
-    </div>
-
   </div>
+  </div>
+  </div> <!-- fim x-show="carregou" -->
 </div>
 
 <script>
-function appState() {
+console.log("[DASHBOARD] Página carregada");
+function homeState() {
   return {
-    // Navegação
-    active: 'home',
-    menuItems: [
-      { id:'home',     label:'Dashboard',     icon:'fa-solid fa-house' },
-      { id:'train',    label:'Treinamento',    icon:'fa-solid fa-graduation-cap' },
-      { id:'chat',     label:'Chat',           icon:'fa-solid fa-comments' },
-      { id:'rss',      label:'RSS & Web',      icon:'fa-solid fa-rss' },
-      { id:'convert',  label:'Converter GGUF', icon:'fa-solid fa-file-export' },
-      { id:'generate', label:'Gerar Dados',    icon:'fa-solid fa-wand-magic-sparkles' },
-      { id:'localgen', label:'Gerar Local',    icon:'fa-solid fa-microchip' },
-      { id:'logs',     label:'Logs',           icon:'fa-solid fa-book' },
-    ],
-
-    // ═══ ESTADO GLOBAL ═══
-    status: { cpu:0, memory:0, disk:0, model_exists:false, processed_files:0 },
-    sysInfo: null,
-    metricas: [],
-    logDashboard: '',
-    ollamaOnline: false,
-
-    // Treino
-    train: { pastas_disponiveis:[], total_arquivos:0, total_pastas:0 },
-    trainProgresso: {},
-    treinoLog: '',
-    pastasSelecionadas: [],
-    treinando: false, testando: false,
-    mensagemTreino: '',
-    maxArquivos: 20000,
-
-    // Chat
-    chatInput: '', chatMensagens: [], chatCarregando: false,
-    mensagemSalvarChat: '',
-    modeloAtivo: null, modeloSelecionado: '', modelosDisponiveis: [],
-    pesquisaDisponivel: false,
-    modeloFallback: 'llama3.1:8b', ggufExiste: false,
-    testandoChat: false, testeResultado: '', testeOk: false,
-    usarModoLocal: false, modeloLocalDisponivel: false, modeloLocalTamanho: '?',
-
-    // RSS
-    rss: { feeds_cadastrados:0, arquivos_gerados:{}, ultimo_log:'' },
-    rssSelecionados: [], rssCarregando: false,
-    rssUrlTeste: '', rssTestando: false, rssTesteResultado: null,
-
-    // Conversão
-    convert: { modelos_disponiveis:[], ggufs_existentes:[] },
-    convertendo: false, criandoOllama: false, mensagemOllama: '',
-
-    // Geração
-    generate: { total_arquivos:0, arquivos_por_categoria:{} },
-    gerando: false, gerando2: false, baixando: false, baixando2: false,
-    processando: false, mensagemProcessando: '', mensagemGerarMais: '',
-    processedPastas: [],
-
-    // NOVO: estado do organizador e registro
-    organizando: false,
-    registro: null,
-
-    // Logs
-    logs: { arquivos:[], metricas:{historico:[]}, feedback:{total:0} },
-    logAtivo: null, logConteudo: '', autoScrollLog: true,
-    _intervalLog: null, _pollTimers: [],
-
-    // ─── POLLING CENTRAL ───
+    carregou: false, loading: false, statusTime: '',
+    modeloStatus: '❓', modeloData: '', modeloNome: '', modeloTamanho: '', modeloCheckpoint: '',
+    maturidadePct: null, maturidadeLoss: null, maturidadeEpoca: null,
+    treinando: false, treinoEtapa: 'idle', treinoDataset: '', treinoMensagem: '', treinoProgresso: 0, treinoIndeterminado: false,
+    cpuPct: 0, cpuCores: '?', ramPct: 0, ramInfo: '', diskPct: 0, diskIO: '',
+    totalFiles: 0, logTexto: '', metricas: [], metricasFonte: '',
+    deployRodando: false, deployMensagem: '', deployVersoes: [], _deployTimer: null,
+    celRodando: false, celOperacao: '', celMensagem: '', celExportacoes: [], celPendentes: {zips: [], soltos: []}, _celTimer: null,
     init() {
+      console.log("[DASHBOARD] Inicializando...");
       this.pollAll();
-      // Polling a cada 5-15 segundos
-      this._pollTimers = [
-        setInterval(() => this.pollSystem(), 5000),
-        setInterval(() => this.pollStatus(), 15000),
-        setInterval(() => this.verificarOllama(), 10000),
-        setInterval(() => this.pollDashboardLog(), 8000),
-        setInterval(() => this.pollModeloLocal(), 15000),
-        setInterval(() => this.pollPesquisaStatus(), 15000),
-      ];
+      setInterval(() => this.pollAll(), 15000);
     },
-
+    async carregarDeploy() {
+      try {
+        const r = await fetch('/api/deploy/status');
+        if (r.ok) {
+          const d = await r.json();
+          this.deployRodando = !!d.rodando;
+          this.deployMensagem = d.mensagem || '';
+          this.deployVersoes = d.versoes || [];
+          if (!this.deployRodando && this._deployTimer) {
+            clearInterval(this._deployTimer);
+            this._deployTimer = null;
+          }
+        }
+      } catch(e) { console.error("[DASHBOARD] Erro deploy:", e); }
+    },
+    async criarBackup() {
+      try {
+        const r = await fetch('/api/deploy/criar', { method: 'POST' });
+        const d = await r.json();
+        this.deployMensagem = d.mensagem || '';
+        this.deployRodando = true;
+        if (!this._deployTimer) this._deployTimer = setInterval(() => this.carregarDeploy(), 2000);
+      } catch(e) { console.error("[DASHBOARD] Erro criar backup:", e); }
+    },
+    async removerBackup(nome) {
+      try {
+        await fetch('/api/deploy/remover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome })
+        });
+        this.carregarDeploy();
+      } catch(e) { console.error("[DASHBOARD] Erro remover backup:", e); }
+    },
+    async carregarCelular() {
+      try {
+        const r = await fetch('/api/celular/status');
+        if (r.ok) {
+          const d = await r.json();
+          this.celRodando = !!d.rodando;
+          this.celOperacao = d.operacao || '';
+          this.celMensagem = d.mensagem || '';
+          this.celExportacoes = d.exportacoes || [];
+          this.celPendentes = d.pendentes || {zips: [], soltos: []};
+          if (!this.celRodando && this._celTimer) { clearInterval(this._celTimer); this._celTimer = null; }
+        }
+      } catch(e) { console.error("[DASHBOARD] Erro celular:", e); }
+    },
+    async exportarDados() {
+      try {
+        const r = await fetch('/api/celular/exportar', { method: 'POST' });
+        const d = await r.json();
+        this.celMensagem = d.mensagem || '';
+        this.celRodando = true; this.celOperacao = 'exportar';
+        if (!this._celTimer) this._celTimer = setInterval(() => this.carregarCelular(), 2000);
+      } catch(e) { console.error("[DASHBOARD] Erro exportar:", e); }
+    },
+    async removerExportacao(nome) {
+      try {
+        await fetch('/api/celular/remover_exportacao', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome })
+        });
+        this.carregarCelular();
+      } catch(e) { console.error("[DASHBOARD] Erro remover export:", e); }
+    },
+    async importarDados() {
+      try {
+        const r = await fetch('/api/celular/importar', { method: 'POST' });
+        const d = await r.json();
+        this.celMensagem = d.mensagem || '';
+        this.celRodando = true; this.celOperacao = 'importar';
+        if (!this._celTimer) this._celTimer = setInterval(() => this.carregarCelular(), 2000);
+      } catch(e) { console.error("[DASHBOARD] Erro importar:", e); }
+    },
     async pollAll() {
-      await Promise.all([
-        this.pollSystem(),
-        this.pollStatus(),
-        this.verificarOllama(),
-        this.pollDashboardLog(),
-        this.pollMetricas(),
-        this.pollModeloLocal(),
-      ]);
-      if (this.active === 'train') { this.pollTreino(); this.pollTreinoLog(); }
-      if (this.active === 'rss') this.pollRSS();
-      if (this.active === 'convert') this.pollConvert();
-      if (this.active === 'generate') {
-        this.pollGenerate();
-        this.carregarRegistro(); // carrega registro ao abrir a aba
-      }
-    },
-
-    async pollSystem() {
-      try { const r=await fetch('/api/system/details'); if(r.ok) this.sysInfo=await r.json(); } catch(e){}
-    },
-    async pollStatus() {
-      try { const r=await fetch('/api/status'); if(r.ok) this.status=await r.json(); } catch(e){}
-    },
-    async pollDashboardLog() {
-      try { const r=await fetch('/api/log/ultimas?arquivo=dashboard.log&linhas=15'); if(r.ok){const d=await r.json();this.logDashboard=d.conteudo;} } catch(e){}
-    },
-    async pollMetricas() {
-      try { const r=await fetch('/api/logs/metricas'); if(r.ok){const d=await r.json();this.metricas=(d.historico||[]).slice(-10);} } catch(e){}
-    },
-
-    async verificarOllama() {
+      this.loading = true; // gira o ícone do botão de atualizar
       try {
-        const r1 = await fetch('/api/ollama/status');
-        if (r1.ok) {
-          const d1 = await r1.json();
-          this.ollamaOnline = !!d1.running;
-        }
-      } catch (e) {}
-      try {
-        const r2 = await fetch('/api/chat/status');
-        if (r2.ok) {
-          const d2 = await r2.json();
-          this.modeloAtivo = d2.modelo_ativo || null;
-          this.modelosDisponiveis = d2.modelos_disponiveis || [];
-          this.ggufExiste = d2.gguf_existe || false;
-          if (d2.modelo_ativo && !this.modeloSelecionado) this.modeloSelecionado = d2.modelo_ativo;
-        }
-      } catch (e) {}
-    },
-
-    async pollPesquisaStatus() {
-      try {
-        const r = await fetch('/api/local-generate/pesquisa-status');
+        const r = await fetch('/api/system/details');
+        this.carregou = true; // primeira carga concluída
         if (r.ok) {
           const d = await r.json();
-          this.pesquisaDisponivel = !!d.disponivel;
+          this.cpuPct = d.cpu?.percent || 0;
+          this.cpuCores = d.cpu?.cores || '?';
+          this.ramPct = d.memory?.percent || 0;
+          this.ramInfo = (d.memory?.used_gb||0) + 'GB / ' + (d.memory?.total_gb||0) + 'GB';
+          this.diskPct = d.disk || 0;
+          this.diskIO = '📖' + (d.disk_io?.read_mb||0) + 'MB | 💾' + (d.disk_io?.write_mb||0) + 'MB';
+          this.totalFiles = d.processed_files || 0;
+          // 🧠 Modelo + 🎯 Treino (novos campos)
+          const ma = d.maturidade || null;
+          this.maturidadePct = ma ? ma.percentual : null;
+          this.maturidadeLoss = ma ? ma.loss : null;
+          this.maturidadeEpoca = ma ? ma.epoca : null;
+          const mi = d.modelo_info || {};
+          this.modeloStatus = mi.existe ? '✅ Pronto' : '❌ Ausente';
+          this.modeloData = mi.data || d.model_date || '';
+          this.modeloNome = mi.existe ? (mi.nome || 'modelo_melhor.pt') : 'sem modelo';
+          this.modeloTamanho = mi.tamanho_mb ? mi.tamanho_mb + ' MB' : '';
+          this.modeloCheckpoint = mi.checkpoint ? ('💾 ckpt ' + (mi.checkpoint.data||'') + (mi.checkpoint.tamanho_mb ? ' · ' + mi.checkpoint.tamanho_mb + ' MB' : '')) : '';
+          const ti = d.treino_info || {};
+          this.treinando = !!ti.rodando || ti.etapa === 'treinando';
+          this.treinoEtapa = ti.etapa || 'idle';
+          this.treinoDataset = ti.dataset || '';
+          this.treinoMensagem = ti.mensagem || '';
+          const pr = ti.progresso || {};
+          this.treinoProgresso = pr.percentual || pr.percent || (pr.epoca && pr.total_epocas ? Math.round(100 * pr.epoca / pr.total_epocas) : 0) || 0;
+          this.treinoIndeterminado = this.treinando && !this.treinoProgresso;
+          // 📈 Métricas de treino (SFT jsonl tem prioridade)
+          this.metricas = (d.metricas || []).slice(-10);
+          this.metricasFonte = this.metricas.length ? '(fonte: ' + (this.metricas[0].fonte === 'jsonl' ? 'SFT jsonl' : 'TXT') + ')' : '';
+          this.statusTime = d.timestamp ? new Date(d.timestamp).toLocaleTimeString() : '';
+          console.log("[DASHBOARD] Sistema atualizado:", this.cpuPct + '% CPU', '| treinando:', this.treinando);
         }
-      } catch (e) { this.pesquisaDisponivel = false; }
-    },
-
-    async restartOllama() {
+      } catch(e) { console.error("[DASHBOARD] Erro sistema:", e); }
       try {
-        const r = await fetch('/api/ollama/restart', { method: 'POST' });
-        const d = await r.json().catch(()=>({}));
-        if (r.ok) {
-          this.mensagemOllama = '✅ Ollama reiniciado (PID ' + (d.pid||'?') + ')';
-        } else {
-          this.mensagemOllama = '❌ Erro ao reiniciar Ollama: ' + (d.message||r.status);
-        }
-        setTimeout(()=>this.mensagemOllama='',8000);
-      } catch(e) { this.mensagemOllama = '❌ '+e.message }
-    },
-
-    async carregarSecao(s) {
-      if (s==='home') { await this.pollAll(); }
-      if (s==='train') { await this.pollTreino(); await this.pollTreinoLog(); }
-      if (s==='rss') await this.pollRSS();
-      if (s==='convert') await this.pollConvert();
-      if (s==='generate') { await this.pollGenerate(); await this.carregarRegistro(); }
-      if (s==='logs') await this.carregarLogs();
-      if (s==='chat') { await this.verificarOllama(); await this.pollModeloLocal(); }
-      if (s==='localgen') {
-        const el = document.querySelector('[x-data="localGenState()"]')?.__x?.$data;
-        if (el) { el.lgAtualizarModelos(); el.lgCarregarTopicos(); el.lgCarregarArquivosSalvos(); el.lgCarregarEstilos(); }
-        if (el?.lgLoteModelo === '' && el?.lgModelos?.length > 0) el.lgLoteModelo = el.lgModelos[0];
-      }
-      if (s==='train') { this._iniciarPollSecao('train', [()=>this.pollTreino(), ()=>this.pollTreinoLog()], 5000); }
-      if (s==='rss') { this._iniciarPollSecao('rss', [()=>this.pollRSS()], 7000); }
-    },
-    _iniciarPollSecao(secao, fns, intervalo) {
-      if (this.__pollSecao === secao) return;
-      this.__pollSecao = secao;
-      if (this.__pollTimer) clearInterval(this.__pollTimer);
-      this.__pollTimer = setInterval(() => {
-        if (this.active === secao) fns.forEach(f=>f());
-        else { clearInterval(this.__pollTimer); this.__pollSecao = null; }
-      }, intervalo);
-    },
-
-    // ─── TREINO ───
-    async pollTreino() {
-      try { const r=await fetch('/api/train/status'); if(r.ok){const d=await r.json(); this.train=d; this.trainProgresso=d.progresso||{};} } catch(e){}
-    },
-    async pollTreinoLog() {
-      try { const r=await fetch('/api/train/logs'); if(r.ok){const d=await r.json(); this.treinoLog=d.conteudo;} } catch(e){}
-    },
-    togglePasta(n) {
-      const i=this.pastasSelecionadas.indexOf(n);
-      i>=0?this.pastasSelecionadas.splice(i,1):this.pastasSelecionadas.push(n);
-    },
-    async iniciarTreino(resume=false) {
-      this.treinando=true; this.mensagemTreino='';
-      try {
-        const body={pastas:null,resume,max_arquivos:parseInt(this.maxArquivos)||20000};
-        if(this.pastasSelecionadas.length) body.pastas=this.pastasSelecionadas;
-        const r=await fetch('/api/train/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-        const d=await r.json().catch(()=>({message:'Erro '+r.status}));
-        this.mensagemTreino=r.ok?'✅ '+(d.message||'ok'):'❌ '+(d.message||d.detail||'Erro '+r.status);
-      } catch(e){this.mensagemTreino='❌ '+e.message;}
-      this.treinando=false;
-      setTimeout(()=>{if(this.mensagemTreino?.startsWith('✅'))this.mensagemTreino='';},8000);
-    },
-    async testarModelo() {
-      this.testando=true;this.mensagemTreino='';
-      try {
-        const body={pastas:null,max_arquivos:100};
-        if(this.pastasSelecionadas.length) body.pastas=this.pastasSelecionadas;
-        const r=await fetch('/api/train/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-        const d=await r.json().catch(()=>({}));
-        this.mensagemTreino=r.ok?'✅ Teste com 100 arquivos':'❌ '+(d.message||d.detail||'Erro '+r.status);
-      } catch(e){this.mensagemTreino='❌ '+e.message;}
-      this.testando=false;
-    },
-
-    // ─── CHAT ───
-    async enviarMensagem() {
-      if (!this.chatInput.trim()) return;
-      if (!this.ollamaOnline && !this.usarModoLocal) return;
-      const msg = this.chatInput;
-      this.chatMensagens.push({ role:'user', content: msg });
-      this.chatInput = ''; this.chatCarregando = true;
-      const endpoint = this.usarModoLocal ? '/api/chat/local/send' : '/api/chat/send';
-      try {
-        const hist = this.chatMensagens.slice(-10,-1).map(m => ({ user: m.role==='user'?m.content:'', assistant: m.role==='bot'?m.content:'' }));
-        const r = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ mensagem:msg, historico:hist }) });
-        if (!r.ok) {
-          const errText = await r.text().catch(()=>'');
-          throw new Error(errText || 'HTTP '+r.status);
-        }
-        const contentType = r.headers.get('content-type') || '';
-        if (!contentType.includes('event-stream')) {
-          const body = await r.text().catch(()=>'');
-          throw new Error('Resposta inesperada: ' + body.substring(0,200));
-        }
-        const reader = r.body.getReader();
-        const dec = new TextDecoder();
-        let resp = '';
-        this.chatMensagens.push({ role:'bot', content:'' });
-        let recebeuDados = false;
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          recebeuDados = true;
-          resp += dec.decode(value, { stream:true });
-          this.chatMensagens[this.chatMensagens.length-1].content = resp;
-          const w = document.getElementById('chatWindow');
-          if (w) w.scrollTop = w.scrollHeight;
-        }
-        if (!recebeuDados && !resp) {
-          this.chatMensagens[this.chatMensagens.length-1] = { role:'bot', content:'⚠️ Modelo não retornou dados. Use o botão "Testar" para verificar.', erro:true };
-        }
-      } catch(e) {
-        this.chatMensagens.push({ role:'bot', content:'❌ Erro: '+e.message, erro:true });
-      }
-      this.chatCarregando = false;
-    },
-
-    async testarModeloChat() {
-      this.testandoChat = true; this.testeResultado = '';
-      try {
-        const r = await fetch('/api/chat/test', { method:'POST' });
-        const d = await r.json();
-        if (d.status === 'ok' && d.completo) {
-          this.testeResultado = '✅ ' + d.modelo + ': "' + d.resposta + '"';
-          this.testeOk = true;
-        } else if (d.status === 'ok') {
-          this.testeResultado = '⚠️ ' + d.modelo + ' conectou mas resposta vazia';
-          this.testeOk = false;
-        } else {
-          this.testeResultado = '❌ ' + (d.erro || 'Falha desconhecida');
-          this.testeOk = false;
-        }
-      } catch(e) {
-        this.testeResultado = '❌ ' + e.message;
-        this.testeOk = false;
-      }
-      this.testandoChat = false;
-      setTimeout(() => { this.testeResultado = ''; }, 10000);
-    },
-
-    async trocarModelo() {
-      if (!this.modeloSelecionado) return;
-      try {
-        const r = await fetch('/api/chat/set-model', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ modelo: this.modeloSelecionado }) });
-        if (r.ok) {
-          this.modeloAtivo = this.modeloSelecionado;
-          this.testeResultado = '✅ Modelo: ' + this.modeloSelecionado;
-          this.testeOk = true;
-          setTimeout(() => { this.testeResultado = ''; }, 4000);
-        }
-      } catch(e) {}
-    },
-
-    async removerModelo(modelo) {
-      if (!modelo || !confirm(`Remover modelo '${modelo}' do Ollama?`)) return;
-      try {
-        const r = await fetch('/api/chat/delete-model', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ modelo }) });
-        const d = await r.json();
-        if (d.status === 'ok') {
-          this.testeResultado = '🗑️ Modelo removido: ' + modelo;
-          this.modeloSelecionado = '';
-          await this.verificarOllama();
-        } else {
-          this.testeResultado = '❌ ' + (d.message || 'Erro ao remover');
-        }
-      } catch(e) {
-        this.testeResultado = '❌ ' + e.message;
-      }
-      setTimeout(() => { this.testeResultado = ''; }, 5000);
-    },
-
-    limparChat() { this.chatMensagens = []; this.mensagemSalvarChat = ''; },
-
-    alternarModoLocal() {
-      this.usarModoLocal = !this.usarModoLocal;
-      if (this.usarModoLocal) {
-        this.testeResultado = '🔄 Modo Local ativado. Primeira mensagem carrega o modelo...';
-        this.testeOk = true;
-        setTimeout(() => { this.testeResultado = ''; }, 4000);
-      }
-    },
-
-    async pollModeloLocal() {
-      try {
-        const r = await fetch('/api/chat/local/status');
-        if (r.ok) {
-          const d = await r.json();
-          this.modeloLocalDisponivel = d.disponivel;
-          this.modeloLocalTamanho = d.modelo_tamanho || '?';
-          if (this.usarModoLocal && !d.disponivel) {
-            this.usarModoLocal = false;
-          }
-        }
-      } catch(e) {}
-    },
-
-    async salvarConversa() {
-      if (this.chatMensagens.length < 2) return;
-      this.mensagemSalvarChat = '';
-      try {
-        const r = await fetch('/api/chat/salvar-conversa', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ mensagens: this.chatMensagens })
-        });
-        const d = await r.json();
-        this.mensagemSalvarChat = r.ok ? '✅ ' + d.mensagem : '❌ ' + (d.detalhe || 'Erro');
-      } catch(e) {
-        this.mensagemSalvarChat = '❌ ' + e.message;
-      }
-      setTimeout(() => { if (this.mensagemSalvarChat?.startsWith('✅')) this.mensagemSalvarChat = ''; }, 6000);
-    },
-
-    // ─── RSS ───
-    async pollRSS() {
-      try { const r=await fetch('/api/rss/status'); if(r.ok) this.rss=await r.json(); } catch(e){}
-    },
-    toggleRSS(feed) {
-      const i=this.rssSelecionados.indexOf(feed);
-      i>=0?this.rssSelecionados.splice(i,1):this.rssSelecionados.push(feed);
-    },
-    totalRSS() {
-      const o=this.rss.arquivos_gerados||{}; return Object.values(o).reduce((a,b)=>a+b,0);
-    },
-    async processarRSS() {
-      this.rssCarregando=true;this.mensagemTreino='';
-      try {
-        const qtd=this.rssSelecionados.length||10;
-        const body=this.rssSelecionados.length?{quantidade:qtd,feeds:this.rssSelecionados}:{quantidade:qtd};
-        const r=await fetch('/api/rss/processar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-        const d=await r.json().catch(()=>({}));
-        this.mensagemTreino=r.ok?'✅ RSS: '+(d.message||'processando'):'❌ '+(d.message||'Erro '+r.status);
-        if(r.ok) setTimeout(()=>this.pollRSS(),3000);
-      } catch(e){this.mensagemTreino='❌ '+e.message;}
-      this.rssCarregando=false;
-    },
-    async processarRSSFeed(feed) {
-      try {
-        const r=await fetch('/api/rss/processar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantidade:3})});
-        const d=await r.json().catch(()=>({}));
-        this.mensagemTreino=r.ok?'✅ Feed enviado':'❌ '+(d.message||'Erro');
-      } catch(e){this.mensagemTreino='❌ '+e.message;}
-      setTimeout(()=>{this.mensagemTreino='';},5000);
-    },
-
-    selecionarTodosRss() {
-      this.rssSelecionados = (this.rss.feeds_lista||[]).slice();
-    },
-
-    // ─── RSS TESTER ───
-    async testarFeedRss() {
-      const url = this.rssUrlTeste.trim();
-      if (!url) return;
-      this.rssTestando = true;
-      this.rssTesteResultado = null;
-      try {
-        const r = await fetch('/api/rss/testar', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({url})
-        });
-        const d = await r.json();
-        this.rssTesteResultado = d;
-        if (d.feeds) {
-          const existentes = this.rss.feeds_lista || [];
-          d.feeds.forEach(f => {
-            if (existentes.some(e => e === f.url || e.includes(f.url) || f.url.includes(e))) {
-              f.adicionado = true;
-            }
-          });
-        }
-      } catch(e) {
-        this.rssTesteResultado = {status: 'erro', detalhe: e.message};
-      }
-      this.rssTestando = false;
-    },
-
-    async adicionarFeedRss(url) {
-      try {
-        const r = await fetch('/api/rss/adicionar-feed', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({url})
-        });
-        const d = await r.json();
-        if (r.ok) {
-          if (d.ja_existia) {
-            this.mensagemTreino = '✅ Feed já estava na lista';
-          } else {
-            this.mensagemTreino = '✅ Feed adicionado à lista!';
-          }
-          if (this.rssTesteResultado?.feeds) {
-            this.rssTesteResultado.feeds.forEach(f => {
-              if (f.url === url) f.adicionado = true;
-            });
-          }
-          setTimeout(() => this.pollRSS(), 1000);
-        } else {
-          this.mensagemTreino = '❌ ' + (d.detalhe || 'Erro ao adicionar');
-        }
-      } catch(e) {
-        this.mensagemTreino = '❌ ' + e.message;
-      }
-      setTimeout(() => { if (this.mensagemTreino?.startsWith('✅')) this.mensagemTreino = ''; }, 5000);
-    },
-
-    recusarFeedRss(idx) {
-      if (this.rssTesteResultado?.feeds) {
-        this.rssTesteResultado.feeds.splice(idx, 1);
-        if (this.rssTesteResultado.feeds.length === 0) {
-          this.rssUrlTeste = '';
-          this.rssTesteResultado = null;
-        }
-      }
-    },
-
-    // ─── CONVERSÃO ───
-    async pollConvert() {
-      try { const r=await fetch('/api/convert/status'); if(r.ok) this.convert=await r.json(); } catch(e){}
-    },
-    async converterModelo(nome) {
-      this.convertendo=true;this.mensagemOllama='';
-      try {
-        const r=await fetch('/api/convert/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({modelo:nome})});
-        const d=await r.json().catch(()=>({}));
-        this.mensagemOllama=r.ok?'✅ Conversão de '+nome:'❌ '+(d.message||d.detail||'Erro '+r.status);
-        if(r.ok)setTimeout(()=>this.pollConvert(),3000);
-      } catch(e){this.mensagemOllama='❌ '+e.message;}
-      this.convertendo=false;
-    },
-    async criarModeloOllama() {
-      this.criandoOllama=true;this.mensagemOllama='';
-      try {
-        const r=await fetch('/api/convert/criar-ollama',{method:'POST'});
-        const d=await r.json().catch(()=>({}));
-        if(r.ok){
-          this.mensagemOllama='⏳ Criando modelo Ollama...';
-          const check=setInterval(async()=>{
-            const s=await fetch('/api/chat/status').then(r=>r.json()).catch(()=>({}));
-            if((s.modelos_disponiveis||[]).some(m=>m.startsWith('rigelslm')||m.includes('rigelslm'))){
-              this.mensagemOllama='✅ Modelo rigelslm criado!';clearInterval(check);this.verificarOllama();
-            }
-          },3000);
-          setTimeout(()=>clearInterval(check),60000);
-        } else this.mensagemOllama='❌ '+(d.message||'Erro '+r.status);
-      } catch(e){this.mensagemOllama='❌ '+e.message;}
-      this.criandoOllama=false;
-    },
-
-    // ─── GERAÇÃO ───
-    async pollGenerate() {
-      try { const r=await fetch('/api/generate/status'); if(r.ok) this.generate=await r.json(); } catch(e){}
-      try { const r=await fetch('/api/train/status'); if(r.ok){const d=await r.json(); this.processedPastas=d.pastas_disponiveis||[];} } catch(e){}
-    },
-    async gerarDialogos() {
-      this.gerando=true;this.mensagemTreino='';
-      try{const r=await fetch('/api/generate/dialogos',{method:'POST'});const d=await r.json().catch(()=>({}));this.mensagemTreino=r.ok?'✅ Diálogos v1 iniciados':'❌'+(d.message||'Erro');setTimeout(()=>this.pollGenerate(),3000);}catch(e){this.mensagemTreino='❌'+e.message;}
-      this.gerando=false;
-    },
-    async gerarDialogos2() {
-      this.gerando2=true;this.mensagemTreino='';
-      try{const r=await fetch('/api/generate/dialogos2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantidade:200,tipo:'auto'})});const d=await r.json().catch(()=>({}));this.mensagemTreino=r.ok?'✅ Diálogos v2 iniciados':'❌'+(d.message||'Erro');setTimeout(()=>this.pollGenerate(),3000);}catch(e){this.mensagemTreino='❌'+e.message;}
-      this.gerando2=false;
-    },
-    async baixarDatasets() {
-      this.baixando=true;this.mensagemTreino='';
-      try{const r=await fetch('/api/generate/downdata',{method:'POST'});this.mensagemTreino=r.ok?'✅ Downdata iniciado':'❌ Erro';}catch(e){this.mensagemTreino='❌'+e.message;}
-      this.baixando=false;
-    },
-    async downloadDatasets() {
-      this.baixando2=true;this.mensagemTreino='';
-      try{const r=await fetch('/api/generate/download_datasets',{method:'POST'});this.mensagemTreino=r.ok?'✅ Download datasets iniciado':'❌ Erro';}catch(e){this.mensagemTreino='❌'+e.message;}
-      this.baixando2=false;
-    },
-    async executarScript(script) {
-      this.processando=true;this.mensagemProcessando='';
-      try{
-        const r=await fetch('/api/generate/executar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({script})});
-        const d=await r.json().catch(()=>({}));
-        this.mensagemProcessando=r.ok?'✅ '+(d.message||script+' iniciado')+' — veja o log em scripts.log (aba Logs)':'❌ '+(d.message||'Erro '+r.status);
-        if (r.ok) {
-          let polls = 0;
-          const iv = setInterval(async () => {
-            polls++;
-            try {
-              const r2 = await fetch('/api/log/ultimas?arquivo=scripts.log&linhas=10');
-              if (r2.ok) {
-                const d2 = await r2.json();
-                if (d2.conteudo && d2.conteudo.length > 20) {
-                  const ultimaLinha = d2.conteudo.split('\n').filter(l=>l.trim()).pop() || '';
-                  if (ultimaLinha) this.mensagemProcessando = '📋 ' + ultimaLinha.substring(0,120);
-                }
-              }
-            } catch(e) {}
-            if (polls > 10) clearInterval(iv);
-          }, 3000);
-          setTimeout(() => clearInterval(iv), 35000);
-        }
-      }catch(e){this.mensagemProcessando='❌ '+e.message;}
-      this.processando=false;
-    },
-
-    async gerarMaisCategoria(categoria, quantidade=100) {
-      this.gerando=true;this.mensagemGerarMais='';
-      try {
-        const r=await fetch('/api/generate/dialogos2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quantidade,tipo:categoria.toLowerCase()})});
-        const d=await r.json().catch(()=>({}));
-        this.mensagemGerarMais=r.ok?
-          '✅ Geração de '+quantidade+' '+categoria+' iniciada em 2º plano. Verifique o log.':
-          '❌ '+(d.message||d.detail||'Erro '+r.status);
-        if(r.ok)setTimeout(()=>this.pollGenerate(),3000);
-      }catch(e){this.mensagemGerarMais='❌ '+e.message;}
-      this.gerando=false;
-      setTimeout(()=>{if(this.mensagemGerarMais?.startsWith('✅'))this.mensagemGerarMais='';},8000);
-    },
-
-    // ─── ORGANIZADOR E REGISTRO (NOVO) ───
-    async executarOrganizador(apenasRegistro = false) {
-      this.organizando = true;
-      this.mensagemProcessando = '';
-      try {
-        const url = apenasRegistro
-          ? '/api/organizar/executar?apenas_registro=true'
-          : '/api/organizar/executar';
-        const r = await fetch(url, { method: 'POST' });
-        const d = await r.json().catch(() => ({}));
-        this.mensagemProcessando = r.ok ? '✅ ' + (d.message || 'Organizador iniciado') : '❌ ' + (d.detail || d.message || 'Erro ' + r.status);
-        if (r.ok) {
-          // Inicia polling do status
-          this.pollOrganizador();
-        }
-      } catch(e) {
-        this.mensagemProcessando = '❌ ' + e.message;
-      }
-      this.organizando = false;
-    },
-
-    async pollOrganizador() {
-      try {
-        const r = await fetch('/api/organizar/status');
-        if (!r.ok) return;
-        const d = await r.json();
-        if (d.running) {
-          this.mensagemProcessando = '⏳ Organizando... ' + (d.log ? d.log.slice(-200) : '');
-          setTimeout(() => this.pollOrganizador(), 3000);
-        } else {
-          if (d.finished) {
-            this.mensagemProcessando = '✅ Organização concluída!';
-            await this.carregarRegistro();
-          } else {
-            this.mensagemProcessando = '⚠️ ' + (d.log || 'Organização parada sem finalizar.');
-          }
-        }
-      } catch(e) {
-        this.mensagemProcessando = '❌ ' + e.message;
-      }
-    },
-
-    async carregarRegistro() {
-      try {
-        const r = await fetch('/api/organizar/registro');
-        if (r.ok) {
-          const data = await r.json();
-          this.registro = data;
-        } else {
-          this.registro = null;
-        }
-      } catch(e) {
-        this.registro = null;
-      }
-    },
-
-    // ─── LOGS ───
-    async carregarLogs() {
-      try {
-        const [r1,r2,r3]=await Promise.all([
-          fetch('/api/logs/listar'),fetch('/api/logs/metricas'),fetch('/api/chat/feedback/estatisticas')
-        ]);
-        if(r1.ok) this.logs.arquivos=(await r1.json()).arquivos||[];
-        if(r2.ok) this.logs.metricas=await r2.json();
-        if(r3.ok) this.logs.feedback=await r3.json();
-      } catch(e){}
-      if(this._intervalLog) clearInterval(this._intervalLog);
-      if(this.logAtivo&&this.autoScrollLog) this._intervalLog=setInterval(()=>this.recarregarLog(),5000);
-    },
-    async visualizarLog(nome) { this.logAtivo=nome; await this.recarregarLog(); },
-    async recarregarLog() {
-      if(!this.logAtivo) return;
-      try{const r=await fetch('/api/logs/visualizar/'+encodeURIComponent(this.logAtivo));this.logConteudo=await r.text();}catch(e){this.logConteudo='Erro';}
-    },
-
-    // ─── UTILITÁRIOS ───
-    formatarTempo(s){if(!s)return'—';const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h>0?h+'h '+m+'min':m+'min';},
-  };
-}
-
-// ─── GERAÇÃO LOCAL (Alpine.js isolado) ───
-function localGenState() {
-  return {
-    lgOllamaOnline: false,
-    lgModelos: [],
-    lgModeloSelecionado: '',
-    lgTemplates: [],
-    lgTemplateId: 'dialogo_curto',
-    lgDescricaoAtiva: '',
-    lgTema: '',
-    lgIdiomaDestino: 'inglês',
-    lgQuantidade: 1,
-    lgGerando: false,
-    lgResultado: '',
-    lgVisualizandoNome: null,
-    lgMultiplos: [],
-    lgTotalGerado: 0,
-    lgMensagemStatus: '',
-    lgTaskId: '',
-    lgReader: null,
-    lgAbortController: null,
-    lgTopicos: [],
-    lgTopicosSelecionados: [],
-    lgArquivosSalvos: [],
-    lgEstilos: [],
-    lgEstiloId: 'neutro',
-
-    lgLoteAtivo: false,
-    lgLoteRodando: false,
-    lgLoteAtual: 0,
-    lgLoteTotal: 0,
-    lgLoteAprovados: 0,
-    lgLoteRejeitados: 0,
-    lgLoteProgresso: 0,
-    lgLoteTopicoAtual: '',
-    lgLoteResultados: [],
-    lgLoteEstilo: 'neutro',
-    lgLoteTemplate: 'dialogo_curto',
-    lgLoteModelo: '',
-    lgLoteAutoFiltro: true,
-    lgLotePesquisarWeb: false,
-    lgLoteReader: null,
-    lgLoteTaskId: null,
-    lgLoteSalvos: false,
-    lgPesquisaWebDisponivel: false,
-    lgLotePesquisando: false,
-    lgLoteGerando: false,
-    lgLoteTempoDecorrido: '0s',
-    lgLoteTempoItem: '',
-    lgLoteUltimoHeartbeat: false,
-
-    get lgPodeGerar() {
-      return this.lgTema.trim() && this.lgModeloSelecionado && this.lgOllamaOnline;
-    },
-
-    init() {
-      this.lgCarregarTemplates();
-      this.lgAtualizarModelos();
-      this.lgCarregarTopicos();
-      this.lgCarregarArquivosSalvos();
-      this.lgCarregarEstilos();
-      this.lgVerificarPesquisaWeb();
-    },
-
-    async lgVerificarPesquisaWeb() {
-      try {
-        const r = await fetch('/api/local-generate/pesquisa-status');
-        const d = await r.json();
-        this.lgPesquisaWebDisponivel = d.disponivel || false;
-      } catch (e) {
-        this.lgPesquisaWebDisponivel = false;
-      }
-    },
-
-    lgToggleTopico(t) {
-      const idx = this.lgTopicosSelecionados.indexOf(t);
-      if (idx >= 0) {
-        this.lgTopicosSelecionados.splice(idx, 1);
-      } else {
-        this.lgTopicosSelecionados.push(t);
-      }
-    },
-
-    lgSelecionarTodosTopicos() {
-      this.lgTopicosSelecionados = [...this.lgTopicos];
-    },
-
-    lgLimparSelecao() {
-      this.lgTopicosSelecionados = [];
-    },
-
-    async lgIniciarLote() {
-      if (this.lgTopicosSelecionados.length === 0 || !this.lgOllamaOnline) return;
-
-      this.lgLoteAtivo = true;
-      this.lgLoteRodando = true;
-      this.lgLoteAtual = 0;
-      this.lgLoteTotal = this.lgTopicosSelecionados.length;
-      this.lgLoteAprovados = 0;
-      this.lgLoteRejeitados = 0;
-      this.lgLoteProgresso = 0;
-      this.lgLoteTopicoAtual = '';
-      this.lgLoteResultados = [];
-      this.lgLoteSalvos = false;
-
-      const modelo = this.lgLoteModelo || this.lgModeloSelecionado;
-
-      try {
-        const r = await fetch('/api/local-generate/gerar-lote', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            topicos: this.lgTopicosSelecionados,
-            template_id: this.lgLoteTemplate,
-            modelo: modelo,
-            estilo: this.lgLoteEstilo,
-            auto_filtrar: this.lgLoteAutoFiltro,
-            pesquisar_web: this.lgLotePesquisarWeb,
-          }),
-        });
-
-        if (!r.ok) {
-          this.lgMensagemStatus = '❌ Erro ao iniciar lote';
-          this.lgLoteRodando = false;
-          return;
-        }
-
-        const reader = r.body.getReader();
-        this.lgLoteReader = reader;
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            try {
-              const data = JSON.parse(line.slice(6));
-
-              if (data.type === 'lote_meta') {
-                this.lgLoteTotal = data.total || this.lgTopicosSelecionados.length;
-                if (data.task_id) this.lgLoteTaskId = data.task_id;
-                this.lgLoteUltimoHeartbeat = Date.now();
-              } else if (data.type === 'lote_item_inicio') {
-                this.lgLoteAtual = data.indice;
-                this.lgLoteTopicoAtual = data.topico;
-                this.lgLoteProgresso = Math.round((data.indice / data.total) * 100);
-              } else if (data.type === 'lote_item_aprovado') {
-                this.lgLoteAprovados++;
-                this.lgLoteResultados.push({
-                  topico: data.topico,
-                  aprovado: true,
-                  conteudo: data.conteudo,
-                  score: data.score || 100,
-                });
-              } else if (data.type === 'lote_item_rejeitado') {
-                this.lgLoteRejeitados++;
-                this.lgLoteResultados.push({
-                  topico: data.topico,
-                  aprovado: false,
-                  conteudo: data.conteudo,
-                  motivos: data.motivos || [],
-                  score: data.score || 0,
-                });
-              } else if (data.type === 'lote_item_erro') {
-                this.lgLoteRejeitados++;
-                this.lgLoteResultados.push({
-                  topico: data.topico,
-                  aprovado: false,
-                  conteudo: '',
-                  motivos: ['Erro na geração'],
-                });
-              } else if (data.type === 'lote_heartbeat') {
-                this.lgLoteUltimoHeartbeat = Date.now();
-              } else if (data.type === 'lote_parado') {
-                this.lgMensagemStatus = '⏹️ Lote parado no servidor';
-                if (this.lgLoteReader) { try { this.lgLoteReader.cancel(); } catch(e){} this.lgLoteReader = null; }
-                this.lgLoteRodando = false;
-              } else if (data.type === 'lote_fim') {
-                this.lgLoteProgresso = 100;
-                this.lgMensagemStatus = `✅ Lote concluído: ${data.aprovados} aprovados, ${data.rejeitados} rejeitados`;
-              }
-            } catch (e) {}
-          }
-        }
-      } catch (e) {
-        this.lgMensagemStatus = '❌ Erro no lote: ' + e.message;
-      }
-
-      this.lgLoteReader = null;
-      this.lgLoteTaskId = null;
-      this.lgLoteRodando = false;
-      this.lgTotalGerado += this.lgLoteAprovados;
-    },
-
-    lgPararLote() {
-      if (this.lgLoteTaskId) {
-        fetch('/api/local-generate/parar', {
-          method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ task_id: this.lgLoteTaskId })
-        }).catch(() => {});
-      }
-      if (this.lgLoteReader) {
-        try { this.lgLoteReader.cancel(); } catch(e){}
-        this.lgLoteReader = null;
-      }
-      this.lgLoteRodando = false;
-      this.lgMensagemStatus = '⏹️ Lote interrompido (cliente)';
-    },
-
-    lgFinalizarLote() {
-      const aprovados = this.lgLoteResultados.filter(r => r.aprovado);
-      let salvos = 0;
-      aprovados.forEach((item) => {
-        const nome = `lote_${this.lgLoteTemplate}_${Date.now()}_${salvos}.txt`;
-        fetch('/api/local-generate/salvar-texto', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome, conteudo: `# ${item.topico}\n\n${item.conteudo}`, pasta: 'gerados_local' }),
-        }).then(r => r.ok ? salvos++ : null);
-      });
-      this.lgMensagemStatus = `✅ ${salvos} arquivos salvos em dados/gerados/gerados_local/`;
-      this.lgCarregarArquivosSalvos();
-      this.lgLoteAtivo = false;
-      this.lgLoteResultados = [];
-      this.lgTopicosSelecionados = [];
-    },
-
-    lgCancelarLote() {
-      this.lgLoteAtivo = false;
-      this.lgLoteResultados = [];
-      this.lgLoteRodando = false;
-    },
-
-    lgLoteVerItem(item) {
-      this.lgResultado = item.conteudo || '[Erro na geração]';
-      this.lgMultiplos = [];
-      this.lgMensagemStatus = item.aprovado
-        ? `✅ Aprovado (score: ${item.score}) — "${item.topico}"`
-        : `❌ Rejeitado: ${(item.motivos||[]).join(', ')} — "${item.topico}"`;
-    },
-
-    async lgCarregarEstilos() {
-      try {
-        const r = await fetch('/api/local-generate/estilos');
-        const d = await r.json();
-        this.lgEstilos = d.estilos || [];
-      } catch (e) {
-        this.lgEstilos = [];
-      }
-    },
-
-    async lgCarregarTopicos() {
-      try {
-        const r = await fetch('/api/local-generate/topicos');
-        const d = await r.json();
-        this.lgTopicos = d.topicos || [];
-      } catch (e) {
-        this.lgTopicos = [];
-      }
-    },
-
-    async lgCarregarArquivosSalvos() {
-      try {
-        const r = await fetch('/api/local-generate/arquivos-salvos');
-        const d = await r.json();
-        this.lgArquivosSalvos = d.arquivos || [];
-      } catch (e) {
-        this.lgArquivosSalvos = [];
-      }
-    },
-
-    async lgVisualizarArquivo(nome) {
-      try {
-        const r = await fetch('/api/local-generate/arquivo-salvo/' + encodeURIComponent(nome));
-        const d = await r.json();
-        if (d.conteudo) {
-          this.lgResultado = d.conteudo;
-          this.lgMultiplos = [];
-          this.lgMensagemStatus = '📄 Visualizando: ' + nome;
-        } else {
-          this.lgMensagemStatus = '❌ ' + (d.erro || 'Erro ao ler arquivo');
-        }
-      } catch (e) {
-        this.lgMensagemStatus = '❌ ' + e.message;
-      }
-    },
-
-    lgToggleVisualizar(nome) {
-      if (this.lgVisualizandoNome === nome) {
-        this.lgResultado = '';
-        this.lgVisualizandoNome = null;
-        this.lgMensagemStatus = '';
-        return;
-      }
-      this.lgVisualizandoNome = nome;
-      this.lgVisualizarArquivo(nome);
-    },
-
-    lgFecharResultado() {
-      this.lgResultado = '';
-      this.lgVisualizandoNome = null;
-      this.lgMensagemStatus = '';
-    },
-
-    async lgCopiarArquivo(nome) {
-      try {
-        const r = await fetch('/api/local-generate/arquivo-salvo/' + encodeURIComponent(nome));
-        const d = await r.json();
-        if (d.conteudo) {
-          await navigator.clipboard.writeText(d.conteudo);
-          this.lgMensagemStatus = '✅ Conteúdo de "' + nome + '" copiado!';
-          setTimeout(() => { if (this.lgMensagemStatus?.startsWith('✅')) this.lgMensagemStatus = ''; }, 3000);
-        }
-      } catch (e) {
-        this.lgMensagemStatus = '❌ ' + e.message;
-      }
-    },
-
-    lgCarregarTemplates() {
-      fetch('/api/local-generate/templates')
-        .then(r => r.json())
-        .then(d => {
-          this.lgTemplates = d.templates || [];
-          if (this.lgTemplates.length > 0) {
-            this.lgTemplateId = this.lgTemplates[0].id;
-            this.lgDescricaoAtiva = this.lgTemplates[0].descricao;
-          }
-        })
-        .catch(() => {});
-    },
-
-    async lgAtualizarModelos() {
-      try {
-        const r = await fetch('/api/local-generate/modelos');
-        const d = await r.json();
-        this.lgOllamaOnline = d.online || false;
-        this.lgModelos = d.modelos || [];
-        if (this.lgModelos.length > 0 && !this.lgModeloSelecionado) {
-          this.lgModeloSelecionado = this.lgModelos[0];
-        }
-        if (this.lgModelos.length > 0 && !this.lgLoteModelo) {
-          this.lgLoteModelo = this.lgModelos[0];
-        }
-      } catch (e) {
-        this.lgOllamaOnline = false;
-        this.lgModelos = [];
-      }
-    },
-
-    async lgGerar() {
-      if (!this.lgPodeGerar) return;
-
-      this.lgGerando = true;
-      this.lgResultado = '';
-      this.lgMultiplos = [];
-      this.lgMensagemStatus = '';
-
-      const params = new URLSearchParams();
-      params.set('template_id', this.lgTemplateId);
-      params.set('tema', this.lgTema);
-      params.set('modelo', this.lgModeloSelecionado);
-      params.set('idioma_destino', this.lgIdiomaDestino);
-      params.set('quantidade', this.lgQuantidade);
-
-      try {
-        const r = await fetch('/api/local-generate/gerar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            template_id: this.lgTemplateId,
-            tema: this.lgTema,
-            modelo: this.lgModeloSelecionado,
-            estilo: this.lgEstiloId,
-            idioma_destino: this.lgIdiomaDestino,
-            quantidade: parseInt(this.lgQuantidade),
-          }),
-        });
-
-        if (!r.ok) {
-          const err = await r.json().catch(() => ({}));
-          this.lgMensagemStatus = '❌ ' + (err.detail || err.message || 'Erro ' + r.status);
-          this.lgGerando = false;
-          return;
-        }
-
-        const reader = r.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            try {
-              const data = JSON.parse(line.slice(6));
-
-              if (data.type === 'meta') {
-                if (data.quantidade > 1) {
-                  this.lgMensagemStatus = `⏳ Gerando ${data.quantidade} itens...`;
-                }
-              } else if (data.type === 'chunk') {
-                this.lgResultado += data.conteudo;
-              } else if (data.type === 'item_inicio') {
-                this.lgMensagemStatus = `⏳ Item ${data.indice}/${this.lgQuantidade}...`;
-              } else if (data.type === 'item_pronto') {
-                this.lgMultiplos.push(data.conteudo);
-                this.lgMensagemStatus = `✅ Item ${data.indice}/${this.lgQuantidade} concluído`;
-              } else if (data.type === 'item_erro') {
-                this.lgMensagemStatus = `❌ Erro no item ${data.indice}`;
-              } else if (data.type === 'batch_done') {
-                this.lgMensagemStatus = `✅ ${this.lgQuantidade} itens gerados com sucesso!`;
-                this.lgTotalGerado += this.lgMultiplos.length;
-              } else if (data.type === 'done') {
-                this.lgResultado = data.conteudo;
-                this.lgMensagemStatus = '✅ Geração concluída!';
-                this.lgTotalGerado++;
-              } else if (data.type === 'erro') {
-                this.lgMensagemStatus = '❌ ' + data.conteudo;
-              } else if (data.type === 'parado') {
-                this.lgResultado = data.conteudo;
-                this.lgMensagemStatus = '⏹️ Geração interrompida.';
-              }
-            } catch (e) {}
-          }
-        }
-      } catch (e) {
-        this.lgMensagemStatus = '❌ Erro de conexão: ' + e.message;
-      }
-
-      this.lgGerando = false;
-    },
-
-    async lgParar() {
-      try {
-        await fetch('/api/local-generate/parar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ task_id: this.lgTaskId }),
-        });
-      } catch (e) {}
-    },
-
-    lgLimpar() {
-      this.lgResultado = '';
-      this.lgMultiplos = [];
-      this.lgMensagemStatus = '';
-    },
-
-    async lgCopiarResultado() {
-      const texto = this.lgMultiplos.length > 0
-        ? this.lgMultiplos.map((item, i) => `#${i + 1}\n${item}`).join('\n\n---\n\n')
-        : this.lgResultado;
-      try {
-        await navigator.clipboard.writeText(texto);
-        this.lgMensagemStatus = '✅ Copiado!';
-        setTimeout(() => { if (this.lgMensagemStatus === '✅ Copiado!') this.lgMensagemStatus = ''; }, 2000);
-      } catch (e) {
-        this.lgMensagemStatus = '❌ Erro ao copiar';
-      }
-    },
-
-    async lgSalvarResultado() {
-      const texto = this.lgMultiplos.length > 0
-        ? this.lgMultiplos.map((item, i) => `#${i + 1}\n${item}`).join('\n\n---\n\n')
-        : this.lgResultado;
-      const nome = this.lgTemplateId + '_' + Date.now() + '.txt';
-      try {
-        const r = await fetch('/api/local-generate/salvar-texto', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nome, conteudo: texto, pasta: 'gerados_local' }),
-        });
-        if (r.ok) {
-          this.lgMensagemStatus = '✅ Salvo como ' + nome;
-          this.lgCarregarArquivosSalvos();
-        } else {
-          this.lgMensagemStatus = '❌ Erro ao salvar';
-        }
-      } catch (e) {
-        this.lgMensagemStatus = '❌ ' + e.message;
-      }
-    },
+        const r = await fetch('/api/logs/ultimas?arquivo=dashboard.log&linhas=15');
+        if (r.ok) { const d = await r.json(); this.logTexto = d.conteudo || ''; }
+      } catch(e) { console.error("[DASHBOARD] Erro log:", e); }
+      await this.carregarDeploy();
+      await this.carregarCelular();
+      this.loading = false; // para o giro do botão
+    }
   };
 }
 </script>
-</body>
-</html>
+{% endblock %}

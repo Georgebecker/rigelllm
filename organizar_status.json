@@ -1,0 +1,7 @@
+{
+  "running": false,
+  "pid": 10764,
+  "log": "[2026-07-27 15:04:27] [INFO] Atualizando registro...\nTraceback (most recent call last):\n  File \"D:\\Projetos\\rigelllm\\organizar_pastas.py\", line 297, in <module>\n    main()\n    ~~~~^^\n  File \"D:\\Projetos\\rigelllm\\organizar_pastas.py\", line 294, in main\n    atualizar_registro(args.registro)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^\n  File \"D:\\Projetos\\rigelllm\\organizar_pastas.py\", line 206, in atualizar_registro\n    subpastas = [d for d in os.listdir(caminho) if os.path.isdir(os.path.join(caminho, d))]\n                                                   ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyboardInterrupt\n",
+  "started": "2026-07-27T15:04:26.741110",
+  "finished": true
+}

@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% block title %}Converter TXT → JSONL{% endblock %}
+{% block content %}
+<div x-data="converterTxtState()" x-cloak>
+  <div x-show="!carregou" class="flex items-center justify-center py-20">
+    <div class="text-center">
+      <i class="fa-solid fa-spinner fa-spin text-4xl text-sky-400 mb-4"></i>
+      <p class="text-zinc-500">Carregando dados...</p>
+    </div>
+  </div>
+  <div x-show="carregou">
+    <h2 class="text-2xl md:text-4xl font-bold mb-1">🧾 Converter TXT → JSONL</h2>
+    <p class="text-zinc-500 text-sm mb-4">
+      Transforma seus arquivos <b class="text-amber-400">.txt</b> (pergunta/resposta e artigos) em datasets
+      <b class="text-sky-400">JSONL SFT</b> (formato <code class="text-zinc-400">messages</code> do Rigel).
+      A saída vai para <code class="text-zinc-400">dados/gerados/jsonl/&lt;nome&gt;/</code> e já aparece no
+      Treino JSONL para ser validado e promovido para <code class="text-zinc-400">processed</code>.
+    </p>
+
+    <!-- Semáforo global (regra: 1 operação pesada por vez) -->
+    <div class="bg-zinc-900 rounded-2xl p-4 mb-5 border" :class="semafaro?.ocupado ? 'border-amber-600/40' : 'border-emerald-600/20'">
+      <div class="flex items-center gap-3 flex-wrap">
+        <span class="text-sm font-semibold">🛡️ Semáforo global:</span>
+        <template x-if="semafaro?.ocupado">
+          <span class="text-xs px-2 py-1 rounded-lg bg-amber-600/20 text-amber-300">
+            Ocupado — <b x-text="semafaro?.processos?.[0]?.rotulo || 'operação pesada'"></b> (PID <span x-text="semafaro?.processos?.[0]?.pid || '?'"></span>)
+          </span>
+        </template>
+        <template x-if="!semafaro?.ocupado">
+          <span class="text-xs px-2 py-1 rounded-lg bg-emerald-600/20 text-emerald-300">✅ Livre — pode iniciar</span>
+        </template>
+        <span class="text-[10px] text-zinc-600">Só um treino OU conversão por vez. Scrap/chat continuam liberados.</span>
+      </div>
+      <p x-show="msg" class="text-sm mt-2" :class="msg.startsWith('❌') ? 'text-red-400' : 'text-emerald-400'" x-text="msg"></p>
+    </div>
+
+    <!-- Configuração da conversão -->
+    <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+      <h3 class="text-sm font-semibold mb-3">📁 Pasta com .txt para converter</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="md:col-span-2">
+          <select x-model="pastaSel" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm" title="Pasta com os arquivos .txt a converter">
+            <option value="">Selecione uma pasta...</option>
+            <template x-for="p in pastas" :key="p.caminho">
+              <option :value="p.caminho" x-text="p.nome + ' (' + p.base + ' · ' + p.arquivos + ' arqs)'"></option>
+            </template>
+          </select>
+        </div>
+        <div>
+          <input x-model="saida" type="text" placeholder="nome da saída (ex: meus_txt)"
+                 class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm" title="Nome do dataset de saída. Vazio = rigeljsonl<N> automático">
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-4 mt-3 text-sm">
+        <label class="flex items-center gap-2 text-zinc-400" title="Limite de exemplos convertidos (0 = sem limite)">
+          <span>Máx exemplos</span>
+          <input x-model="maxExemplos" type="number" min="0" step="100" class="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 w-24">
+        </label>
+        <label class="flex items-center gap-2 text-zinc-400" title="Limite de arquivos .txt lidos (para teste rápido)">
+          <span>Máx .txt</span>
+          <input x-model="maxArquivos" type="number" min="0" step="10" class="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 w-24">
+        </label>
+        <label class="flex items-center gap-2 text-zinc-400 cursor-pointer" title="Só arquivos com marcadores Pergunta/Resposta (pula artigos)">
+          <input type="checkbox" x-model="apenasQna" class="accent-sky-500 w-4 h-4">
+          <span>Só Pergunta/Resposta (pula artigos)</span>
+        </label>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button @click="converter()" :disabled="convertendo || !pastaSel || semafaro?.ocupado || scanTxt?.rodando"
+                class="bg-sky-600 hover:bg-sky-500 disabled:bg-zinc-700 disabled:opacity-40 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+                title="Inicia a conversão da pasta selecionada para JSONL">
+          <i class="fa-solid" :class="convertendo ? 'fa-spinner fa-spin' : 'fa-file-export'"></i>
+          <span x-text="convertendo ? 'Convertendo...' : '▶️ Converter'"></span>
+        </button>
+        <button @click="parar()" :disabled="!convertendo" class="bg-red-600 hover:bg-red-500 disabled:bg-zinc-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                title="Para a conversão em andamento">⏹️ Parar</button>
+        <button @click="recarregar()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5"
+                title="Recarrega a lista de pastas e o semáforo">
+          <i class="fa-solid fa-rotate" :class="carregandoPastas ? 'fa-spin' : ''"></i> Recarregar
+        </button>
+      </div>
+      <div x-show="scanTxt?.rodando" class="mt-3 bg-zinc-800/40 rounded-xl p-3 border border-sky-600/30">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs text-sky-300"><i class="fa-solid fa-spinner fa-spin"></i> Lendo estrutura TXT — <b x-text="scanTxt?.pasta_atual || '...'"></b></span>
+          <span class="text-sky-400 font-bold" x-text="(scanTxt?.percentual||0) + '%'"></span>
+        </div>
+        <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+          <div class="bg-gradient-to-r from-sky-600 to-sky-400 h-2 rounded-full transition-all duration-300" :style="'width:'+(scanTxt?.percentual||0)+'%'"></div>
+        </div>
+      </div>
+      <p class="text-[10px] text-zinc-600 mt-2">⚠️ Conversão não roda junto com treino (semáforo global). Pode usar scrap/chat normalmente.</p>
+    </div>
+
+    <!-- Log da conversão -->
+    <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold">📋 Log da conversão</h3>
+        <button @click="log=''" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 px-2 py-1 rounded-lg text-xs transition-all" title="Limpa o log exibido">🧹 Limpar log</button>
+      </div>
+      <pre class="bg-black/40 rounded-xl p-3 text-xs font-mono text-zinc-400 overflow-auto max-h-64 scrollbar-thin leading-relaxed" x-text="log || 'Nenhuma conversão ainda...'"></pre>
+    </div>
+
+    <!-- Funil de dados (o que está pendente até processado) -->
+    <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold">🪣 Funil de dados — até chegar em <code class="text-zinc-400">processed</code></h3>
+        <button @click="carregarPainel()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5"
+                title="Varrer a pasta dados e mostrar o que está pendente">
+          <i class="fa-solid fa-rotate" :class="painel?.varrendo ? 'fa-spin' : ''"></i>
+          <span x-text="painel?.varrendo ? 'Varrendo...' : '🔍 Varrer dados/'"></span>
+        </button>
+      </div>
+      <template x-if="!painel?.varrido && !painel?.varrendo">
+        <p class="text-xs text-zinc-500">Clique em <b>Varrer dados/</b> para ver o que está pendente (cru, não tratado, pronto para promover).</p>
+      </template>
+      <template x-if="painel?.varrendo">
+        <div class="bg-zinc-800/40 rounded-xl p-3 border border-sky-600/30">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-sky-300"><i class="fa-solid fa-spinner fa-spin"></i> <b x-text="painel?.pasta_atual || 'varrendo...'"></b></span>
+            <span class="text-sky-400 font-bold" x-text="(painel?.percentual||0) + '%'"></span>
+          </div>
+          <div class="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+            <div class="bg-gradient-to-r from-sky-600 to-sky-400 h-2 rounded-full transition-all duration-300" :style="'width:'+(painel?.percentual||0)+'%'"></div>
+          </div>
+        </div>
+      </template>
+      <template x-if="painel?.varrido && !painel?.varrendo">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 text-center">
+          <div class="bg-zinc-800/50 rounded-xl p-3">
+            <p class="text-2xl font-bold text-zinc-300" x-text="painel?.resumo?.raw || 0"></p>
+            <p class="text-[10px] text-zinc-500">📥 raw (cru)</p>
+          </div>
+          <div class="bg-zinc-800/50 rounded-xl p-3">
+            <p class="text-2xl font-bold text-amber-300" x-text="painel?.resumo?.gerados || 0"></p>
+            <p class="text-[10px] text-zinc-500">📦 gerados (provisório)</p>
+          </div>
+          <div class="bg-zinc-800/50 rounded-xl p-3">
+            <p class="text-2xl font-bold text-sky-300" x-text="painel?.resumo?.sanitizados || 0"></p>
+            <p class="text-[10px] text-zinc-500">🧼 sanitizados</p>
+          </div>
+          <div class="bg-zinc-800/50 rounded-xl p-3">
+            <p class="text-2xl font-bold text-emerald-300" x-text="painel?.resumo?.processed || 0"></p>
+            <p class="text-[10px] text-zinc-500">✅ processed (fundo do funil)</p>
+          </div>
+        </div>
+        <template x-if="painel?.pendentes?.length">
+          <div class="mt-4">
+            <p class="text-xs text-zinc-400 mb-2">⚠️ Itens que precisam de atenção (não tratados):</p>
+            <div class="max-h-56 overflow-auto scrollbar-thin rounded-xl border border-zinc-800">
+              <table class="w-full text-xs">
+                <thead class="sticky top-0 bg-zinc-900 text-zinc-500">
+                  <tr>
+                    <th class="text-left px-3 py-2">Local</th>
+                    <th class="text-left px-3 py-2">Item</th>
+                    <th class="text-left px-3 py-2">Situação</th>
+                    <th class="text-left px-3 py-2">Ação sugerida</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template x-for="(p, i) in painel.pendentes" :key="i">
+                    <tr class="border-t border-zinc-800/60">
+                      <td class="px-3 py-2 text-zinc-500" x-text="p.local"></td>
+                      <td class="px-3 py-2 font-medium" x-text="p.item"></td>
+                      <td class="px-3 py-2" x-text="p.situacao"></td>
+                      <td class="px-3 py-2 text-sky-300" x-text="p.acao"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </template>
+        <template x-if="!painel?.pendentes?.length">
+          <p class="text-xs text-emerald-400 mt-3">✅ Nada pendente — tudo tratado ou já em processed.</p>
+        </template>
+      </template>
+    </div>
+  </div>
+</div>
+
+<script>
+console.log("[CONVERTER_TXT] Página carregada");
+function converterTxtState() {
+  return {
+    carregou: false, pastas: [], pastaSel: '', saida: '', maxExemplos: 0,
+    maxArquivos: 0, apenasQna: false, convertendo: false, log: '', msg: '',
+    semafaro: null, carregandoPastas: false, painel: null, pollTimer: null,
+    scanTxt: null,
+    init() {
+      console.log("[CONVERTER_TXT] Inicializando...");
+      this.recarregar();
+      this.carregarPainel();
+      this.pollTimer = setInterval(() => this.poll(), 4000);
+    },
+    async recarregar() {
+      this.carregandoPastas = true;
+      try {
+        const [r1, r2] = await Promise.all([
+          fetch('/api/convert_txt/pastas'),
+          fetch('/api/convert_txt/semafaro'),
+        ]);
+        const d1 = await r1.json();
+        const d2 = await r2.json();
+        this.pastas = d1.pastas || [];
+        this.semafaro = d2;
+        this.scanTxt = d1.scan || null;
+        this.carregou = true;
+        if (!this.pastaSel && this.pastas.length) this.pastaSel = this.pastas[0].caminho;
+      } catch (e) { console.warn('[CONVERTER_TXT] recarregar:', e); }
+      this.carregandoPastas = false;
+    },
+    async poll() {
+      try {
+        const r = await fetch('/api/convert_txt/progresso');
+        const d = await r.json();
+        this.convertendo = !!d.rodando;
+        if (d.mensagens && d.mensagens.length) this.log = d.mensagens.join('\n');
+        this.semafaro = d.semafaro || this.semafaro;
+        if (d.etapa === 'concluido' && this.convertendo === false && this.msg !== 'concluido') {
+          this.msg = '✅ ' + (d.mensagem || 'Conversão concluída');
+          this.msg = 'concluido';
+          this.recarregar();
+          this.carregarPainel();
+        } else if (d.etapa === 'erro') {
+          this.msg = '❌ ' + (d.erro || d.mensagem || 'erro na conversão');
+        }
+      } catch (e) { console.warn('[CONVERTER_TXT] poll:', e); }
+      // Acompanha o scan de pastas TXT (se rodando)
+      try {
+        const r = await fetch('/api/convert_txt/pastas');
+        const d = await r.json();
+        this.scanTxt = d.scan || this.scanTxt;
+        if (d.scan && !d.scan.rodando && this.scanTxt?.rodando) {
+          this.scanTxt = d.scan;
+          this.recarregar();
+        }
+        if (!this.pastaSel && (d.pastas || []).length) {
+          this.pastas = d.pastas;
+          this.pastaSel = d.pastas[0].caminho;
+        }
+      } catch (e) { console.warn('[CONVERTER_TXT] pollScan:', e); }
+    },
+    async converter() {
+      if (!this.pastaSel) { this.msg = '❌ Selecione uma pasta com .txt.'; return; }
+      if (this.semafaro?.ocupado) { this.msg = '❌ Há uma operação pesada em andamento. Espere terminar.'; return; }
+      this.msg = ''; this.log = '';
+      try {
+        const r = await fetch('/api/convert_txt/converter', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            pasta: this.pastaSel, saida: this.saida || null,
+            max_exemplos: this.maxExemplos > 0 ? this.maxExemplos : null,
+            max_arquivos: this.maxArquivos > 0 ? this.maxArquivos : null,
+            apenas_qna: this.apenasQna,
+          })
+        });
+        const d = await r.json().catch(() => ({}));
+        this.msg = r.ok ? ('✅ ' + (d.message || 'Conversão iniciada')) : ('❌ ' + (d.message || 'erro'));
+        if (r.ok) { this.convertendo = true; }
+      } catch (e) { this.msg = '❌ ' + e.message; }
+    },
+    async parar() {
+      try {
+        const r = await fetch('/api/convert_txt/parar', { method: 'POST' });
+        const d = await r.json();
+        this.msg = d.ok ? '⏹️ ' + d.mensagem : ('⚠️ ' + d.mensagem);
+        this.convertendo = false;
+      } catch (e) { this.msg = '❌ ' + e.message; }
+    },
+    async carregarPainel() {
+      try {
+        const r = await fetch('/api/dados/painel');
+        const d = await r.json();
+        this.painel = d;
+      } catch (e) { console.warn('[CONVERTER_TXT] painel:', e); }
+    },
+  };
+}
+</script>
+{% endblock %}

@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block title %}Executor — Gestor de Atividades{% endblock %}
+{% block content %}
+<div x-data="executorState()" x-cloak>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">⚙️ Executor — Gestor de Atividades</h2>
+  <p class="text-zinc-500 text-sm mb-4">O dashboard <strong class="text-emerald-400">dá as ordens</strong>; o backend executa em subprocesso, <strong class="text-amber-400">respeitando o guardião de hardware</strong> (memória/disco/CPU).</p>
+
+  <!-- Contador de atividades paralelas rodando -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+    <div class="bg-zinc-900 p-4 rounded-2xl border border-emerald-600/30">
+      <p class="text-zinc-500 text-xs">⚡ Atividades PARALELAS rodando</p>
+      <p class="text-3xl font-bold mt-1 text-emerald-400" x-text="totalRodando"></p>
+      <p class="text-[10px] text-zinc-600" x-text="'máx. ' + (gestor?.max_concorrencia || 4) + ' ao mesmo tempo'"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl">
+      <p class="text-zinc-500 text-xs">📋 Atividades registradas</p>
+      <p class="text-3xl font-bold mt-1" x-text="gestor?.total || 0"></p>
+    </div>
+    <div class="bg-zinc-900 p-4 rounded-2xl border border-amber-600/20">
+      <p class="text-zinc-500 text-xs">🛡️ Guardião de hardware</p>
+      <p class="text-sm font-bold mt-2 text-amber-300">Consulta ANTES de cada comando</p>
+      <p class="text-[10px] text-zinc-600 mt-1">memória livre · disco livre · uso de CPU</p>
+    </div>
+  </div>
+
+  <!-- Nova atividade -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+    <h3 class="text-base font-semibold mb-3">🚀 Iniciar atividade no backend</h3>
+    <div class="grid md:grid-cols-2 gap-2 mb-3">
+      <select x-model="comando" @change="comandoMudou()" class="bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+        <option value="">— escolha o comando —</option>
+        <option value="sanitizar">🧼 Sanitizar PT-BR (gera rigelsanitizadoNN.jsonl)</option>
+        <option value="limpeza_leve">🧹 Limpeza leve v2 (SFT+Pretrain, .parquet)</option>
+        <option value="verificar_encoding">🔎 Verificar encoding/mojibake</option>
+        <option value="diagnostico_chars">📊 Diagnóstico de caracteres (ABNT2)</option>
+      </select>
+      <!-- DROPDOWN de origens (o usuário NÃO digita caminho — celular/TV) -->
+      <select x-model="origem" :disabled="!comando || carregandoOrigens"
+              class="bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none disabled:opacity-40">
+        <template x-if="comando === 'sanitizar'">
+          <option value="">— escolha a PASTA de origem —</option>
+        </template>
+        <template x-if="comando !== 'sanitizar'">
+          <option value="">— escolha o ARQUIVO .jsonl —</option>
+        </template>
+        <template x-if="!carregandoOrigens && !origens.length">
+          <option value="" disabled>Nenhuma origem com .jsonl encontrada em dados/</option>
+        </template>
+        <template x-for="o in origens" :key="o.caminho">
+          <option :value="o.caminho" :disabled="o.sanitizado"
+                  x-text="(o.sanitizado ? '✅ ' : (o.parcial ? '🔄 ' : '📁 ')) + o.nome + ' (' + (o.arquivos||0) + ' arq)' + (o.sanitizado ? ' — JÁ FEITO' : (o.parcial ? ' — PARCIAL' : ''))"></option>
+        </template>
+      </select>
+    </div>
+    <div class="flex flex-wrap gap-2 items-center">
+      <p class="text-[10px] text-zinc-500 w-full md:w-auto" x-show="origens.length">
+        <span x-text="(origemInfo?.sanitizado ? '✅ ' : (origemInfo?.parcial ? '🔄 ' : '📁 ')) + (origemInfo?.nome || '')"></span>
+        <span x-show="origemInfo?.sanitizado" class="text-emerald-400"> — já foi sanitizado, não precisa repetir.</span>
+        <span x-show="origemInfo?.parcial" class="text-amber-300" x-text="' — parcial (' + (origemInfo?.arquivos_processados||0) + '/' + (origemInfo?.total_arquivos||'?') + ' arquivos).'"></span>
+      </p>
+      <button @click="iniciarAtividade()" :disabled="iniciando || !comando || !origem"
+              class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40">
+        <i class="fa-solid" :class="iniciando ? 'fa-spinner fa-spin' : 'fa-play'"></i>
+        <span class="ml-1" x-text="iniciando ? 'Iniciando...' : 'Executar no backend'"></span>
+      </button>
+      <button @click="pararTodas()" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-4 py-2 rounded-xl text-xs font-medium">
+        <i class="fa-solid fa-stop mr-1"></i>Parar todas
+      </button>
+      <button @click="carregar()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-xl text-xs font-medium">
+        <i class="fa-solid fa-rotate mr-1"></i>Atualizar
+      </button>
+      <span class="text-xs text-zinc-500" x-text="ultimaMsg"></span>
+    </div>
+  </div>
+
+  <!-- Lista de atividades -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5">
+    <h3 class="text-base font-semibold mb-3">📋 Atividades do backend</h3>
+    <template x-if="!gestor?.atividades?.length">
+      <p class="text-sm text-zinc-500">Nenhuma atividade ainda. Escolha um comando acima para começar.</p>
+    </template>
+
+    <div class="space-y-3">
+      <template x-for="a in gestor?.atividades || []" :key="a.id">
+        <div class="border border-zinc-800 rounded-xl p-3" :class="{'border-emerald-600/40': a.status==='rodando' || a.status==='rodando_externo'}">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                  :class="statusCor(a.status)">
+              <span x-text="a.status"></span>
+            </span>
+            <b class="text-sm text-zinc-100" x-text="a.nome"></b>
+            <span class="text-[10px] text-zinc-600" x-text="'PID ' + (a.pid || '—')"></span>
+            <span class="text-[10px] text-zinc-600 ml-auto" x-text="a.inicio ? a.inicio.slice(11,19) : ''"></span>
+            <button x-show="a.status==='rodando' || a.status==='rodando_externo'" @click="pararAtividade(a.id)"
+                    class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2 py-1 rounded-lg text-[10px]">
+              <i class="fa-solid fa-stop mr-0.5"></i>Parar
+            </button>
+          </div>
+          <p class="text-[10px] text-zinc-600 mt-1 font-mono break-all" x-text="a.comando"></p>
+          <!-- Barra de percentual REAL (lida do progresso persistido) -->
+          <template x-if="a.progresso && a.progresso.pct !== undefined">
+            <div class="mt-2">
+              <div class="flex justify-between text-[10px] mb-1">
+                <span class="text-teal-300" x-text="'⏳ ' + a.progresso.pct + '%'"></span>
+                <span class="text-zinc-500">
+                  <span x-text="a.progresso.lidas||0"></span> lidas ·
+                  <span x-text="a.progresso.ok||0"></span> ok ·
+                  <span x-text="a.progresso.descartados||0"></span> descartados
+                </span>
+              </div>
+              <div class="bg-zinc-800 rounded-full h-2 overflow-hidden">
+                <div class="bg-teal-500 h-full rounded-full transition-all duration-700"
+                     :style="'width:' + Math.min(100, a.progresso.pct) + '%'"></div>
+              </div>
+              <p class="text-[10px] text-zinc-500 mt-1" x-text="'arquivo: ' + (a.progresso.arquivo_atual||'')"></p>
+            </div>
+          </template>
+          <p class="text-[10px] text-amber-300 mt-1" x-show="a.erro" x-text="'erro: ' + a.erro"></p>
+          <p class="text-[10px] text-emerald-300 mt-1" x-show="a.resultado && a.status==='concluido'">
+            <span x-text="'resultado: ' + JSON.stringify(a.resultado).slice(0,200)"></span>
+          </p>
+          <!-- Log ao vivo desta atividade (SSE) -->
+          <template x-if="a.status==='rodando' || a.status==='rodando_externo' || a.status==='concluido' || a.status==='erro'">
+            <div class="mt-2 bg-black/40 rounded-lg p-2 max-h-40 overflow-auto scrollbar-thin font-mono text-[10px] text-zinc-400 break-words">
+              <template x-for="(linha, i) in (logs[a.id] || [])" :key="i">
+                <div x-text="linha" class="whitespace-pre-wrap break-words"></div>
+              </template>
+              <div x-show="!(logs[a.id]||[]).length" class="text-zinc-600">(sem saída ainda)</div>
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+  </div>
+</div>
+
+<script>
+function executorState() {
+  return {
+    gestor: null, comando: '', origem: '', iniciando: false, ultimaMsg: '',
+    origens: [],           // origens disponíveis p/ o dropdown
+    carregandoOrigens: false,
+    logs: {},              // id -> [linhas]
+    _es: null,             // EventSource global (resumo)
+    _esPorId: {},          // id -> EventSource (log individual)
+
+    get totalRodando() {
+      return this.gestor?.rodando || 0;
+    },
+
+    // Info da origem selecionada (para exibir flag ✅/🔄 ao lado)
+    get origemInfo() {
+      return this.origens.find(o => o.caminho === this.origem) || null;
+    },
+
+    // Carrega as origens disponíveis (dropdown automático — sem digitar)
+    async carregarOrigens() {
+      this.carregandoOrigens = true;
+      try {
+        const r = await fetch('/api/executor/origens');
+        const d = await r.json();
+        this.origens = (d.origens || []).slice();
+        // Se a origem selecionada sumiu (foi sanitizada), limpa
+        if (this.origem && !this.origens.some(o => o.caminho === this.origem)) {
+          this.origem = '';
+        }
+      } catch(e) { console.warn('origens:', e); }
+      finally { this.carregandoOrigens = false; }
+    },
+
+    // Quando muda o comando, recarrega (sanitizar=pastas, outros=arquivos)
+    comandoMudou() {
+      this.origem = '';
+      this.carregarOrigens();
+    },
+
+    statusCor(s) {
+      const map = {
+        'rodando': 'bg-emerald-600/20 text-emerald-400',
+        'rodando_externo': 'bg-emerald-600/20 text-emerald-400',
+        'concluido': 'bg-sky-600/20 text-sky-300',
+        'erro': 'bg-red-600/20 text-red-400',
+        'parado': 'bg-amber-600/20 text-amber-300',
+        'interrompido': 'bg-red-600/20 text-red-400',
+      };
+      return map[s] || 'bg-zinc-700 text-zinc-300';
+    },
+
+    init() {
+      this.carregar();
+      this.carregarOrigens();
+      setInterval(() => this.carregar(), 3000);
+      // SSE global: atualiza o resumo (todas as atividades) em tempo real
+      try {
+        this._es = new EventSource('/api/executor/stream');
+        this._es.onmessage = (ev) => {
+          try {
+            const d = JSON.parse(ev.data);
+            if (d.resumo) this.gestor = d.resumo;
+          } catch(e) {}
+        };
+      } catch(e) { console.warn('SSE global:', e); }
+    },
+
+    async carregar() {
+      try {
+        const r = await fetch('/api/executor/status');
+        const d = await r.json();
+        this.gestor = d;
+        // Abre SSE individual para cada atividade rodando
+        (d.atividades||[]).forEach(a => {
+          if ((a.status === 'rodando' || a.status === 'rodando_externo') && !this._esPorId[a.id]) {
+            this.abrirLog(a.id);
+          }
+          if (a.status !== 'rodando' && a.status !== 'rodando_externo' && this._esPorId[a.id]) {
+            try { this._esPorId[a.id].close(); } catch(e) {}
+            delete this._esPorId[a.id];
+          }
+        });
+      } catch(e) { console.warn('status:', e); }
+    },
+
+    abrirLog(id) {
+      this.logs[id] = this.logs[id] || [];
+      try {
+        const es = new EventSource('/api/executor/stream?aid=' + id);
+        this._esPorId[id] = es;
+        es.onmessage = (ev) => {
+          try {
+            const d = JSON.parse(ev.data);
+            if (d.linhas) {
+              this.logs[id] = (this.logs[id]||[]).concat(d.linhas).slice(-1500);
+              const box = document.querySelector('[x-data="executorState()"]');
+            }
+            if (d.fim) {
+              es.close();
+              delete this._esPorId[id];
+              setTimeout(() => this.carregar(), 1500);
+            }
+          } catch(e) {}
+        };
+      } catch(e) { console.warn('SSE log:', e); }
+    },
+
+    async iniciarAtividade() {
+      if (!this.comando || this.iniciando) return;
+      this.iniciando = true; this.ultimaMsg = '';
+      try {
+        const r = await fetch('/api/executor/iniciar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({comando: this.comando, origem: this.origem,
+                                nome: this.comando})
+        });
+        const d = await r.json();
+        this.ultimaMsg = d.ok ? ('✅ ' + d.mensagem) : ('❌ ' + (d.erro || 'erro'));
+        if (d.ok && d.id) { this.logs[d.id] = []; this.abrirLog(d.id); }
+        this.carregar();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+      finally { this.iniciando = false; }
+    },
+
+    async pararAtividade(id) {
+      try {
+        const r = await fetch('/api/executor/parar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({aid: id})
+        });
+        const d = await r.json();
+        this.ultimaMsg = d.ok ? '⏹️ Parada solicitada.' : ('❌ ' + (d.erro||''));
+        this.carregar();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+    },
+
+    async pararTodas() {
+      try {
+        const r = await fetch('/api/executor/parar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({})
+        });
+        const d = await r.json();
+        this.ultimaMsg = d.ok ? '⏹️ Parada solicitada para todas.' : ('❌ ' + (d.erro||''));
+        this.carregar();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+    },
+  };
+}
+</script>
+{% endblock %}

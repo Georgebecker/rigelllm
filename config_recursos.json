@@ -1,0 +1,28 @@
+{
+  "gerado_em": "2026-08-02T16:28:22.493097",
+  "hardware": {
+    "ram_gb": 31.9,
+    "cpu_cores": 36,
+    "gpu": false,
+    "gpu_nome": "",
+    "disco_tipo": "ssd",
+    "disco_total_gb": 223.1,
+    "disco_livre_gb": 57.1,
+    "so": "Windows-11-10.0.22000-SP0"
+  },
+  "limites": {
+    "SCAN_MAX_ARQUIVOS": 2095000,
+    "SCAN_MAX_DIRETORIOS": 177600,
+    "SCAN_PAUSA_CADA": 2000,
+    "SCAN_PAUSA_SEG": 0.002,
+    "MEM_MIN_LIVRE_MB": 3919,
+    "MEM_MIN_LIVRE_PCT": 70.0,
+    "CPU_MAX_USO_PCT": 70.0,
+    "DISCO_MIN_LIVRE_PCT": 5.0,
+    "DISCO_MIN_LIVRE_MB": 11420,
+    "SCAN_MAX_NOMES_CACHE": 2000,
+    "NUCLEOS_USO": 16,
+    "WORKERS_TREINO": 2,
+    "BATCH_TREINO": 16
+  }
+}
