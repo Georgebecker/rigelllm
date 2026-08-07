@@ -822,6 +822,21 @@ def treinar(args: argparse.Namespace) -> None:
             sys.exit(0)
     log(f"📂 {len(arquivos)} arquivos JSONL em {pasta_dados}")
 
+    # 📊 FEEDBACK DE MATERIAL (regra de ouro: o programa AVISA se o material é
+    # suficiente ou insuficiente para o modelo — ~1000 exemplos/arquivo):
+    _n_arq = len(arquivos)
+    _ex_est = _n_arq * 1000
+    if _n_arq < 10:
+        log(f"⚠️ Material BAIXO: {_n_arq} arquivo(s) (~{_ex_est} exemplos). Para o "
+            "SLM 58M o ideal é 100+ arquivos (~100k exemplos) por época. Serve como "
+            "TESTE rápido, mas o modelo não vai 'aprender' de verdade.", "WARNING")
+    elif _n_arq < 50:
+        log(f"ℹ️ Material moderado: {_n_arq} arquivos (~{_ex_est} exemplos). Aceitável "
+            "para ajuste fino; mais dados melhorariam o resultado.", "INFO")
+    else:
+        log(f"✅ Material suficiente: {_n_arq} arquivos (~{_ex_est} exemplos). "
+            "Bom volume para o treino.", "INFO")
+
     # --- Detecção de núcleos / workers (mesma lógica do treino.py) ---
     cpu_count = os.cpu_count() or 1
     if torch.cuda.is_available():

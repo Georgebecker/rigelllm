@@ -1,0 +1,125 @@
+# Auditoria de rotas GET — 2026-08-07 17:19
+OK: 103 | PROBLEMAS: 8 | Total testado: 111
+
+## Problemas
+- 404 |   0.0s | GET /api/logs/visualizar/{nome_arquivo}
+- 422 |   0.0s | GET /api/treino_local/arquivos
+- 400 |   0.0s | GET /api/deploy/download/{nome}
+- 400 |   0.0s | GET /api/celular/download/{nome}
+- 404 |   0.0s | GET /api/local-generate/arquivo-salvo/{nome}
+- 404 |   0.0s | GET /topicos
+- 404 |   0.0s | GET /treino_colab_txt
+- 404 |   0.0s | GET /dados
+
+## Completo
+200 |   0.0s | GET /api/organizar/status
+200 |   0.0s | GET /api/organizar/registro
+200 |   0.4s | GET /api/train/status
+200 |   0.0s | GET /api/train/reescanear/status
+200 |   0.0s | GET /api/train/progresso
+200 |   0.0s | GET /api/train/logs
+200 |   0.9s | GET /api/chat/search-status
+200 |   0.0s | GET /api/chat/search-apis
+200 |   0.0s | GET /api/chat/local/status
+200 |   0.9s | GET /api/chat/status
+200 |   0.0s | GET /api/chat/feedback/estatisticas
+200 |   0.1s | GET /api/rss/status
+200 |   0.0s | GET /api/rss/logs
+200 |   0.0s | GET /api/convert/status
+200 |   0.0s | GET /api/convert/progress
+200 |   0.0s | GET /api/convert/ollama-progress
+200 |   0.0s | GET /api/convert/versoes
+200 |   0.0s | GET /api/generate/deepseek-status
+200 |   0.1s | GET /api/generate/status
+200 |   0.0s | GET /api/generate/perfis-debate
+200 |   0.1s | GET /api/logs/listar
+404 |   0.0s | GET /api/logs/visualizar/{nome_arquivo}
+200 |   0.0s | GET /api/logs/ultimas
+200 |   0.0s | GET /api/logs/dashboard
+200 |   0.0s | GET /api/logs/metricas
+200 |   0.1s | GET /api/diagnostico/completo
+200 |   0.3s | GET /api/ollama/status
+200 |   0.2s | GET /api/ollama/modelos
+200 |   0.0s | GET /api/ollama/pull/status
+200 |   0.0s | GET /api/ollama/caminho
+200 |   0.0s | GET /api/ollama/buscar_modelo
+200 |   0.0s | GET /api/ollama/quantizar/opcoes
+200 |   0.0s | GET /api/ollama/quantizar/status
+200 |   0.0s | GET /api/ollama/acoes
+200 |   0.0s | GET /api/debate/perfis
+200 |   0.0s | GET /api/debate-local/perfis
+200 |   0.0s | GET /api/topicos/listar
+200 |   0.0s | GET /api/topicos/sortear
+200 |   0.8s | GET /api/datasets/buscar
+200 |   0.0s | GET /api/datasets/tamanho
+200 |   0.0s | GET /api/datasets/status
+200 |   0.0s | GET /api/datasets/listar
+200 |   0.0s | GET /api/datasets/baixados
+200 |   0.0s | GET /api/datasets/explodir/status
+200 |   0.0s | GET /api/datasets/sanitizar/status
+200 |   0.0s | GET /api/treino_local/datasets
+200 |   0.0s | GET /api/treino_local/reescanear/status
+422 |   0.0s | GET /api/treino_local/arquivos
+200 |   0.0s | GET /api/treino_local/status
+200 |   0.0s | GET /api/treino_local/backups
+200 |   0.0s | GET /api/treino_colab/datasets
+200 |   0.0s | GET /api/executor/status
+200 |   0.2s | GET /api/executor/origens
+200 |   0.0s | GET /api/executor/stream
+200 |   0.0s | GET /api/scrap/status
+200 |   0.0s | GET /api/scrap/listar
+200 |   0.1s | GET /api/tratamento/listar
+200 |   0.0s | GET /api/tratamento/status
+200 |   0.0s | GET /api/tratamento/formatos
+200 |   0.0s | GET /api/deploy/status
+400 |   0.0s | GET /api/deploy/download/{nome}
+200 |   0.0s | GET /api/celular/status
+400 |   0.0s | GET /api/celular/download/{nome}
+200 |   0.0s | GET /api/celular/importar/verificar
+200 |   0.0s | GET /api/convert_txt/pastas
+200 |   0.5s | GET /api/convert_txt/progresso
+200 |   0.3s | GET /api/convert_txt/semafaro
+200 |   0.0s | GET /api/dados/painel
+200 |   0.0s | GET /
+200 |   0.0s | GET /treinamento
+200 |   0.0s | GET /converter_txt
+200 |   0.0s | GET /chat
+200 |   0.0s | GET /rss
+200 |   0.0s | GET /converter
+200 |   0.0s | GET /gerar_dados
+200 |   0.0s | GET /gerar_local
+200 |   0.0s | GET /logs
+200 |   0.0s | GET /debate
+200 |   0.0s | GET /debate_local
+200 |   0.0s | GET /datasets
+200 |   0.0s | GET /treino_local
+200 |   0.0s | GET /treino_colab
+200 |   0.0s | GET /executor
+200 |   0.0s | GET /scrap
+200 |   0.0s | GET /tratamento
+200 |   3.2s | GET /api/status
+200 |   0.3s | GET /api/system/details
+200 |   0.0s | GET /api/local-generate/pesquisa-status
+200 |   0.1s | GET /api/local-generate/modelos
+200 |   0.0s | GET /api/local-generate/topicos
+200 |   0.0s | GET /api/local-generate/templates
+200 |   0.0s | GET /api/local-generate/estilos
+200 |   0.0s | GET /api/local-generate/arquivos-salvos
+404 |   0.0s | GET /api/local-generate/arquivo-salvo/{nome}
+200 |   0.1s | GET /api/ollama/test
+200 |   0.0s | GET /
+200 |   0.0s | GET /datasets
+200 |   0.0s | GET /treino_local
+200 |   0.0s | GET /treinamento
+200 |   0.0s | GET /gerar_local
+200 |   0.0s | GET /chat
+200 |   0.0s | GET /converter
+200 |   0.0s | GET /executor
+200 |   0.0s | GET /debate
+404 |   0.0s | GET /topicos
+200 |   0.0s | GET /treino_colab
+404 |   0.0s | GET /treino_colab_txt
+200 |   0.0s | GET /tratamento
+404 |   0.0s | GET /dados
+200 |   0.0s | GET /scrap
+200 |   0.0s | GET /logs

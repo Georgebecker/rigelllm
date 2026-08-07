@@ -1,0 +1,260 @@
+TOTAL: 174
+
+--- / (1) ---
+  GET    /
+
+--- /api/celular (6) ---
+  GET    /api/celular/download/{nome}
+  GET    /api/celular/importar/verificar
+  GET    /api/celular/status
+  POST   /api/celular/exportar
+  POST   /api/celular/importar
+  POST   /api/celular/remover_exportacao
+
+--- /api/chat (13) ---
+  GET    /api/chat/feedback/estatisticas
+  GET    /api/chat/local/status
+  GET    /api/chat/search-apis
+  GET    /api/chat/search-status
+  GET    /api/chat/status
+  POST   /api/chat/delete-model
+  POST   /api/chat/feedback
+  POST   /api/chat/local/send
+  POST   /api/chat/salvar
+  POST   /api/chat/salvar-conversa
+  POST   /api/chat/send
+  POST   /api/chat/set-model
+  POST   /api/chat/test
+
+--- /api/convert (8) ---
+  DELETE /api/convert/gguf
+  DELETE /api/convert/gguf/todos
+  GET    /api/convert/ollama-progress
+  GET    /api/convert/progress
+  GET    /api/convert/status
+  GET    /api/convert/versoes
+  POST   /api/convert/criar-ollama
+  POST   /api/convert/start
+
+--- /api/convert_txt (5) ---
+  GET    /api/convert_txt/pastas
+  GET    /api/convert_txt/progresso
+  GET    /api/convert_txt/semafaro
+  POST   /api/convert_txt/converter
+  POST   /api/convert_txt/parar
+
+--- /api/dados (2) ---
+  GET    /api/dados/painel
+  POST   /api/dados/painel/varredura
+
+--- /api/datasets (13) ---
+  GET    /api/datasets/baixados
+  GET    /api/datasets/buscar
+  GET    /api/datasets/explodir/status
+  GET    /api/datasets/listar
+  GET    /api/datasets/sanitizar/status
+  GET    /api/datasets/status
+  GET    /api/datasets/tamanho
+  POST   /api/datasets/apagar
+  POST   /api/datasets/baixar
+  POST   /api/datasets/cancelar
+  POST   /api/datasets/explodir
+  POST   /api/datasets/limpar
+  POST   /api/datasets/sanitizar
+
+--- /api/debate (2) ---
+  GET    /api/debate/perfis
+  POST   /api/debate/gerar
+
+--- /api/debate-local (2) ---
+  GET    /api/debate-local/perfis
+  POST   /api/debate-local/gerar
+
+--- /api/deploy (4) ---
+  GET    /api/deploy/download/{nome}
+  GET    /api/deploy/status
+  POST   /api/deploy/criar
+  POST   /api/deploy/remover
+
+--- /api/diagnostico (1) ---
+  GET    /api/diagnostico/completo
+
+--- /api/executor (7) ---
+  GET    /api/executor/origens
+  GET    /api/executor/status
+  GET    /api/executor/stream
+  POST   /api/executor/iniciar
+  POST   /api/executor/limpar
+  POST   /api/executor/limpar-historico
+  POST   /api/executor/parar
+
+--- /api/generate (10) ---
+  GET    /api/generate/deepseek-status
+  GET    /api/generate/perfis-debate
+  GET    /api/generate/status
+  POST   /api/generate/dialogos
+  POST   /api/generate/dialogos2
+  POST   /api/generate/downdata
+  POST   /api/generate/download_datasets
+  POST   /api/generate/executar
+  POST   /api/generate/gerar-api
+  POST   /api/generate/gerar-debate
+
+--- /api/local-generate (9) ---
+  GET    /api/local-generate/arquivo-salvo/{nome}
+  GET    /api/local-generate/arquivos-salvos
+  GET    /api/local-generate/estilos
+  GET    /api/local-generate/modelos
+  GET    /api/local-generate/pesquisa-status
+  GET    /api/local-generate/templates
+  GET    /api/local-generate/topicos
+  POST   /api/local-generate/gerar
+  POST   /api/local-generate/salvar-texto
+
+--- /api/logs (5) ---
+  GET    /api/logs/dashboard
+  GET    /api/logs/listar
+  GET    /api/logs/metricas
+  GET    /api/logs/ultimas
+  GET    /api/logs/visualizar/{nome_arquivo}
+
+--- /api/ollama (18) ---
+  GET    /api/ollama/acoes
+  GET    /api/ollama/buscar_modelo
+  GET    /api/ollama/caminho
+  GET    /api/ollama/modelos
+  GET    /api/ollama/pull/status
+  GET    /api/ollama/quantizar/opcoes
+  GET    /api/ollama/quantizar/status
+  GET    /api/ollama/status
+  GET    /api/ollama/test
+  POST   /api/ollama/baixar_sharded
+  POST   /api/ollama/pull
+  POST   /api/ollama/pull/limpar
+  POST   /api/ollama/quantizar
+  POST   /api/ollama/remover
+  POST   /api/ollama/restart
+  POST   /api/ollama/retomar
+  POST   /api/ollama/start
+  POST   /api/ollama/stop
+
+--- /api/organizar (3) ---
+  GET    /api/organizar/registro
+  GET    /api/organizar/status
+  POST   /api/organizar/executar
+
+--- /api/rss (5) ---
+  GET    /api/rss/logs
+  GET    /api/rss/status
+  POST   /api/rss/adicionar-feed
+  POST   /api/rss/processar
+  POST   /api/rss/testar
+
+--- /api/scrap (5) ---
+  GET    /api/scrap/listar
+  GET    /api/scrap/status
+  POST   /api/scrap/limpar
+  POST   /api/scrap/processar
+  POST   /api/scrap/testar
+
+--- /api/status (1) ---
+  GET    /api/status
+
+--- /api/system (1) ---
+  GET    /api/system/details
+
+--- /api/topicos (5) ---
+  GET    /api/topicos/listar
+  GET    /api/topicos/sortear
+  POST   /api/topicos/gerar
+  POST   /api/topicos/rss
+  POST   /api/topicos/sortear
+
+--- /api/train (10) ---
+  GET    /api/train/logs
+  GET    /api/train/progresso
+  GET    /api/train/reescanear/status
+  GET    /api/train/status
+  POST   /api/train/limites
+  POST   /api/train/logs/limpar
+  POST   /api/train/recontar
+  POST   /api/train/reescanear
+  POST   /api/train/start
+  POST   /api/train/stop
+
+--- /api/tratamento (5) ---
+  GET    /api/tratamento/formatos
+  GET    /api/tratamento/listar
+  GET    /api/tratamento/status
+  POST   /api/tratamento/limpar
+  POST   /api/tratamento/tratar
+
+--- /api/treino_colab (2) ---
+  GET    /api/treino_colab/datasets
+  POST   /api/treino_colab/gerar
+
+--- /api/treino_local (15) ---
+  GET    /api/treino_local/arquivos
+  GET    /api/treino_local/backups
+  GET    /api/treino_local/datasets
+  GET    /api/treino_local/reescanear/status
+  GET    /api/treino_local/status
+  POST   /api/treino_local/backup_criar
+  POST   /api/treino_local/backup_restaurar
+  POST   /api/treino_local/batch
+  POST   /api/treino_local/iniciar
+  POST   /api/treino_local/mover
+  POST   /api/treino_local/parar
+  POST   /api/treino_local/pausar
+  POST   /api/treino_local/promover
+  POST   /api/treino_local/reescanear
+  POST   /api/treino_local/retomar
+
+--- /chat (1) ---
+  GET    /chat
+
+--- /converter (1) ---
+  GET    /converter
+
+--- /converter_txt (1) ---
+  GET    /converter_txt
+
+--- /datasets (1) ---
+  GET    /datasets
+
+--- /debate (1) ---
+  GET    /debate
+
+--- /debate_local (1) ---
+  GET    /debate_local
+
+--- /executor (1) ---
+  GET    /executor
+
+--- /gerar_dados (1) ---
+  GET    /gerar_dados
+
+--- /gerar_local (1) ---
+  GET    /gerar_local
+
+--- /logs (1) ---
+  GET    /logs
+
+--- /rss (1) ---
+  GET    /rss
+
+--- /scrap (1) ---
+  GET    /scrap
+
+--- /tratamento (1) ---
+  GET    /tratamento
+
+--- /treinamento (1) ---
+  GET    /treinamento
+
+--- /treino_colab (1) ---
+  GET    /treino_colab
+
+--- /treino_local (1) ---
+  GET    /treino_local
+

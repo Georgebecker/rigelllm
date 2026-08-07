@@ -60,7 +60,10 @@
 
   <!-- Download em andamento -->
   <div x-show="estado?.rodando" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-emerald-600/30">
-    <h3 class="text-sm font-semibold mb-2">📥 Download em andamento <span class="text-emerald-400" x-text="estado?.repo"></span></h3>
+    <h3 class="text-sm font-semibold mb-2">📥
+      <span x-text="estado?.etapa==='baixando' ? 'Baixando' : (estado?.etapa==='explodindo' ? 'Explodindo (download concluído ✅ — barra recomeça)' : (estado?.etapa==='tratando' ? 'Tratando' : (estado?.etapa==='sanitizando' ? 'Sanitizando' : 'Processando')))"></span>
+      <span class="text-emerald-400" x-text="estado?.repo"></span>
+    </h3>
     <p class="text-xs text-zinc-400" x-text="estado?.mensagem"></p>
     <div class="mt-2 h-2 bg-zinc-800 rounded-full overflow-hidden">
       <div x-show="estado?.percentual !== null && estado?.percentual !== undefined"
@@ -101,7 +104,11 @@
 
   <!-- Resultado do último download (sucesso/erro) -->
   <div x-show="!estado?.rodando && estado?.repo && estado?.etapa==='concluido'" class="bg-zinc-900 rounded-2xl p-4 mb-5 border border-emerald-600/30">
-    <p class="text-xs text-emerald-400">✅ <span x-text="estado?.repo"></span>: <span x-text="estado?.total_exemplos"></span> exemplos, <span x-text="estado?.total_arquivos"></span> arquivos</p>
+    <p class="text-xs text-emerald-400">✅ <span x-text="estado?.repo"></span>: <span x-text="estado?.total_exemplos"></span> exemplos, <span x-text="estado?.total_arquivos"></span> arquivos
+      <span x-show="estado?.tratamento && estado?.tratamento!=='nenhum'"> · tratado: <b x-text="estado?.tratamento"></b></span>
+    </p>
+    <p class="text-[11px] text-zinc-400 mt-1 break-all">📍 Dados salvos em: <b class="text-emerald-300" x-text="estado?.saida_dir || ('dados/processed/jsonl/' + (estado?.nome || ''))"></b></p>
+    <p class="text-[11px] text-zinc-500 mt-0.5 break-all" x-show="estado?.limpos_origens">🗑️ Origens limpas (HD liberado): <span x-text="estado?.limpos_origens"></span> pasta(s)</p>
   </div>
   <!-- 🚀 Painel de explosão controlada (estimativas + começar/pausar/parar + linha do tempo) -->
   <div x-show="mostrarExplosao || (explosao?.status && explosao.status!=='idle')" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-emerald-600/30">

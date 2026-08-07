@@ -1,21 +1,16 @@
 {
-  "rodando": true,
-  "status": "explodindo",
+  "rodando": false,
+  "status": "interrompido",
   "repo": "dominguesm_restore-punctuation-ptbr-dataset",
   "nome": "dominguesm_restore-punctuation-ptbr-dataset",
   "caminho": "D:\\Projetos\\rigelllm\\dados\\raw\\dominguesm_restore-punctuation-ptbr-dataset\\dataset.jsonl",
   "inicio": "2026-08-06T19:19:37.633560",
-  "fim": null,
+  "fim": "2026-08-07T15:48:45.136108",
   "total_exemplos": 61400,
   "total_arquivos": 61,
   "total_pastas": 0,
   "estimativa": null,
   "eventos": [
-    {
-      "data": "2026-08-06T19:20:01.746969",
-      "tipo": "progresso",
-      "msg": "51900 exemplos processados"
-    },
     {
       "data": "2026-08-06T19:20:01.766553",
       "tipo": "progresso",
@@ -1015,8 +1010,14 @@
       "data": "2026-08-06T19:20:06.181368",
       "tipo": "progresso",
       "msg": "61400 exemplos processados"
+    },
+    {
+      "data": "2026-08-07T15:48:45.136128",
+      "tipo": "interrompido",
+      "msg": "Servidor reiniciou e interrompeu a explosão em andamento."
     }
   ],
-  "erro": null,
+  "erro": "Servidor reiniciou e interrompeu a explosão em andamento. Estado liberado — pode reiniciar.",
+  "pid_inicio": null,
   "diagnostico": null
 }

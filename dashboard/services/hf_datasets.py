@@ -523,10 +523,20 @@ def baixar_e_explodir(repo_id: str, max_total=None, tratamento: str = "auto") ->
                             pass
                     _atualizar_estado(tratado_exemplos=_tratado,
                                       limpos_origens=_limpas)
+                # 📍 Comunicação clara do DESTINO dos dados (regra: dizer ONDE baixou)
+                if _tratamento_usado == "sanitizar":
+                    _saida_final = str(PROJETO_ROOT / "dados" / "processed" / "jsonl" / nome)
+                elif _tratamento_usado == "limpeza_leve":
+                    _saida_final = str(PROJETO_ROOT / "dados" / "processed" / "rigel_sft")
+                else:
+                    _saida_final = str(PASTA_JSONL / nome)
                 _atualizar_estado(etapa="concluido", percentual=100,
                                   mensagem=("✅ Concluído! Tratado (" + _tratamento_usado +
-                                            ") e origens limpas (HD liberado)."
-                                            if _tratado > 0 else "Concluído!"),
+                                            "), dados em: " + _saida_final +
+                                            " — origens limpas (HD liberado)."
+                                            if _tratado > 0 else
+                                            "✅ Concluído! Dados em: " + _saida_final),
+                                  saida_dir=_saida_final,
                                   total_exemplos=total_ex, total_arquivos=total_arq,
                                   total_pastas=total_pas,
                                   tratado_exemplos=_tratado,

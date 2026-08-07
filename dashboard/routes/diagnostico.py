@@ -8,7 +8,9 @@ Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 from fastapi import APIRouter
 from pathlib import Path
 from datetime import datetime
+import json
 import os
+import urllib.request
 
 router = APIRouter(prefix="/api/diagnostico", tags=["Diagnóstico"])
 
@@ -21,30 +23,54 @@ async def diagnostico_completo():
     agora = datetime.now()
 
     # ========== PROCESSADOS ==========
-    proc_dir = BASE_DIR / "dados" / "processed"
+    # ⚠️ NUNCA escanear dados/processed com glob("*.txt") — são ~12,9 MILHÕES de
+    # arquivos; isso trava o event loop (rota async) e o dashboard fica mudo
+    # ("failed to fetch"). Usa o cache persistido do escaneador em background
+    # (logs/estrutura_cache/estrutura_txt.json), que já tem a contagem por pasta.
     total_pastas = 0
     total_arquivos_processed = 0
     pastas_info = []
-    if proc_dir.exists():
-        for item in sorted(proc_dir.iterdir()):
-            if item.is_dir():
-                qtde = len(list(item.glob("*.txt")))
-                if qtde > 0:
-                    total_pastas += 1
-                    total_arquivos_processed += qtde
-                    pastas_info.append({"pasta": item.name, "arquivos": qtde})
+    try:
+        cache_txt = json.loads(
+            (BASE_DIR / "logs" / "estrutura_cache" / "estrutura_txt.json")
+            .read_text(encoding="utf-8"))
+        for p in cache_txt.get("resultado", []):
+            arq = int(p.get("arquivos", 0) or 0)
+            if arq > 0:
+                total_pastas += 1
+                total_arquivos_processed += arq
+                pastas_info.append({"pasta": p.get("nome"), "arquivos": arq})
+    except Exception as _e:
+        try:
+            with open(BASE_DIR / "logs" / "diag_erro.log", "a", encoding="utf-8") as _f:
+                _f.write(f"[{datetime.now().isoformat()}] cache estrutura_txt: {type(_e).__name__}: {_e}\n")
+        except Exception:
+            pass
 
     # ========== GERADOS (RSS, diálogos, etc) ==========
-    gerados_dir = BASE_DIR / "dados" / "gerados"
+    # Contagem LEVE por subpasta (scandir, 1º nível, teto 20k) — sem recursão.
     gerados_stats = {}
     total_gerados = 0
+    gerados_dir = BASE_DIR / "dados" / "gerados"
     if gerados_dir.exists():
-        for item in sorted(gerados_dir.iterdir()):
-            if item.is_dir() and item.name not in ("logs", "estado", "feedback_chat"):
-                qtde = len(list(item.glob("*.txt")))
-                if qtde > 0:
-                    gerados_stats[item.name] = qtde
-                    total_gerados += qtde
+        try:
+            with os.scandir(gerados_dir) as it:
+                for item in it:
+                    if item.is_dir() and item.name not in ("logs", "estado", "feedback_chat"):
+                        qtde = 0
+                        try:
+                            with os.scandir(item.path) as it2:
+                                for _ in it2:
+                                    qtde += 1
+                                    if qtde > 20000:
+                                        break
+                        except Exception:
+                            pass
+                        if qtde > 0:
+                            gerados_stats[item.name] = qtde
+                            total_gerados += qtde
+        except Exception:
+            pass
 
     # ========== MODELOS ==========
     modelo_dir = BASE_DIR / "modelo"
@@ -140,7 +166,6 @@ async def diagnostico_completo():
         result = sock.connect_ex(('127.0.0.1', 11434))
         sock.close()
         if result == 0:
-            import urllib.request, json
             req = urllib.request.Request("http://127.0.0.1:11434/api/tags", method="GET")
             with urllib.request.urlopen(req, timeout=5) as resp:
                 if resp.status == 200:
@@ -170,22 +195,28 @@ async def diagnostico_completo():
         disco_detalhe = f"Erro: {e}"
 
     # ========== CHECKPOINT INTEGRIDADE ==========
+    # Verificação LEVE: não carrega o tensor (torch.load de 222-665 MB em rota
+    # async travava o event loop). Checa tamanho + cabeçalho pickle do .pt.
     checkpoint_ok = False
     checkpoint_detalhe = "Nenhum checkpoint"
     for ckpt in ["modelo_melhor.pt", "checkpoint.pt", "modelo.pt"]:
         ckpt_path = BASE_DIR / "modelo" / ckpt
         if ckpt_path.exists():
             try:
-                import torch
-                state = torch.load(ckpt_path, map_location='cpu')
-                if "embedding.weight" in state:
+                tam = ckpt_path.stat().st_size
+                with open(ckpt_path, "rb") as fh:
+                    cab = fh.read(2)
+                # pickle (protocol 2+ = 0x80), dict literal ('{'/'(') ou ZIP
+                # (torch.save novo salva como PK\x03\x04 = b"P")
+                ok_formato = tam > 1024 and cab[:1] in (b"\x80", b"{", b"(", b"P")
+                if ok_formato:
                     checkpoint_ok = True
-                    checkpoint_detalhe = f"{ckpt}: {len(state)} tensores, OK"
+                    checkpoint_detalhe = f"{ckpt}: {round(tam/1024/1024, 1)} MB, cabeçalho OK"
                 else:
-                    checkpoint_detalhe = f"{ckpt}: formato inesperado"
+                    checkpoint_detalhe = f"{ckpt}: formato inesperado ({tam} bytes)"
                 break
             except Exception as e:
-                checkpoint_detalhe = f"{ckpt}: CORROMPIDO - {e}"
+                checkpoint_detalhe = f"{ckpt}: erro ao ler - {e}"
                 break
 
     # ========== DIAGNÓSTICOS ==========
@@ -227,7 +258,6 @@ async def diagnostico_completo():
     metricas_path = BASE_DIR / "logs" / "metricas.json"
     if metricas_path.exists():
         try:
-            import json
             data = json.loads(metricas_path.read_text(encoding="utf-8"))
             historico = data.get("historico", [])
             if historico:

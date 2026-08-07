@@ -71,6 +71,36 @@ STATIC_DIR.mkdir(parents=True, exist_ok=True)
 IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
+# ============================================================================
+# LOG DE REQUISIÇÕES — visibilidade real (regra de ouro: "o usuário precisa
+# ver o que acontece"). Registra TODOS os erros (com a exceção real, nunca
+# "failed to fetch" sem causa) e todas as chamadas /api (status + tempo).
+# ============================================================================
+@app.middleware("http")
+async def _log_requisicoes(request: Request, call_next):
+    import time as _time
+    t0 = _time.time()
+    try:
+        response = await call_next(request)
+        status = response.status_code
+    except Exception as e:
+        try:
+            with open(LOGS_DIR / "requests.log", "a", encoding="utf-8") as f:
+                f.write(f"[{datetime.now().isoformat()}] ERRO {request.method} "
+                        f"{request.url.path} {type(e).__name__}: {e}\n")
+        except Exception:
+            pass
+        raise
+    dt = round((_time.time() - t0) * 1000)
+    if status >= 400 or request.url.path.startswith("/api"):
+        try:
+            with open(LOGS_DIR / "requests.log", "a", encoding="utf-8") as f:
+                f.write(f"[{datetime.now().isoformat()}] {status} {request.method} "
+                        f"{request.url.path} ({dt}ms)\n")
+        except Exception:
+            pass
+    return response
+
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 app.mount("/images", StaticFiles(directory=str(IMAGES_DIR)), name="images")
 

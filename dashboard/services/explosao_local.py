@@ -44,6 +44,7 @@ _estado: dict = {
     "estimativa": None,
     "eventos": [],            # linha do tempo: {data, tipo, msg}
     "erro": None,
+    "pid_inicio": None,       # PID do processo que iniciou (p/ detectar thread morta no --reload)
 }
 
 # mtime do arquivo de estado quando este processo sincronizou (harmonia com o disco)
@@ -57,6 +58,30 @@ def _persistir() -> None:
         _ARQUIVO_ESTADO.write_text(
             json.dumps(_estado, ensure_ascii=False, indent=2), encoding="utf-8")
         _estado_mtime = _ARQUIVO_ESTADO.stat().st_mtime
+    except Exception:
+        pass
+
+
+def _marcar_interrompida_se_orfao() -> None:
+    """Anti-reload: se o estado diz 'rodando' mas quem iniciou (pid_inicio)
+    NÃO é este processo, a thread de explosão morreu (uvicorn --reload reiniciou)
+    → marca interrompido e libera o estado. NUNCA deixa preso para sempre."""
+    global _estado
+    try:
+        with _lock:
+            pid = _estado.get("pid_inicio")
+            # pid None = estado legado (escrito antes desta proteção) — trata como órfão
+            if _estado.get("rodando") and (pid is None or pid != os.getpid()):
+                _estado["rodando"] = False
+                _estado["status"] = "interrompido"
+                _estado["fim"] = datetime.now().isoformat()
+                _estado["erro"] = ("Servidor reiniciou e interrompeu a explosão em andamento. "
+                                   "Estado liberado — pode reiniciar.")
+                _estado["eventos"] = _estado.get("eventos", [])[-200:] + [{
+                    "data": datetime.now().isoformat(), "tipo": "interrompido",
+                    "msg": "Servidor reiniciou e interrompeu a explosão em andamento."}]
+                _persistir()
+                _log_linha("[interrompido] Servidor reiniciou e interrompeu a explosão em andamento.")
     except Exception:
         pass
 
@@ -76,6 +101,7 @@ def _recarregar_se_mudou() -> None:
                 _estado_mtime = mt
     except Exception:
         pass
+    _marcar_interrompida_se_orfao()
 
 
 def _log_linha(linha: str) -> None:
@@ -189,10 +215,16 @@ def _trabalho(caminho: str, nome: str, repo: str, max_exemplos=None) -> None:
             _estado["rodando"] = True
             _persistir()
 
+        _ultimo_log_progresso = [0]  # closure — não polui o estado persistido
+
         def _on_progresso(processados, total):
             with _lock:
                 _estado["total_exemplos"] = processados
-            _evento("progresso", f"{processados} exemplos processados")
+            # Loga a cada 1000 exemplos (antes: a cada 50 → explosao.log virava
+            # dezenas de MB). O total_exemplos acima continua sempre atualizado.
+            if processados - _ultimo_log_progresso[0] >= 1000:
+                _ultimo_log_progresso[0] = processados
+                _evento("progresso", f"{processados} exemplos processados")
 
         def _on_evento(tipo, msg):
             if tipo == "arquivo":
@@ -295,6 +327,7 @@ def _trabalho(caminho: str, nome: str, repo: str, max_exemplos=None) -> None:
 
 
 def iniciar(caminho: str, repo: str = "", nome: str = "") -> dict:
+    _recarregar_se_mudou()  # libera estado órfão antes de aceitar nova explosão
     with _lock:
         if _estado.get("rodando"):
             return {"ok": False, "erro": "Já existe uma explosão em andamento. Pause/are ou aguarde."}
@@ -320,6 +353,7 @@ def iniciar(caminho: str, repo: str = "", nome: str = "") -> dict:
             "nome": nome, "caminho": str(p), "inicio": datetime.now().isoformat(),
             "fim": None, "total_exemplos": 0, "total_arquivos": 0, "total_pastas": 0,
             "estimativa": None, "eventos": [], "erro": None, "diagnostico": None,
+            "pid_inicio": os.getpid(),  # p/ detectar thread morta após --reload
         })
         _persistir()
     threading.Thread(target=_trabalho, args=(str(p), nome, repo), daemon=True).start()

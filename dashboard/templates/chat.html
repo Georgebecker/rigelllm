@@ -44,13 +44,6 @@
       </span>
       <!-- Busca web (DuckDuckGo) — só o patinho, com tooltip -->
       <span class="text-xs" :class="searchOnline ? '' : 'opacity-40'" :title="searchErro||'Busca via DuckDuckGo'">🦆</span>
-      <!-- Taxa de aprovação do feedback (👍/👎) -->
-      <span x-show="feedbackStats?.total" class="text-xs"
-            :title="'👍 '+(feedbackStats?.positivos||0)+' · 👎 '+(feedbackStats?.negativos||0)+' avaliações — ajuda a decidir treinar ou não'">
-        <span :class="parseFloat((feedbackStats?.taxa_aprovacao||'0').replace('%','')) >= 50 ? 'text-emerald-400' : 'text-amber-400'">
-          👍 <span x-text="feedbackStats?.taxa_aprovacao||'0%'"></span>
-        </span>
-      </span>
       <button @click="testarModelo()" :disabled="!ollamaOnline"
               title="🧪 Testa o modelo ativo com uma resposta curta"
               class="bg-sky-600 hover:bg-sky-500 disabled:bg-zinc-700 px-3 py-2 rounded-xl text-xs font-semibold">🧪 Testar</button>
@@ -300,17 +293,6 @@
           </div>
         </div>
 
-        <!-- 👍/👎 feedback (só respostas do assistente) -->
-        <div x-show="m.role!=='user'" class="mt-2 flex items-center gap-1">
-          <button @click="darFeedback(i,'positivo')" :disabled="m.fb==='positivo'"
-                  title="👍 Resposta boa — vale para treino"
-                  class="text-xs px-2 py-1 rounded-lg transition-all"
-                  :class="m.fb==='positivo' ? 'bg-emerald-600/30 text-emerald-300' : 'bg-zinc-800 hover:bg-emerald-700/40 text-zinc-400 hover:text-emerald-300'">👍</button>
-          <button @click="darFeedback(i,'negativo')" :disabled="m.fb==='negativo'"
-                  title="👎 Resposta ruim/inventada — não usar no treino"
-                  class="text-xs px-2 py-1 rounded-lg transition-all"
-                  :class="m.fb==='negativo' ? 'bg-red-600/30 text-red-300' : 'bg-zinc-800 hover:bg-red-700/40 text-zinc-400 hover:text-red-300'">👎</button>
-        </div>
       </div>
     </template>
     <p x-show="carregando" class="text-zinc-500 text-sm pisca">🤔 Pensando...</p>
@@ -689,30 +671,6 @@ function chatState() {
       setTimeout(() => { if (this.mensagemSalvarChat?.startsWith('✅')) this.mensagemSalvarChat = ''; }, 6000);
     },
 
-    async darFeedback(i, valor) {
-      const m = this.mensagens[i];
-      if (!m || m.role === 'user' || m.fb) return;
-      let pergunta = '';
-      for (let j = i - 1; j >= 0; j--) {
-        if (this.mensagens[j].role === 'user') { pergunta = this.mensagens[j].content; break; }
-      }
-      try {
-        const r = await fetch('/api/chat/feedback', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ mensagem: pergunta, resposta: m.content, feedback: valor, fontes: m.fontes || [], topico: this.topicoChat || '' })
-        });
-        const d = await r.json();
-        m.fb = valor;
-        this.carregarFeedbackStats();
-        this.mensagemSalvarChat = valor === 'positivo' ? '👍 Feedback positivo registrado!' : '👎 Feedback negativo registrado!';
-        console.log("[FEEDBACK]", d);
-      } catch(e) {
-        this.mensagemSalvarChat = '❌ ' + e.message;
-        console.error("[FEEDBACK] Erro:", e);
-      }
-      setTimeout(() => { if (this.mensagemSalvarChat?.startsWith('👍') || this.mensagemSalvarChat?.startsWith('👎')) this.mensagemSalvarChat = ''; }, 4000);
-    },
     async testarModelo() {
       this.testeResultado = '🧪 Testando...';
       try{const r=await fetch('/api/chat/test',{method:'POST'}); const d=await r.json(); this.testeResultado=r.ok?'✅ '+d.resposta:'❌ '+d.message;}catch(e){this.testeResultado='❌ '+e.message;}

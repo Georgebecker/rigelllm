@@ -1,0 +1,1764 @@
+﻿{
+    "openapi":  "3.1.0",
+    "info":  {
+                 "title":  "RigelSLM Dashboard",
+                 "version":  "0.1.0"
+             },
+    "paths":  {
+                  "/api/organizar/executar":  {
+                                                  "post":  {
+                                                               "tags":  "organizar",
+                                                               "summary":  "Executar Organizador",
+                                                               "operationId":  "executar_organizador_api_organizar_executar_post",
+                                                               "parameters":  "",
+                                                               "responses":  "@{200=; 422=}"
+                                                           }
+                                              },
+                  "/api/organizar/status":  {
+                                                "get":  {
+                                                            "tags":  "organizar",
+                                                            "summary":  "Status Organizador",
+                                                            "operationId":  "status_organizador_api_organizar_status_get",
+                                                            "responses":  "@{200=}"
+                                                        }
+                                            },
+                  "/api/organizar/registro":  {
+                                                  "get":  {
+                                                              "tags":  "organizar",
+                                                              "summary":  "Obter Registro",
+                                                              "operationId":  "obter_registro_api_organizar_registro_get",
+                                                              "responses":  "@{200=}"
+                                                          }
+                                              },
+                  "/api/train/status":  {
+                                            "get":  {
+                                                        "tags":  "Treinamento",
+                                                        "summary":  "Train Status",
+                                                        "description":  "Status com dados do cache (rÃ¡pido). Use /recontar para atualizar.",
+                                                        "operationId":  "train_status_api_train_status_get",
+                                                        "responses":  "@{200=}"
+                                                    }
+                                        },
+                  "/api/train/recontar":  {
+                                              "post":  {
+                                                           "tags":  "Treinamento",
+                                                           "summary":  "Recontar Pastas",
+                                                           "description":  "Recontagem forÃ§ada em BACKGROUND (nÃ£o bloqueia). Retorna imediatamente\ncom o cache atual + status; o frontend acompanha a barra de %.",
+                                                           "operationId":  "recontar_pastas_api_train_recontar_post",
+                                                           "responses":  "@{200=}"
+                                                       }
+                                          },
+                  "/api/train/reescanear":  {
+                                                "post":  {
+                                                             "tags":  "Treinamento",
+                                                             "summary":  "Reescanear",
+                                                             "description":  "Dispara (ou relanÃ§a) o escaneamento de pastas em segundo plano.\ntipo: txt | jsonl | parquet",
+                                                             "operationId":  "reescanear_api_train_reescanear_post",
+                                                             "parameters":  "",
+                                                             "responses":  "@{200=; 422=}"
+                                                         }
+                                            },
+                  "/api/train/reescanear/status":  {
+                                                       "get":  {
+                                                                   "tags":  "Treinamento",
+                                                                   "summary":  "Reescanear Status",
+                                                                   "description":  "Progresso do escaneamento (barra de %). tipo: txt | jsonl | parquet.",
+                                                                   "operationId":  "reescanear_status_api_train_reescanear_status_get",
+                                                                   "parameters":  "",
+                                                                   "responses":  "@{200=; 422=}"
+                                                               }
+                                                   },
+                  "/api/train/start":  {
+                                           "post":  {
+                                                        "tags":  "Treinamento",
+                                                        "summary":  "Start Training",
+                                                        "operationId":  "start_training_api_train_start_post",
+                                                        "requestBody":  "@{content=; required=True}",
+                                                        "responses":  "@{200=; 422=}"
+                                                    }
+                                       },
+                  "/api/train/stop":  {
+                                          "post":  {
+                                                       "tags":  "Treinamento",
+                                                       "summary":  "Stop Training",
+                                                       "operationId":  "stop_training_api_train_stop_post",
+                                                       "responses":  "@{200=}"
+                                                   }
+                                      },
+                  "/api/train/logs/limpar":  {
+                                                 "post":  {
+                                                              "tags":  "Treinamento",
+                                                              "summary":  "Limpar Logs Treino",
+                                                              "description":  "Apaga o conteÃºdo do log de treino (logs/treino.log).",
+                                                              "operationId":  "limpar_logs_treino_api_train_logs_limpar_post",
+                                                              "responses":  "@{200=}"
+                                                          }
+                                             },
+                  "/api/train/limites":  {
+                                             "post":  {
+                                                          "tags":  "Treinamento",
+                                                          "summary":  "Salvar Limites",
+                                                          "description":  "RÃ©gua dos limites do guardiÃ£o. REGRA 70%: nunca sobe acima de 70 â\nsÃ³ pode baixar (ex.: 20%). Grava em config_recursos.json.",
+                                                          "operationId":  "salvar_limites_api_train_limites_post",
+                                                          "requestBody":  "@{content=; required=True}",
+                                                          "responses":  "@{200=; 422=}"
+                                                      }
+                                         },
+                  "/api/train/progresso":  {
+                                               "get":  {
+                                                           "tags":  "Treinamento",
+                                                           "summary":  "Progresso Treino",
+                                                           "description":  "Apenas o progresso atual (para polling frequente).",
+                                                           "operationId":  "progresso_treino_api_train_progresso_get",
+                                                           "responses":  "@{200=}"
+                                                       }
+                                           },
+                  "/api/train/logs":  {
+                                          "get":  {
+                                                      "tags":  "Treinamento",
+                                                      "summary":  "Treino Logs",
+                                                      "description":  "Ãltimas linhas do log de treino.",
+                                                      "operationId":  "treino_logs_api_train_logs_get",
+                                                      "responses":  "@{200=}"
+                                                  }
+                                      },
+                  "/api/chat/search-status":  {
+                                                  "get":  {
+                                                              "tags":  "Chat",
+                                                              "summary":  "Search Status",
+                                                              "description":  "Status do serviÃ§o de busca na web.",
+                                                              "operationId":  "search_status_api_chat_search_status_get",
+                                                              "responses":  "@{200=}"
+                                                          }
+                                              },
+                  "/api/chat/search-apis":  {
+                                                "get":  {
+                                                            "tags":  "Chat",
+                                                            "summary":  "Search Apis",
+                                                            "description":  "Lista APIs de busca disponÃ­veis.",
+                                                            "operationId":  "search_apis_api_chat_search_apis_get",
+                                                            "responses":  "@{200=}"
+                                                        }
+                                            },
+                  "/api/chat/local/status":  {
+                                                 "get":  {
+                                                             "tags":  "Chat",
+                                                             "summary":  "Local Model Status",
+                                                             "description":  "Status do modelo local PyTorch.",
+                                                             "operationId":  "local_model_status_api_chat_local_status_get",
+                                                             "responses":  "@{200=}"
+                                                         }
+                                             },
+                  "/api/chat/local/send":  {
+                                               "post":  {
+                                                            "tags":  "Chat",
+                                                            "summary":  "Send Local Message",
+                                                            "description":  "Envia mensagem para o modelo PyTorch local (sem Ollama).",
+                                                            "operationId":  "send_local_message_api_chat_local_send_post",
+                                                            "requestBody":  "@{content=; required=True}",
+                                                            "responses":  "@{200=; 422=}"
+                                                        }
+                                           },
+                  "/api/chat/status":  {
+                                           "get":  {
+                                                       "tags":  "Chat",
+                                                       "summary":  "Chat Status",
+                                                       "description":  "Status do serviÃ§o de chat (Ollama + modelo ativo + lista + local).",
+                                                       "operationId":  "chat_status_api_chat_status_get",
+                                                       "responses":  "@{200=}"
+                                                   }
+                                       },
+                  "/api/chat/set-model":  {
+                                              "post":  {
+                                                           "tags":  "Chat",
+                                                           "summary":  "Set Model",
+                                                           "description":  "Alterna o modelo ativo manualmente (descarrega o anterior).",
+                                                           "operationId":  "set_model_api_chat_set_model_post",
+                                                           "requestBody":  "@{content=; required=True}",
+                                                           "responses":  "@{200=; 422=}"
+                                                       }
+                                          },
+                  "/api/chat/delete-model":  {
+                                                 "post":  {
+                                                              "tags":  "Chat",
+                                                              "summary":  "Delete Model",
+                                                              "description":  "Remove um modelo corrompido do Ollama.",
+                                                              "operationId":  "delete_model_api_chat_delete_model_post",
+                                                              "requestBody":  "@{content=; required=True}",
+                                                              "responses":  "@{200=; 422=}"
+                                                          }
+                                             },
+                  "/api/chat/test":  {
+                                         "post":  {
+                                                      "tags":  "Chat",
+                                                      "summary":  "Test Modelo",
+                                                      "description":  "Testa se o modelo ativo responde (envia pergunta simples).",
+                                                      "operationId":  "test_modelo_api_chat_test_post",
+                                                      "responses":  "@{200=}"
+                                                  }
+                                     },
+                  "/api/chat/send":  {
+                                         "post":  {
+                                                      "tags":  "Chat",
+                                                      "summary":  "Send Message",
+                                                      "description":  "Envia mensagem e recebe resposta do modelo.\n\nTenta primeiro Ollama. Se o modelo rigelslm estiver selecionado e falhar \n(erro conhecido de compatibilidade GGUF), usa o modelo PyTorch local.",
+                                                      "operationId":  "send_message_api_chat_send_post",
+                                                      "requestBody":  "@{content=; required=True}",
+                                                      "responses":  "@{200=; 422=}"
+                                                  }
+                                     },
+                  "/api/chat/salvar":  {
+                                           "post":  {
+                                                        "tags":  "Chat",
+                                                        "summary":  "Salvar Conversa",
+                                                        "description":  "Salva uma conversa do chat em arquivo de texto.",
+                                                        "operationId":  "salvar_conversa_api_chat_salvar_post",
+                                                        "responses":  "@{200=}"
+                                                    }
+                                       },
+                  "/api/chat/feedback":  {
+                                             "post":  {
+                                                          "tags":  "Chat",
+                                                          "summary":  "Registrar Feedback",
+                                                          "description":  "Registra feedback positivo/negativo para treino futuro.",
+                                                          "operationId":  "registrar_feedback_api_chat_feedback_post",
+                                                          "requestBody":  "@{content=; required=True}",
+                                                          "responses":  "@{200=; 422=}"
+                                                      }
+                                         },
+                  "/api/chat/feedback/estatisticas":  {
+                                                          "get":  {
+                                                                      "tags":  "Chat",
+                                                                      "summary":  "Estatisticas Feedback",
+                                                                      "description":  "EstatÃ­sticas dos feedbacks coletados.",
+                                                                      "operationId":  "estatisticas_feedback_api_chat_feedback_estatisticas_get",
+                                                                      "responses":  "@{200=}"
+                                                                  }
+                                                      },
+                  "/api/chat/salvar-conversa":  {
+                                                    "post":  {
+                                                                 "tags":  "Chat",
+                                                                 "summary":  "Salvar Conversa Sft",
+                                                                 "description":  "Salva a conversa no formato IDEAL p/ treino: jsonl SFT messages.\n\nCada par pergunta-\u003eresposta vira:\n  {\"messages\": [system(Rigel/personalidade), user, assistant],\n   \"topico\": ..., \"fonte\": \"chat\", \"data\": ...}\nRespostas muito curtas (\u003c 5 palavras) sÃ£o descartadas (contadas em\n\u0027descartados\u0027) â filtro bÃ¡sico de QUALIDADE. O arquivo pode ser tratado\ndepois pelo fluxo de sanitizaÃ§Ã£o (Tratamento) se quiser.",
+                                                                 "operationId":  "salvar_conversa_sft_api_chat_salvar_conversa_post",
+                                                                 "requestBody":  "@{content=; required=True}",
+                                                                 "responses":  "@{200=; 422=}"
+                                                             }
+                                                },
+                  "/api/rss/status":  {
+                                          "get":  {
+                                                      "tags":  "RSS",
+                                                      "summary":  "Rss Status",
+                                                      "description":  "Status com contagem REAL de arquivos gerados por categoria.",
+                                                      "operationId":  "rss_status_api_rss_status_get",
+                                                      "responses":  "@{200=}"
+                                                  }
+                                      },
+                  "/api/rss/processar":  {
+                                             "post":  {
+                                                          "tags":  "RSS",
+                                                          "summary":  "Processar Rss",
+                                                          "description":  "Inicia o processamento dos feeds RSS.",
+                                                          "operationId":  "processar_rss_api_rss_processar_post",
+                                                          "requestBody":  "@{content=; required=True}",
+                                                          "responses":  "@{200=; 422=}"
+                                                      }
+                                         },
+                  "/api/rss/logs":  {
+                                        "get":  {
+                                                    "tags":  "RSS",
+                                                    "summary":  "Rss Logs",
+                                                    "description":  "Ãltimas 100 linhas do log do RSS.",
+                                                    "operationId":  "rss_logs_api_rss_logs_get",
+                                                    "responses":  "@{200=}"
+                                                }
+                                    },
+                  "/api/rss/testar":  {
+                                          "post":  {
+                                                       "tags":  "RSS",
+                                                       "summary":  "Testar Rss",
+                                                       "description":  "Testa uma URL para detectar feeds RSS/Atom.",
+                                                       "operationId":  "testar_rss_api_rss_testar_post",
+                                                       "requestBody":  "@{content=; required=True}",
+                                                       "responses":  "@{200=; 422=}"
+                                                   }
+                                      },
+                  "/api/rss/adicionar-feed":  {
+                                                  "post":  {
+                                                               "tags":  "RSS",
+                                                               "summary":  "Adicionar Feed",
+                                                               "description":  "Adiciona uma URL de feed ao arquivo feeds.txt.",
+                                                               "operationId":  "adicionar_feed_api_rss_adicionar_feed_post",
+                                                               "requestBody":  "@{content=; required=True}",
+                                                               "responses":  "@{200=; 422=}"
+                                                           }
+                                              },
+                  "/api/convert/status":  {
+                                              "get":  {
+                                                          "tags":  "ConversÃ£o GGUF",
+                                                          "summary":  "Convert Status",
+                                                          "description":  "Status dos modelos e conversÃµes disponÃ­veis.",
+                                                          "operationId":  "convert_status_api_convert_status_get",
+                                                          "responses":  "@{200=}"
+                                                      }
+                                          },
+                  "/api/convert/progress":  {
+                                                "get":  {
+                                                            "tags":  "ConversÃ£o GGUF",
+                                                            "summary":  "Conversion Progress",
+                                                            "description":  "Retorna o progresso atual da conversÃ£o.",
+                                                            "operationId":  "conversion_progress_api_convert_progress_get",
+                                                            "responses":  "@{200=}"
+                                                        }
+                                            },
+                  "/api/convert/ollama-progress":  {
+                                                       "get":  {
+                                                                   "tags":  "ConversÃ£o GGUF",
+                                                                   "summary":  "Ollama Progress",
+                                                                   "description":  "Retorna o progresso da criaÃ§Ã£o do modelo Ollama.",
+                                                                   "operationId":  "ollama_progress_api_convert_ollama_progress_get",
+                                                                   "responses":  "@{200=}"
+                                                               }
+                                                   },
+                  "/api/convert/start":  {
+                                             "post":  {
+                                                          "tags":  "ConversÃ£o GGUF",
+                                                          "summary":  "Start Conversion",
+                                                          "description":  "Inicia a conversÃ£o de um modelo .pt para GGUF.",
+                                                          "operationId":  "start_conversion_api_convert_start_post",
+                                                          "requestBody":  "@{content=; required=True}",
+                                                          "responses":  "@{200=; 422=}"
+                                                      }
+                                         },
+                  "/api/convert/gguf":  {
+                                            "delete":  {
+                                                           "tags":  "ConversÃ£o GGUF",
+                                                           "summary":  "Apagar Gguf",
+                                                           "description":  "Apaga UM arquivo GGUF (libera do Ollama antes).",
+                                                           "operationId":  "apagar_gguf_api_convert_gguf_delete",
+                                                           "parameters":  "",
+                                                           "responses":  "@{200=; 422=}"
+                                                       }
+                                        },
+                  "/api/convert/gguf/todos":  {
+                                                  "delete":  {
+                                                                 "tags":  "ConversÃ£o GGUF",
+                                                                 "summary":  "Apagar Todos Gguf",
+                                                                 "description":  "Apaga TODOS os arquivos GGUF de gguf/ (um a um, liberando do Ollama).",
+                                                                 "operationId":  "apagar_todos_gguf_api_convert_gguf_todos_delete",
+                                                                 "responses":  "@{200=}"
+                                                             }
+                                              },
+                  "/api/convert/criar-ollama":  {
+                                                    "post":  {
+                                                                 "tags":  "ConversÃ£o GGUF",
+                                                                 "summary":  "Criar Modelo Ollama",
+                                                                 "description":  "Cria um modelo Ollama a partir do GGUF (rigelslm_Q4_K.gguf).",
+                                                                 "operationId":  "criar_modelo_ollama_api_convert_criar_ollama_post",
+                                                                 "responses":  "@{200=}"
+                                                             }
+                                                },
+                  "/api/convert/versoes":  {
+                                               "get":  {
+                                                           "tags":  "ConversÃ£o GGUF",
+                                                           "summary":  "Versoes Modelos",
+                                                           "description":  "HistÃ³rico de versÃµes dos modelos.",
+                                                           "operationId":  "versoes_modelos_api_convert_versoes_get",
+                                                           "responses":  "@{200=}"
+                                                       }
+                                           },
+                  "/api/generate/deepseek-status":  {
+                                                        "get":  {
+                                                                    "tags":  "GeraÃ§Ã£o de Dados",
+                                                                    "summary":  "Deepseek Status",
+                                                                    "description":  "Verifica rapidamente se a chave DeepSeek estÃ¡ configurada (sem diagnÃ³stico completo).",
+                                                                    "operationId":  "deepseek_status_api_generate_deepseek_status_get",
+                                                                    "responses":  "@{200=}"
+                                                                }
+                                                    },
+                  "/api/generate/status":  {
+                                               "get":  {
+                                                           "tags":  "GeraÃ§Ã£o de Dados",
+                                                           "summary":  "Generate Status",
+                                                           "description":  "Status dos dados gerados.",
+                                                           "operationId":  "generate_status_api_generate_status_get",
+                                                           "responses":  "@{200=}"
+                                                       }
+                                           },
+                  "/api/generate/dialogos":  {
+                                                 "post":  {
+                                                              "tags":  "GeraÃ§Ã£o de Dados",
+                                                              "summary":  "Gerar Dialogos",
+                                                              "description":  "Gera diÃ¡logos sintÃ©ticos (dialogos.py v1).",
+                                                              "operationId":  "gerar_dialogos_api_generate_dialogos_post",
+                                                              "requestBody":  "@{content=; required=True}",
+                                                              "responses":  "@{200=; 422=}"
+                                                          }
+                                             },
+                  "/api/generate/dialogos2":  {
+                                                  "post":  {
+                                                               "tags":  "GeraÃ§Ã£o de Dados",
+                                                               "summary":  "Gerar Dialogos2",
+                                                               "description":  "Gera diÃ¡logos sintÃ©ticos (dialogos2.py v2 com mÃºltiplos tipos).",
+                                                               "operationId":  "gerar_dialogos2_api_generate_dialogos2_post",
+                                                               "requestBody":  "@{content=; required=True}",
+                                                               "responses":  "@{200=; 422=}"
+                                                           }
+                                              },
+                  "/api/generate/gerar-api":  {
+                                                  "post":  {
+                                                               "tags":  "GeraÃ§Ã£o de Dados",
+                                                               "summary":  "Gerar Via Api",
+                                                               "description":  "Gera conteÃºdo via DeepSeek API diretamente (sem subprocess).\nRetorna o texto gerado imediatamente.",
+                                                               "operationId":  "gerar_via_api_api_generate_gerar_api_post",
+                                                               "requestBody":  "@{content=; required=True}",
+                                                               "responses":  "@{200=; 422=}"
+                                                           }
+                                              },
+                  "/api/generate/perfis-debate":  {
+                                                      "get":  {
+                                                                  "tags":  "GeraÃ§Ã£o de Dados",
+                                                                  "summary":  "Listar Perfis Debate",
+                                                                  "description":  "Retorna a lista de perfis disponÃ­veis para debate/podcast.",
+                                                                  "operationId":  "listar_perfis_debate_api_generate_perfis_debate_get",
+                                                                  "responses":  "@{200=}"
+                                                              }
+                                                  },
+                  "/api/generate/gerar-debate":  {
+                                                     "post":  {
+                                                                  "tags":  "GeraÃ§Ã£o de Dados",
+                                                                  "summary":  "Gerar Debate",
+                                                                  "description":  "Gera um debate/podcast via DeepSeek com mÃºltiplos perfis e base factual.\nUsa pesquisa na web para embasar as falas de cada participante.",
+                                                                  "operationId":  "gerar_debate_api_generate_gerar_debate_post",
+                                                                  "requestBody":  "@{content=; required=True}",
+                                                                  "responses":  "@{200=; 422=}"
+                                                              }
+                                                 },
+                  "/api/generate/downdata":  {
+                                                 "post":  {
+                                                              "tags":  "GeraÃ§Ã£o de Dados",
+                                                              "summary":  "Baixar Dados",
+                                                              "description":  "Baixa datasets pÃºblicos (downdata.py).",
+                                                              "operationId":  "baixar_dados_api_generate_downdata_post",
+                                                              "responses":  "@{200=}"
+                                                          }
+                                             },
+                  "/api/generate/download_datasets":  {
+                                                          "post":  {
+                                                                       "tags":  "GeraÃ§Ã£o de Dados",
+                                                                       "summary":  "Download Datasets",
+                                                                       "description":  "Baixa datasets (download_datasets.py).",
+                                                                       "operationId":  "download_datasets_api_generate_download_datasets_post",
+                                                                       "responses":  "@{200=}"
+                                                                   }
+                                                      },
+                  "/api/generate/executar":  {
+                                                 "post":  {
+                                                              "tags":  "GeraÃ§Ã£o de Dados",
+                                                              "summary":  "Executar Script",
+                                                              "description":  "Executa um script Python local (preparar_dados.py, agrupar.py, ultra.py).",
+                                                              "operationId":  "executar_script_api_generate_executar_post",
+                                                              "requestBody":  "@{content=; required=True}",
+                                                              "responses":  "@{200=; 422=}"
+                                                          }
+                                             },
+                  "/api/logs/listar":  {
+                                           "get":  {
+                                                       "tags":  "Logs",
+                                                       "summary":  "Listar Logs",
+                                                       "description":  "Lista todos os logs disponÃ­veis.",
+                                                       "operationId":  "listar_logs_api_logs_listar_get",
+                                                       "responses":  "@{200=}"
+                                                   }
+                                       },
+                  "/api/logs/visualizar/{nome_arquivo}":  {
+                                                              "get":  {
+                                                                          "tags":  "Logs",
+                                                                          "summary":  "Visualizar Log",
+                                                                          "description":  "Visualiza o conteÃºdo de um log especÃ­fico.",
+                                                                          "operationId":  "visualizar_log_api_logs_visualizar__nome_arquivo__get",
+                                                                          "parameters":  "",
+                                                                          "responses":  "@{200=; 422=}"
+                                                                      }
+                                                          },
+                  "/api/logs/ultimas":  {
+                                            "get":  {
+                                                        "tags":  "Logs",
+                                                        "summary":  "Log Ultimas",
+                                                        "description":  "Ãltimas N linhas de um arquivo de log (usado pelo polling do dashboard).",
+                                                        "operationId":  "log_ultimas_api_logs_ultimas_get",
+                                                        "parameters":  " ",
+                                                        "responses":  "@{200=; 422=}"
+                                                    }
+                                        },
+                  "/api/logs/dashboard":  {
+                                              "get":  {
+                                                          "tags":  "Logs",
+                                                          "summary":  "Log Dashboard",
+                                                          "description":  "Ãltimas entradas do log do dashboard.",
+                                                          "operationId":  "log_dashboard_api_logs_dashboard_get",
+                                                          "responses":  "@{200=}"
+                                                      }
+                                          },
+                  "/api/logs/metricas":  {
+                                             "get":  {
+                                                         "tags":  "Logs",
+                                                         "summary":  "Metricas Treino",
+                                                         "description":  "MÃ©tricas detalhadas de treino.",
+                                                         "operationId":  "metricas_treino_api_logs_metricas_get",
+                                                         "responses":  "@{200=}"
+                                                     }
+                                         },
+                  "/api/diagnostico/completo":  {
+                                                    "get":  {
+                                                                "tags":  "DiagnÃ³stico",
+                                                                "summary":  "Diagnostico Completo",
+                                                                "description":  "DiagnÃ³stico completo: mostra o que estÃ¡ funcionando ou nÃ£o.",
+                                                                "operationId":  "diagnostico_completo_api_diagnostico_completo_get",
+                                                                "responses":  "@{200=}"
+                                                            }
+                                                },
+                  "/api/ollama/status":  {
+                                             "get":  {
+                                                         "tags":  "Ollama",
+                                                         "summary":  "Status",
+                                                         "description":  "Retorna status completo do Ollama (running, pid, port, erro).",
+                                                         "operationId":  "status_api_ollama_status_get",
+                                                         "responses":  "@{200=}"
+                                                     }
+                                         },
+                  "/api/ollama/start":  {
+                                            "post":  {
+                                                         "tags":  "Ollama",
+                                                         "summary":  "Start Ollama",
+                                                         "description":  "Inicia o Ollama serve em background.",
+                                                         "operationId":  "start_ollama_api_ollama_start_post",
+                                                         "responses":  "@{200=}"
+                                                     }
+                                        },
+                  "/api/ollama/stop":  {
+                                           "post":  {
+                                                        "tags":  "Ollama",
+                                                        "summary":  "Stop Ollama",
+                                                        "description":  "Para o processo Ollama.",
+                                                        "operationId":  "stop_ollama_api_ollama_stop_post",
+                                                        "responses":  "@{200=}"
+                                                    }
+                                       },
+                  "/api/ollama/restart":  {
+                                              "post":  {
+                                                           "tags":  "Ollama",
+                                                           "summary":  "Restart",
+                                                           "description":  "Reinicia o Ollama forÃ§adamente (mata + inicia).",
+                                                           "operationId":  "restart_api_ollama_restart_post",
+                                                           "responses":  "@{200=}"
+                                                       }
+                                          },
+                  "/api/ollama/modelos":  {
+                                              "get":  {
+                                                          "tags":  "Ollama",
+                                                          "summary":  "Modelos",
+                                                          "description":  "Modelos instalados no Ollama.",
+                                                          "operationId":  "modelos_api_ollama_modelos_get",
+                                                          "responses":  "@{200=}"
+                                                      }
+                                          },
+                  "/api/ollama/pull":  {
+                                           "post":  {
+                                                        "tags":  "Ollama",
+                                                        "summary":  "Pull",
+                                                        "description":  "Inicia o download de um modelo (ex.: llama3.2:3b).",
+                                                        "operationId":  "pull_api_ollama_pull_post",
+                                                        "parameters":  "",
+                                                        "responses":  "@{200=; 422=}"
+                                                    }
+                                       },
+                  "/api/ollama/pull/status":  {
+                                                  "get":  {
+                                                              "tags":  "Ollama",
+                                                              "summary":  "Pull Status",
+                                                              "description":  "Progresso do download em andamento.",
+                                                              "operationId":  "pull_status_api_ollama_pull_status_get",
+                                                              "responses":  "@{200=}"
+                                                          }
+                                              },
+                  "/api/ollama/retomar":  {
+                                              "post":  {
+                                                           "tags":  "Ollama",
+                                                           "summary":  "Retomar",
+                                                           "description":  "Retoma o Ãºltimo download (o Ollama continua de onde parou).",
+                                                           "operationId":  "retomar_api_ollama_retomar_post",
+                                                           "responses":  "@{200=}"
+                                                       }
+                                          },
+                  "/api/ollama/pull/limpar":  {
+                                                  "post":  {
+                                                               "tags":  "Ollama",
+                                                               "summary":  "Pull Limpar",
+                                                               "description":  "Esquece o Ãºltimo download (estado idle).",
+                                                               "operationId":  "pull_limpar_api_ollama_pull_limpar_post",
+                                                               "responses":  "@{200=}"
+                                                           }
+                                              },
+                  "/api/ollama/baixar_sharded":  {
+                                                     "post":  {
+                                                                  "tags":  "Ollama",
+                                                                  "summary":  "Baixar Sharded",
+                                                                  "description":  "Baixa um GGUF dividido (sharded) do HF, junta e cria no Ollama.",
+                                                                  "operationId":  "baixar_sharded_api_ollama_baixar_sharded_post",
+                                                                  "parameters":  " ",
+                                                                  "responses":  "@{200=; 422=}"
+                                                              }
+                                                 },
+                  "/api/ollama/remover":  {
+                                              "post":  {
+                                                           "tags":  "Ollama",
+                                                           "summary":  "Remover",
+                                                           "description":  "Remove um modelo do Ollama (da lista e do disco) â `ollama rm \u003cmodelo\u003e`.",
+                                                           "operationId":  "remover_api_ollama_remover_post",
+                                                           "parameters":  "",
+                                                           "responses":  "@{200=; 422=}"
+                                                       }
+                                          },
+                  "/api/ollama/caminho":  {
+                                              "get":  {
+                                                          "tags":  "Ollama",
+                                                          "summary":  "Caminho",
+                                                          "description":  "Pasta onde o Ollama guarda os modelos (env OLLAMA_MODELS ou padrÃ£o).",
+                                                          "operationId":  "caminho_api_ollama_caminho_get",
+                                                          "responses":  "@{200=}"
+                                                      }
+                                          },
+                  "/api/ollama/buscar_modelo":  {
+                                                    "get":  {
+                                                                "tags":  "Ollama",
+                                                                "summary":  "Buscar Modelo",
+                                                                "description":  "Busca modelos GGUF no HuggingFace com filtro por RAM da mÃ¡quina.",
+                                                                "operationId":  "buscar_modelo_api_ollama_buscar_modelo_get",
+                                                                "parameters":  " ",
+                                                                "responses":  "@{200=; 422=}"
+                                                            }
+                                                },
+                  "/api/ollama/quantizar/opcoes":  {
+                                                       "get":  {
+                                                                   "tags":  "Ollama",
+                                                                   "summary":  "Quantizar Opcoes",
+                                                                   "description":  "QuantizaÃ§Ãµes possÃ­veis p/ um modelo instalado (menores + cabem na RAM).",
+                                                                   "operationId":  "quantizar_opcoes_api_ollama_quantizar_opcoes_get",
+                                                                   "parameters":  "",
+                                                                   "responses":  "@{200=; 422=}"
+                                                               }
+                                                   },
+                  "/api/ollama/quantizar":  {
+                                                "post":  {
+                                                             "tags":  "Ollama",
+                                                             "summary":  "Quantizar",
+                                                             "description":  "Quantiza um modelo instalado localmente (llama-quantize â ollama create).",
+                                                             "operationId":  "quantizar_api_ollama_quantizar_post",
+                                                             "parameters":  " ",
+                                                             "responses":  "@{200=; 422=}"
+                                                         }
+                                            },
+                  "/api/ollama/quantizar/status":  {
+                                                       "get":  {
+                                                                   "tags":  "Ollama",
+                                                                   "summary":  "Quantizar Status",
+                                                                   "description":  "Progresso da quantizaÃ§Ã£o em andamento.",
+                                                                   "operationId":  "quantizar_status_api_ollama_quantizar_status_get",
+                                                                   "responses":  "@{200=}"
+                                                               }
+                                                   },
+                  "/api/ollama/acoes":  {
+                                            "get":  {
+                                                        "tags":  "Ollama",
+                                                        "summary":  "Acoes",
+                                                        "description":  "ð Ãltimas aÃ§Ãµes/erros dos modelos (log em logs/modelos_acoes.log).",
+                                                        "operationId":  "acoes_api_ollama_acoes_get",
+                                                        "parameters":  "",
+                                                        "responses":  "@{200=; 422=}"
+                                                    }
+                                        },
+                  "/api/debate/perfis":  {
+                                             "get":  {
+                                                         "tags":  "Debate \u0026 Podcast",
+                                                         "summary":  "Listar Perfis",
+                                                         "description":  "Retorna a lista de perfis disponÃ­veis com IDs.",
+                                                         "operationId":  "listar_perfis_api_debate_perfis_get",
+                                                         "responses":  "@{200=}"
+                                                     }
+                                         },
+                  "/api/debate/gerar":  {
+                                            "post":  {
+                                                         "tags":  "Debate \u0026 Podcast",
+                                                         "summary":  "Gerar Debate",
+                                                         "description":  "Gera debate ou podcast via DeepSeek com base factual.\n- Debate: dois participantes do mesmo perfil, alternando falas\n- Podcast: apresentador fixo + convidados selecionados",
+                                                         "operationId":  "gerar_debate_api_debate_gerar_post",
+                                                         "requestBody":  "@{content=; required=True}",
+                                                         "responses":  "@{200=; 422=}"
+                                                     }
+                                        },
+                  "/api/debate-local/perfis":  {
+                                                   "get":  {
+                                                               "tags":  "Debate Local",
+                                                               "summary":  "Listar Perfis",
+                                                               "description":  "Lista perfis disponÃ­veis para debate/podcast.",
+                                                               "operationId":  "listar_perfis_api_debate_local_perfis_get",
+                                                               "responses":  "@{200=}"
+                                                           }
+                                               },
+                  "/api/debate-local/gerar":  {
+                                                  "post":  {
+                                                               "tags":  "Debate Local",
+                                                               "summary":  "Gerar Debate Local",
+                                                               "description":  "Gera debate ou podcast usando o modelo Ollama selecionado.",
+                                                               "operationId":  "gerar_debate_local_api_debate_local_gerar_post",
+                                                               "requestBody":  "@{content=; required=True}",
+                                                               "responses":  "@{200=; 422=}"
+                                                           }
+                                              },
+                  "/api/topicos/listar":  {
+                                              "get":  {
+                                                          "tags":  "TÃ³picos",
+                                                          "summary":  "Listar Topicos",
+                                                          "description":  "Retorna a lista de tÃ³picos disponÃ­veis.",
+                                                          "operationId":  "listar_topicos_api_topicos_listar_get",
+                                                          "responses":  "@{200=}"
+                                                      }
+                                          },
+                  "/api/topicos/sortear":  {
+                                               "get":  {
+                                                           "tags":  "TÃ³picos",
+                                                           "summary":  "Sortear Topico",
+                                                           "description":  "Retorna um tÃ³pico aleatÃ³rio da lista.",
+                                                           "operationId":  "sortear_topico_api_topicos_sortear_get",
+                                                           "responses":  "@{200=}"
+                                                       },
+                                               "post":  {
+                                                            "tags":  "TÃ³picos",
+                                                            "summary":  "Sortear Topico Post",
+                                                            "description":  "Retorna um tÃ³pico aleatÃ³rio da lista (POST).",
+                                                            "operationId":  "sortear_topico_post_api_topicos_sortear_post",
+                                                            "responses":  "@{200=}"
+                                                        }
+                                           },
+                  "/api/topicos/gerar":  {
+                                             "post":  {
+                                                          "tags":  "TÃ³picos",
+                                                          "summary":  "Gerar Topicos",
+                                                          "description":  "Gera novos tÃ³picos e adiciona ao topicos.txt.\n\nEstratÃ©gia (em ordem):\n1. Busca tÃ­tulos de feeds RSS (notÃ­cias reais) â sempre funciona\n2. Se DeepSeek estiver configurado, complementa com tÃ³picos gerados por IA\n3. Fallback: gera tÃ³picos padrÃ£o\n\nRetorna IMEDIATAMENTE e processa RSS em background.",
+                                                          "operationId":  "gerar_topicos_api_topicos_gerar_post",
+                                                          "parameters":  "",
+                                                          "responses":  "@{200=; 422=}"
+                                                      }
+                                         },
+                  "/api/topicos/rss":  {
+                                           "post":  {
+                                                        "tags":  "TÃ³picos",
+                                                        "summary":  "Topicos Via Rss",
+                                                        "description":  "Busca tÃ­tulos de feeds RSS e adiciona como tÃ³picos.\nProcessa em background e retorna imediatamente.",
+                                                        "operationId":  "topicos_via_rss_api_topicos_rss_post",
+                                                        "parameters":  "",
+                                                        "responses":  "@{200=; 422=}"
+                                                    }
+                                       },
+                  "/api/datasets/buscar":  {
+                                               "get":  {
+                                                           "tags":  "Datasets HF",
+                                                           "summary":  "Buscar",
+                                                           "description":  "Pesquisa datasets no HuggingFace Hub.",
+                                                           "operationId":  "buscar_api_datasets_buscar_get",
+                                                           "parameters":  " ",
+                                                           "responses":  "@{200=; 422=}"
+                                                       }
+                                           },
+                  "/api/datasets/tamanho":  {
+                                                "get":  {
+                                                            "tags":  "Datasets HF",
+                                                            "summary":  "Tamanho",
+                                                            "description":  "Tamanho real (MB) de um dataset do HuggingFace (datasets-server).",
+                                                            "operationId":  "tamanho_api_datasets_tamanho_get",
+                                                            "parameters":  "",
+                                                            "responses":  "@{200=; 422=}"
+                                                        }
+                                            },
+                  "/api/datasets/limpar":  {
+                                               "post":  {
+                                                            "tags":  "Datasets HF",
+                                                            "summary":  "Limpar",
+                                                            "description":  "Esquece o Ãºltimo download/tratamento (reset p/ idle).\nO pipeline 05 (origens limpas) tambÃ©m chama isso automaticamente.",
+                                                            "operationId":  "limpar_api_datasets_limpar_post",
+                                                            "responses":  "@{200=}"
+                                                        }
+                                           },
+                  "/api/datasets/cancelar":  {
+                                                 "post":  {
+                                                              "tags":  "Datasets HF",
+                                                              "summary":  "Cancelar",
+                                                              "description":  "Cancela/libera um download travado ou em andamento (reset idle).\napagar=True (padrÃ£o) remove a pasta raw/\u003crepo\u003e para liberar espaÃ§o e\npermitir recomeÃ§ar â libera o botÃ£o Baixar mesmo se o thread pendurou.",
+                                                              "operationId":  "cancelar_api_datasets_cancelar_post",
+                                                              "requestBody":  "@{content=; required=True}",
+                                                              "responses":  "@{200=; 422=}"
+                                                          }
+                                             },
+                  "/api/datasets/baixar":  {
+                                               "post":  {
+                                                            "tags":  "Datasets HF",
+                                                            "summary":  "Baixar",
+                                                            "description":  "Baixa e explode um dataset do HuggingFace (em segundo plano).\ntratamento=\"auto\" (padrÃ£o) detecta o formato e aplica o tratamento certo:\nparquetâlimpeza leve v2, jsonlâsanitizar PT-BR + promoÃ§Ã£o p/ processed.",
+                                                            "operationId":  "baixar_api_datasets_baixar_post",
+                                                            "requestBody":  "@{content=; required=True}",
+                                                            "responses":  "@{200=; 422=}"
+                                                        }
+                                           },
+                  "/api/datasets/status":  {
+                                               "get":  {
+                                                           "tags":  "Datasets HF",
+                                                           "summary":  "Status",
+                                                           "description":  "Retorna o progresso do download em andamento (ou o Ãºltimo resultado).",
+                                                           "operationId":  "status_api_datasets_status_get",
+                                                           "responses":  "@{200=}"
+                                                       }
+                                           },
+                  "/api/datasets/listar":  {
+                                               "get":  {
+                                                           "tags":  "Datasets HF",
+                                                           "summary":  "Listar",
+                                                           "description":  "Lista os datasets jÃ¡ explodidos em dados/gerados/jsonl/ (subpastas).\n\nSÃ³ mostra pastas que realmente contÃªm .jsonl â pastas vazias (explosÃ£o\nabortada, \u0027perdidos\u0027, etc.) ficam OCULTAS da listagem.",
+                                                           "operationId":  "listar_api_datasets_listar_get",
+                                                           "responses":  "@{200=}"
+                                                       }
+                                           },
+                  "/api/datasets/baixados":  {
+                                                 "get":  {
+                                                             "tags":  "Datasets HF",
+                                                             "summary":  "Baixados",
+                                                             "description":  "Lista os datasets baixados (dados/raw).",
+                                                             "operationId":  "baixados_api_datasets_baixados_get",
+                                                             "responses":  "@{200=}"
+                                                         }
+                                             },
+                  "/api/datasets/explodir":  {
+                                                 "post":  {
+                                                              "tags":  "Datasets HF",
+                                                              "summary":  "Explodir",
+                                                              "description":  "ExplosÃ£o CONTROLADA de um dataset baixado (raw â gerados).\n\nAÃ§Ãµes: iniciar (estima antes: espaÃ§o/tempo na mÃ¡quina), pausar, retomar, parar.\nEstado + linha do tempo em estado/explosao_estado.json e logs/explosao.log.",
+                                                              "operationId":  "explodir_api_datasets_explodir_post",
+                                                              "requestBody":  "@{content=; required=True}",
+                                                              "responses":  "@{200=; 422=}"
+                                                          }
+                                             },
+                  "/api/datasets/explodir/status":  {
+                                                        "get":  {
+                                                                    "tags":  "Datasets HF",
+                                                                    "summary":  "Explodir Status",
+                                                                    "operationId":  "explodir_status_api_datasets_explodir_status_get",
+                                                                    "responses":  "@{200=}"
+                                                                }
+                                                    },
+                  "/api/datasets/sanitizar":  {
+                                                  "post":  {
+                                                               "tags":  "Datasets HF",
+                                                               "summary":  "Sanitizar",
+                                                               "description":  "SanitizaÃ§Ã£o CONTROLADA (PT-BR): corrige mojibake, remove invÃ¡lidos,\ndescarta nÃ£o-portuguÃªs e grava rigelsanitizadoNN.jsonl em dados/sanitizados.\n\nAÃ§Ãµes: iniciar | parar | status. Estado + linha do tempo em\nestado/sanitizacao_estado.json e logs/sanitizacao.log.",
+                                                               "operationId":  "sanitizar_api_datasets_sanitizar_post",
+                                                               "requestBody":  "@{content=; required=True}",
+                                                               "responses":  "@{200=; 422=}"
+                                                           }
+                                              },
+                  "/api/datasets/sanitizar/status":  {
+                                                         "get":  {
+                                                                     "tags":  "Datasets HF",
+                                                                     "summary":  "Sanitizar Status",
+                                                                     "operationId":  "sanitizar_status_api_datasets_sanitizar_status_get",
+                                                                     "responses":  "@{200=}"
+                                                                 }
+                                                     },
+                  "/api/datasets/apagar":  {
+                                               "post":  {
+                                                            "tags":  "Datasets HF",
+                                                            "summary":  "Apagar",
+                                                            "description":  "Apaga os arquivos de um dataset que FALHOU na explosÃ£o (nÃ£o serve p/ treino).\n\nProcedimento lÃ³gico: apaga dados/raw/\u003crepo\u003e (parquet + dataset.jsonl) e a pasta\nexplodida vazia em dados/gerados/jsonl/\u003cdataset\u003e. Depois limpa o estado persistido.\nO usuÃ¡rio confirma digitando APAGAR no frontend.",
+                                                            "operationId":  "apagar_api_datasets_apagar_post",
+                                                            "requestBody":  "@{content=; required=True}",
+                                                            "responses":  "@{200=; 422=}"
+                                                        }
+                                           },
+                  "/api/treino_local/datasets":  {
+                                                     "get":  {
+                                                                 "tags":  "Treino Local",
+                                                                 "summary":  "Datasets",
+                                                                 "description":  "Datasets explodidos com contagem de bandeiras (nenhuma/branca/amarela/vermelha).\n\nRÃ¡pido: usa o CACHE persistente em disco (Ãºltimo escaneamento).\nSe nÃ£o houver cache ainda, dispara um escaneamento em background e\nretorna o que tiver (possivelmente vazio + status de progresso).",
+                                                                 "operationId":  "datasets_api_treino_local_datasets_get",
+                                                                 "responses":  "@{200=}"
+                                                             }
+                                                 },
+                  "/api/treino_local/reescanear":  {
+                                                       "post":  {
+                                                                    "tags":  "Treino Local",
+                                                                    "summary":  "Reescanear",
+                                                                    "description":  "Dispara (ou relanÃ§a) o escaneamento da estrutura em segundo plano.",
+                                                                    "operationId":  "reescanear_api_treino_local_reescanear_post",
+                                                                    "responses":  "@{200=}"
+                                                                }
+                                                   },
+                  "/api/treino_local/reescanear/status":  {
+                                                              "get":  {
+                                                                          "tags":  "Treino Local",
+                                                                          "summary":  "Reescanear Status",
+                                                                          "description":  "Progresso do escaneamento (para a barra de % no frontend).",
+                                                                          "operationId":  "reescanear_status_api_treino_local_reescanear_status_get",
+                                                                          "responses":  "@{200=}"
+                                                                      }
+                                                          },
+                  "/api/treino_local/arquivos":  {
+                                                     "get":  {
+                                                                 "tags":  "Treino Local",
+                                                                 "summary":  "Arquivos",
+                                                                 "description":  "Arquivos de um dataset com a bandeira atual de cada um.",
+                                                                 "operationId":  "arquivos_api_treino_local_arquivos_get",
+                                                                 "parameters":  "",
+                                                                 "responses":  "@{200=; 422=}"
+                                                             }
+                                                 },
+                  "/api/treino_local/iniciar":  {
+                                                    "post":  {
+                                                                 "tags":  "Treino Local",
+                                                                 "summary":  "Iniciar",
+                                                                 "description":  "Inicia o treino de um arquivo (CPU se nÃ£o houver GPU).",
+                                                                 "operationId":  "iniciar_api_treino_local_iniciar_post",
+                                                                 "requestBody":  "@{content=; required=True}",
+                                                                 "responses":  "@{200=; 422=}"
+                                                             }
+                                                },
+                  "/api/treino_local/batch":  {
+                                                  "post":  {
+                                                               "tags":  "Treino Local",
+                                                               "summary":  "Batch",
+                                                               "description":  "Inicia uma FILA de treinamento: todos os .jsonl de uma pasta, um por vez.\n\nModos: \u0027all\u0027/\u0027completo\u0027/\u0027arquivo\u0027 (atÃ© acabar) | \u0027time\u0027/\u0027tempo\u0027 (X horas) |\n\u0027pause\u0027 (para ao detectar PAUSA_SEGURA.txt). O modelo Ã© salvo entre arquivos,\no LR Ã© reiniciado por arquivo e o progresso fica em modelo/estado_fila.json\n(retomÃ¡vel com resume=true).",
+                                                               "operationId":  "batch_api_treino_local_batch_post",
+                                                               "requestBody":  "@{content=; required=True}",
+                                                               "responses":  "@{200=; 422=}"
+                                                           }
+                                              },
+                  "/api/treino_local/pausar":  {
+                                                   "post":  {
+                                                                "tags":  "Treino Local",
+                                                                "summary":  "Pausar",
+                                                                "description":  "Pausa a fila em andamento (cria PAUSA_SEGURA.txt â a fila termina o\narquivo atual, salva o modelo e para).",
+                                                                "operationId":  "pausar_api_treino_local_pausar_post",
+                                                                "responses":  "@{200=}"
+                                                            }
+                                               },
+                  "/api/treino_local/retomar":  {
+                                                    "post":  {
+                                                                 "tags":  "Treino Local",
+                                                                 "summary":  "Retomar",
+                                                                 "description":  "Retoma a fila pausada (remove o marcador e reinicia com --resume,\ncontinuando do arquivo onde parou).",
+                                                                 "operationId":  "retomar_api_treino_local_retomar_post",
+                                                                 "responses":  "@{200=}"
+                                                             }
+                                                },
+                  "/api/treino_local/status":  {
+                                                   "get":  {
+                                                               "tags":  "Treino Local",
+                                                               "summary":  "Status",
+                                                               "description":  "Estado atual do treino + buffer de mensagens em tempo real.",
+                                                               "operationId":  "status_api_treino_local_status_get",
+                                                               "responses":  "@{200=}"
+                                                           }
+                                               },
+                  "/api/treino_local/mover":  {
+                                                  "post":  {
+                                                               "tags":  "Treino Local",
+                                                               "summary":  "Mover",
+                                                               "description":  "Move um dataset validado de gerados/jsonl para dados/processed (flags seguem).",
+                                                               "operationId":  "mover_api_treino_local_mover_post",
+                                                               "requestBody":  "@{content=; required=True}",
+                                                               "responses":  "@{200=; 422=}"
+                                                           }
+                                              },
+                  "/api/treino_local/promover":  {
+                                                     "post":  {
+                                                                  "tags":  "Treino Local",
+                                                                  "summary":  "Promover",
+                                                                  "description":  "Valida e copia somente os arquivos VÃLIDOS para dados/processed/jsonl/.",
+                                                                  "operationId":  "promover_api_treino_local_promover_post",
+                                                                  "requestBody":  "@{content=; required=True}",
+                                                                  "responses":  "@{200=; 422=}"
+                                                              }
+                                                 },
+                  "/api/treino_local/parar":  {
+                                                  "post":  {
+                                                               "tags":  "Treino Local",
+                                                               "summary":  "Parar",
+                                                               "description":  "Para o treino em andamento (o arquivo NÃO Ã© marcado como treinado).",
+                                                               "operationId":  "parar_api_treino_local_parar_post",
+                                                               "responses":  "@{200=}"
+                                                           }
+                                              },
+                  "/api/treino_local/backups":  {
+                                                    "get":  {
+                                                                "tags":  "Treino Local",
+                                                                "summary":  "Backups",
+                                                                "description":  "Lista os backups disponÃ­veis em modelo/backups/.",
+                                                                "operationId":  "backups_api_treino_local_backups_get",
+                                                                "responses":  "@{200=}"
+                                                            }
+                                                },
+                  "/api/treino_local/backup_criar":  {
+                                                         "post":  {
+                                                                      "tags":  "Treino Local",
+                                                                      "summary":  "Backup Criar",
+                                                                      "description":  "Faz um backup manual dos modelos atuais.",
+                                                                      "operationId":  "backup_criar_api_treino_local_backup_criar_post",
+                                                                      "responses":  "@{200=}"
+                                                                  }
+                                                     },
+                  "/api/treino_local/backup_restaurar":  {
+                                                             "post":  {
+                                                                          "tags":  "Treino Local",
+                                                                          "summary":  "Backup Restaurar",
+                                                                          "description":  "Restaura um backup (guarda o modelo atual antes, por seguranÃ§a).",
+                                                                          "operationId":  "backup_restaurar_api_treino_local_backup_restaurar_post",
+                                                                          "requestBody":  "@{content=; required=True}",
+                                                                          "responses":  "@{200=; 422=}"
+                                                                      }
+                                                         },
+                  "/api/treino_colab/datasets":  {
+                                                     "get":  {
+                                                                 "tags":  "Treino Colab",
+                                                                 "summary":  "Datasets",
+                                                                 "description":  "Lista datasets VALIDADOS (processed) para treinar no Colab.",
+                                                                 "operationId":  "datasets_api_treino_colab_datasets_get",
+                                                                 "responses":  "@{200=}"
+                                                             }
+                                                 },
+                  "/api/treino_colab/gerar":  {
+                                                  "post":  {
+                                                               "tags":  "Treino Colab",
+                                                               "summary":  "Gerar",
+                                                               "description":  "Gera o notebook configurado com o modo/dataset/parÃ¢metros escolhidos.",
+                                                               "operationId":  "gerar_api_treino_colab_gerar_post",
+                                                               "requestBody":  "@{content=; required=True}",
+                                                               "responses":  "@{200=; 422=}"
+                                                           }
+                                              },
+                  "/api/executor/iniciar":  {
+                                                "post":  {
+                                                             "tags":  "Executor",
+                                                             "summary":  "Iniciar",
+                                                             "operationId":  "iniciar_api_executor_iniciar_post",
+                                                             "requestBody":  "@{content=; required=True}",
+                                                             "responses":  "@{200=; 422=}"
+                                                         }
+                                            },
+                  "/api/executor/status":  {
+                                               "get":  {
+                                                           "tags":  "Executor",
+                                                           "summary":  "Status",
+                                                           "operationId":  "status_api_executor_status_get",
+                                                           "parameters":  "",
+                                                           "responses":  "@{200=; 422=}"
+                                                       }
+                                           },
+                  "/api/executor/origens":  {
+                                                "get":  {
+                                                            "tags":  "Executor",
+                                                            "summary":  "Origens",
+                                                            "description":  "Lista origens de sanitizaÃ§Ã£o disponÃ­veis (dropdown automÃ¡tico).\n\nO usuÃ¡rio NÃO digita caminho (celular/TV, regra 05/08): escolhe no\ndropdown. O que jÃ¡ foi sanitizado aparece com flag `sanitizado: true`\n(o frontend pode desabilitar para nÃ£o repetir).",
+                                                            "operationId":  "origens_api_executor_origens_get",
+                                                            "responses":  "@{200=}"
+                                                        }
+                                            },
+                  "/api/executor/parar":  {
+                                              "post":  {
+                                                           "tags":  "Executor",
+                                                           "summary":  "Parar",
+                                                           "description":  "Para uma atividade (aid) ou todas (se vazio).",
+                                                           "operationId":  "parar_api_executor_parar_post",
+                                                           "requestBody":  "@{content=}",
+                                                           "responses":  "@{200=; 422=}"
+                                                       }
+                                          },
+                  "/api/executor/limpar":  {
+                                               "post":  {
+                                                            "tags":  "Executor",
+                                                            "summary":  "Limpar",
+                                                            "operationId":  "limpar_api_executor_limpar_post",
+                                                            "responses":  "@{200=}"
+                                                        }
+                                           },
+                  "/api/executor/limpar-historico":  {
+                                                         "post":  {
+                                                                      "tags":  "Executor",
+                                                                      "summary":  "Limpar Historico",
+                                                                      "operationId":  "limpar_historico_api_executor_limpar_historico_post",
+                                                                      "responses":  "@{200=}"
+                                                                  }
+                                                     },
+                  "/api/executor/stream":  {
+                                               "get":  {
+                                                           "tags":  "Executor",
+                                                           "summary":  "Stream",
+                                                           "description":  "SSE â canal de comunicaÃ§Ã£o em tempo real da saÃ­da de UMA atividade.\n\nO frontend lÃª as linhas do buffer via EventSource; a cada 1s envia as\nlinhas novas (se houver) + keep-alive. Ao terminar, envia [FIM].",
+                                                           "operationId":  "stream_api_executor_stream_get",
+                                                           "parameters":  "",
+                                                           "responses":  "@{200=; 422=}"
+                                                       }
+                                           },
+                  "/api/scrap/testar":  {
+                                            "post":  {
+                                                         "tags":  "Scrap",
+                                                         "summary":  "Testar",
+                                                         "operationId":  "testar_api_scrap_testar_post",
+                                                         "requestBody":  "@{content=; required=True}",
+                                                         "responses":  "@{200=; 422=}"
+                                                     }
+                                        },
+                  "/api/scrap/processar":  {
+                                               "post":  {
+                                                            "tags":  "Scrap",
+                                                            "summary":  "Processar",
+                                                            "operationId":  "processar_api_scrap_processar_post",
+                                                            "requestBody":  "@{content=; required=True}",
+                                                            "responses":  "@{200=; 422=}"
+                                                        }
+                                           },
+                  "/api/scrap/status":  {
+                                            "get":  {
+                                                        "tags":  "Scrap",
+                                                        "summary":  "Status",
+                                                        "operationId":  "status_api_scrap_status_get",
+                                                        "responses":  "@{200=}"
+                                                    }
+                                        },
+                  "/api/scrap/limpar":  {
+                                            "post":  {
+                                                         "tags":  "Scrap",
+                                                         "summary":  "Limpar",
+                                                         "operationId":  "limpar_api_scrap_limpar_post",
+                                                         "responses":  "@{200=}"
+                                                     }
+                                        },
+                  "/api/scrap/listar":  {
+                                            "get":  {
+                                                        "tags":  "Scrap",
+                                                        "summary":  "Listar",
+                                                        "operationId":  "listar_api_scrap_listar_get",
+                                                        "responses":  "@{200=}"
+                                                    }
+                                        },
+                  "/api/tratamento/listar":  {
+                                                 "get":  {
+                                                             "tags":  "Tratamento",
+                                                             "summary":  "Listar",
+                                                             "operationId":  "listar_api_tratamento_listar_get",
+                                                             "responses":  "@{200=}"
+                                                         }
+                                             },
+                  "/api/tratamento/tratar":  {
+                                                 "post":  {
+                                                              "tags":  "Tratamento",
+                                                              "summary":  "Tratar",
+                                                              "operationId":  "tratar_api_tratamento_tratar_post",
+                                                              "requestBody":  "@{content=; required=True}",
+                                                              "responses":  "@{200=; 422=}"
+                                                          }
+                                             },
+                  "/api/tratamento/status":  {
+                                                 "get":  {
+                                                             "tags":  "Tratamento",
+                                                             "summary":  "Status",
+                                                             "operationId":  "status_api_tratamento_status_get",
+                                                             "responses":  "@{200=}"
+                                                         }
+                                             },
+                  "/api/tratamento/limpar":  {
+                                                 "post":  {
+                                                              "tags":  "Tratamento",
+                                                              "summary":  "Limpar",
+                                                              "operationId":  "limpar_api_tratamento_limpar_post",
+                                                              "responses":  "@{200=}"
+                                                          }
+                                             },
+                  "/api/tratamento/formatos":  {
+                                                   "get":  {
+                                                               "tags":  "Tratamento",
+                                                               "summary":  "Formatos",
+                                                               "description":  "Tabela de formatos x tratamentos (para a UI).",
+                                                               "operationId":  "formatos_api_tratamento_formatos_get",
+                                                               "responses":  "@{200=}"
+                                                           }
+                                               },
+                  "/api/deploy/status":  {
+                                             "get":  {
+                                                         "tags":  "Deploy",
+                                                         "summary":  "Status",
+                                                         "operationId":  "status_api_deploy_status_get",
+                                                         "responses":  "@{200=}"
+                                                     }
+                                         },
+                  "/api/deploy/criar":  {
+                                            "post":  {
+                                                         "tags":  "Deploy",
+                                                         "summary":  "Criar",
+                                                         "operationId":  "criar_api_deploy_criar_post",
+                                                         "responses":  "@{200=}"
+                                                     }
+                                        },
+                  "/api/deploy/download/{nome}":  {
+                                                      "get":  {
+                                                                  "tags":  "Deploy",
+                                                                  "summary":  "Download",
+                                                                  "description":  "Serve o ZIP para download. Header de anexo â baixa direto no celular.",
+                                                                  "operationId":  "download_api_deploy_download__nome__get",
+                                                                  "parameters":  "",
+                                                                  "responses":  "@{200=; 422=}"
+                                                              }
+                                                  },
+                  "/api/deploy/remover":  {
+                                              "post":  {
+                                                           "tags":  "Deploy",
+                                                           "summary":  "Remover",
+                                                           "operationId":  "remover_api_deploy_remover_post",
+                                                           "requestBody":  "@{content=; required=True}",
+                                                           "responses":  "@{200=; 422=}"
+                                                       }
+                                          },
+                  "/api/celular/status":  {
+                                              "get":  {
+                                                          "tags":  "Celular",
+                                                          "summary":  "Status",
+                                                          "operationId":  "status_api_celular_status_get",
+                                                          "responses":  "@{200=}"
+                                                      }
+                                          },
+                  "/api/celular/exportar":  {
+                                                "post":  {
+                                                             "tags":  "Celular",
+                                                             "summary":  "Exportar",
+                                                             "operationId":  "exportar_api_celular_exportar_post",
+                                                             "responses":  "@{200=}"
+                                                         }
+                                            },
+                  "/api/celular/download/{nome}":  {
+                                                       "get":  {
+                                                                   "tags":  "Celular",
+                                                                   "summary":  "Download",
+                                                                   "operationId":  "download_api_celular_download__nome__get",
+                                                                   "parameters":  "",
+                                                                   "responses":  "@{200=; 422=}"
+                                                               }
+                                                   },
+                  "/api/celular/remover_exportacao":  {
+                                                          "post":  {
+                                                                       "tags":  "Celular",
+                                                                       "summary":  "Remover Exportacao",
+                                                                       "operationId":  "remover_exportacao_api_celular_remover_exportacao_post",
+                                                                       "requestBody":  "@{content=; required=True}",
+                                                                       "responses":  "@{200=; 422=}"
+                                                                   }
+                                                      },
+                  "/api/celular/importar/verificar":  {
+                                                          "get":  {
+                                                                      "tags":  "Celular",
+                                                                      "summary":  "Verificar",
+                                                                      "operationId":  "verificar_api_celular_importar_verificar_get",
+                                                                      "responses":  "@{200=}"
+                                                                  }
+                                                      },
+                  "/api/celular/importar":  {
+                                                "post":  {
+                                                             "tags":  "Celular",
+                                                             "summary":  "Importar",
+                                                             "operationId":  "importar_api_celular_importar_post",
+                                                             "responses":  "@{200=}"
+                                                         }
+                                            },
+                  "/api/convert_txt/pastas":  {
+                                                  "get":  {
+                                                              "tags":  "ConversÃ£o TXTâJSONL",
+                                                              "summary":  "Pastas",
+                                                              "description":  "Pastas com .txt disponÃ­veis para conversÃ£o (com contagem e tamanho).",
+                                                              "operationId":  "pastas_api_convert_txt_pastas_get",
+                                                              "responses":  "@{200=}"
+                                                          }
+                                              },
+                  "/api/convert_txt/converter":  {
+                                                     "post":  {
+                                                                  "tags":  "ConversÃ£o TXTâJSONL",
+                                                                  "summary":  "Converter",
+                                                                  "description":  "Inicia a conversÃ£o TXT â JSONL. Recusa se jÃ¡ houver treino/conversÃ£o.",
+                                                                  "operationId":  "converter_api_convert_txt_converter_post",
+                                                                  "requestBody":  "@{content=; required=True}",
+                                                                  "responses":  "@{200=; 422=}"
+                                                              }
+                                                 },
+                  "/api/convert_txt/progresso":  {
+                                                     "get":  {
+                                                                 "tags":  "ConversÃ£o TXTâJSONL",
+                                                                 "summary":  "Progresso",
+                                                                 "description":  "Estado da conversÃ£o + buffer de mensagens em tempo real.",
+                                                                 "operationId":  "progresso_api_convert_txt_progresso_get",
+                                                                 "responses":  "@{200=}"
+                                                             }
+                                                 },
+                  "/api/convert_txt/parar":  {
+                                                 "post":  {
+                                                              "tags":  "ConversÃ£o TXTâJSONL",
+                                                              "summary":  "Parar",
+                                                              "description":  "Para a conversÃ£o em andamento.",
+                                                              "operationId":  "parar_api_convert_txt_parar_post",
+                                                              "responses":  "@{200=}"
+                                                          }
+                                             },
+                  "/api/convert_txt/semafaro":  {
+                                                    "get":  {
+                                                                "tags":  "ConversÃ£o TXTâJSONL",
+                                                                "summary":  "Semafaro",
+                                                                "description":  "Estado do semÃ¡foro global (quem estÃ¡ rodando, se algo estÃ¡).",
+                                                                "operationId":  "semafaro_api_convert_txt_semafaro_get",
+                                                                "responses":  "@{200=}"
+                                                            }
+                                                },
+                  "/api/dados/painel":  {
+                                            "get":  {
+                                                        "tags":  "Dados / Funil",
+                                                        "summary":  "Painel",
+                                                        "description":  "Estado do funil de dados. Se nunca varreu, dispara em background.",
+                                                        "operationId":  "painel_api_dados_painel_get",
+                                                        "responses":  "@{200=}"
+                                                    }
+                                        },
+                  "/api/dados/painel/varredura":  {
+                                                      "post":  {
+                                                                   "tags":  "Dados / Funil",
+                                                                   "summary":  "Varredura",
+                                                                   "description":  "ForÃ§a uma nova varredura (background, com barra de %).",
+                                                                   "operationId":  "varredura_api_dados_painel_varredura_post",
+                                                                   "responses":  "@{200=}"
+                                                               }
+                                                  },
+                  "/":  {
+                            "get":  {
+                                        "summary":  "Home",
+                                        "operationId":  "home__get",
+                                        "responses":  "@{200=}"
+                                    }
+                        },
+                  "/treinamento":  {
+                                       "get":  {
+                                                   "summary":  "Treinamento",
+                                                   "operationId":  "treinamento_treinamento_get",
+                                                   "responses":  "@{200=}"
+                                               }
+                                   },
+                  "/converter_txt":  {
+                                         "get":  {
+                                                     "summary":  "Converter Txt",
+                                                     "operationId":  "converter_txt_converter_txt_get",
+                                                     "responses":  "@{200=}"
+                                                 }
+                                     },
+                  "/chat":  {
+                                "get":  {
+                                            "summary":  "Chat",
+                                            "operationId":  "chat_chat_get",
+                                            "responses":  "@{200=}"
+                                        }
+                            },
+                  "/rss":  {
+                               "get":  {
+                                           "summary":  "Rss",
+                                           "operationId":  "rss_rss_get",
+                                           "responses":  "@{200=}"
+                                       }
+                           },
+                  "/converter":  {
+                                     "get":  {
+                                                 "summary":  "Converter",
+                                                 "operationId":  "converter_converter_get",
+                                                 "responses":  "@{200=}"
+                                             }
+                                 },
+                  "/gerar_dados":  {
+                                       "get":  {
+                                                   "summary":  "Gerar Dados",
+                                                   "operationId":  "gerar_dados_gerar_dados_get",
+                                                   "responses":  "@{200=}"
+                                               }
+                                   },
+                  "/gerar_local":  {
+                                       "get":  {
+                                                   "summary":  "Gerar Local",
+                                                   "operationId":  "gerar_local_gerar_local_get",
+                                                   "responses":  "@{200=}"
+                                               }
+                                   },
+                  "/logs":  {
+                                "get":  {
+                                            "summary":  "Logs",
+                                            "operationId":  "logs_logs_get",
+                                            "responses":  "@{200=}"
+                                        }
+                            },
+                  "/debate":  {
+                                  "get":  {
+                                              "summary":  "Debate Page",
+                                              "operationId":  "debate_page_debate_get",
+                                              "responses":  "@{200=}"
+                                          }
+                              },
+                  "/debate_local":  {
+                                        "get":  {
+                                                    "summary":  "Debate Local Page",
+                                                    "operationId":  "debate_local_page_debate_local_get",
+                                                    "responses":  "@{200=}"
+                                                }
+                                    },
+                  "/datasets":  {
+                                    "get":  {
+                                                "summary":  "Datasets Page",
+                                                "operationId":  "datasets_page_datasets_get",
+                                                "responses":  "@{200=}"
+                                            }
+                                },
+                  "/treino_local":  {
+                                        "get":  {
+                                                    "summary":  "Treino Local Page",
+                                                    "operationId":  "treino_local_page_treino_local_get",
+                                                    "responses":  "@{200=}"
+                                                }
+                                    },
+                  "/treino_colab":  {
+                                        "get":  {
+                                                    "summary":  "Treino Colab Page",
+                                                    "operationId":  "treino_colab_page_treino_colab_get",
+                                                    "responses":  "@{200=}"
+                                                }
+                                    },
+                  "/executor":  {
+                                    "get":  {
+                                                "summary":  "Executor Page",
+                                                "operationId":  "executor_page_executor_get",
+                                                "responses":  "@{200=}"
+                                            }
+                                },
+                  "/scrap":  {
+                                 "get":  {
+                                             "summary":  "Scrap Page",
+                                             "operationId":  "scrap_page_scrap_get",
+                                             "responses":  "@{200=}"
+                                         }
+                             },
+                  "/tratamento":  {
+                                      "get":  {
+                                                  "summary":  "Tratamento Page",
+                                                  "operationId":  "tratamento_page_tratamento_get",
+                                                  "responses":  "@{200=}"
+                                              }
+                                  },
+                  "/api/status":  {
+                                      "get":  {
+                                                  "summary":  "Api Status",
+                                                  "operationId":  "api_status_api_status_get",
+                                                  "responses":  "@{200=}"
+                                              }
+                                  },
+                  "/api/system/details":  {
+                                              "get":  {
+                                                          "summary":  "System Details",
+                                                          "operationId":  "system_details_api_system_details_get",
+                                                          "responses":  "@{200=}"
+                                                      }
+                                          },
+                  "/api/local-generate/pesquisa-status":  {
+                                                              "get":  {
+                                                                          "summary":  "Pesquisa Status",
+                                                                          "operationId":  "pesquisa_status_api_local_generate_pesquisa_status_get",
+                                                                          "responses":  "@{200=}"
+                                                                      }
+                                                          },
+                  "/api/local-generate/modelos":  {
+                                                      "get":  {
+                                                                  "summary":  "Local Modelos",
+                                                                  "description":  "Retorna a lista de modelos do Ollama e status online.",
+                                                                  "operationId":  "local_modelos_api_local_generate_modelos_get",
+                                                                  "responses":  "@{200=}"
+                                                              }
+                                                  },
+                  "/api/local-generate/topicos":  {
+                                                      "get":  {
+                                                                  "summary":  "Local Topicos",
+                                                                  "description":  "Retorna lista de tÃ³picos lida do arquivo topicos.txt",
+                                                                  "operationId":  "local_topicos_api_local_generate_topicos_get",
+                                                                  "responses":  "@{200=}"
+                                                              }
+                                                  },
+                  "/api/local-generate/templates":  {
+                                                        "get":  {
+                                                                    "summary":  "Local Templates",
+                                                                    "description":  "Retorna templates disponÃ­veis para geraÃ§Ã£o",
+                                                                    "operationId":  "local_templates_api_local_generate_templates_get",
+                                                                    "responses":  "@{200=}"
+                                                                }
+                                                    },
+                  "/api/local-generate/estilos":  {
+                                                      "get":  {
+                                                                  "summary":  "Local Estilos",
+                                                                  "description":  "Retorna estilos de escrita disponÃ­veis",
+                                                                  "operationId":  "local_estilos_api_local_generate_estilos_get",
+                                                                  "responses":  "@{200=}"
+                                                              }
+                                                  },
+                  "/api/local-generate/gerar":  {
+                                                    "post":  {
+                                                                 "summary":  "Local Gerar",
+                                                                 "description":  "Gera conteÃºdo usando o modelo Ollama via subprocess.\nAceita quantidade \u003e 1 para gerar mÃºltiplos itens com template/estilo aleatÃ³rios.\n\nEspera JSON: { template_id, tema, modelo, estilo, quantidade }",
+                                                                 "operationId":  "local_gerar_api_local_generate_gerar_post",
+                                                                 "responses":  "@{200=}"
+                                                             }
+                                                },
+                  "/api/local-generate/arquivos-salvos":  {
+                                                              "get":  {
+                                                                          "summary":  "Local Arquivos Salvos",
+                                                                          "description":  "Lista arquivos salvos em dados/gerados/gerados_local/",
+                                                                          "operationId":  "local_arquivos_salvos_api_local_generate_arquivos_salvos_get",
+                                                                          "responses":  "@{200=}"
+                                                                      }
+                                                          },
+                  "/api/local-generate/salvar-texto":  {
+                                                           "post":  {
+                                                                        "summary":  "Local Salvar Texto",
+                                                                        "description":  "Salva um texto em dados/gerados/gerados_local/",
+                                                                        "operationId":  "local_salvar_texto_api_local_generate_salvar_texto_post",
+                                                                        "responses":  "@{200=}"
+                                                                    }
+                                                       },
+                  "/api/local-generate/arquivo-salvo/{nome}":  {
+                                                                   "get":  {
+                                                                               "summary":  "Local Ler Arquivo",
+                                                                               "description":  "LÃª o conteÃºdo de um arquivo salvo.",
+                                                                               "operationId":  "local_ler_arquivo_api_local_generate_arquivo_salvo__nome__get",
+                                                                               "parameters":  "",
+                                                                               "responses":  "@{200=; 422=}"
+                                                                           }
+                                                               },
+                  "/api/ollama/test":  {
+                                           "get":  {
+                                                       "summary":  "Test Ollama",
+                                                       "description":  "Rota simples para testar se o Ollama responde.",
+                                                       "operationId":  "test_ollama_api_ollama_test_get",
+                                                       "responses":  "@{200=}"
+                                                   }
+                                       }
+              },
+    "components":  {
+                       "schemas":  {
+                                       "AddFeedRequest":  {
+                                                              "properties":  "@{url=}",
+                                                              "type":  "object",
+                                                              "required":  "url",
+                                                              "title":  "AddFeedRequest"
+                                                          },
+                                       "ApagarRequest":  {
+                                                             "properties":  "@{repo_id=; dataset=}",
+                                                             "type":  "object",
+                                                             "title":  "ApagarRequest"
+                                                         },
+                                       "BaixarRequest":  {
+                                                             "properties":  "@{repo_id=; max_total=; tratamento=}",
+                                                             "type":  "object",
+                                                             "required":  "repo_id",
+                                                             "title":  "BaixarRequest"
+                                                         },
+                                       "BatchRequest":  {
+                                                            "properties":  "@{pasta=; modo=; limite_horas=; resume=; epocas_por_arquivo=; pular_treinados=; forcar=}",
+                                                            "type":  "object",
+                                                            "required":  "pasta",
+                                                            "title":  "BatchRequest"
+                                                        },
+                                       "CancelarRequest":  {
+                                                               "properties":  "@{apagar=}",
+                                                               "type":  "object",
+                                                               "title":  "CancelarRequest"
+                                                           },
+                                       "ConvertRequest":  {
+                                                              "properties":  "@{modelo=; quantizacao=}",
+                                                              "type":  "object",
+                                                              "title":  "ConvertRequest"
+                                                          },
+                                       "ConverterRequest":  {
+                                                                "properties":  "@{pasta=; saida=; max_exemplos=; max_arquivos=; apenas_qna=}",
+                                                                "type":  "object",
+                                                                "required":  "pasta",
+                                                                "title":  "ConverterRequest"
+                                                            },
+                                       "DebateRequest":  {
+                                                             "properties":  "@{modo=; perfil=; convidados=; tema=; turnos=; pesquisar=; modelo=}",
+                                                             "type":  "object",
+                                                             "title":  "DebateRequest"
+                                                         },
+                                       "DialogosRequest":  {
+                                                               "properties":  "@{quantidade=; tipo=; tema=; formato=; pasta_jsonl=}",
+                                                               "type":  "object",
+                                                               "title":  "DialogosRequest"
+                                                           },
+                                       "DialogosV1Request":  {
+                                                                 "properties":  "@{quantidade=}",
+                                                                 "type":  "object",
+                                                                 "title":  "DialogosV1Request"
+                                                             },
+                                       "ExecutarRequest":  {
+                                                               "properties":  "@{comando=; args=; origem=; nome=; resultado_path=}",
+                                                               "type":  "object",
+                                                               "title":  "ExecutarRequest"
+                                                           },
+                                       "ExplodirRequest":  {
+                                                               "properties":  "@{acao=; caminho=; repo=; nome=}",
+                                                               "type":  "object",
+                                                               "title":  "ExplodirRequest"
+                                                           },
+                                       "Feedback":  {
+                                                        "properties":  "@{mensagem=; resposta=; feedback=; fontes=; topico=}",
+                                                        "type":  "object",
+                                                        "required":  "mensagem resposta feedback",
+                                                        "title":  "Feedback"
+                                                    },
+                                       "GerarAPIRequest":  {
+                                                               "properties":  "@{tipo=; tema=; quantidade=}",
+                                                               "type":  "object",
+                                                               "title":  "GerarAPIRequest"
+                                                           },
+                                       "GerarRequest":  {
+                                                            "properties":  "@{modo=; dataset=; dados=; max_arquivos=; epochs=; lr=; accum=; batch_size=; save_every=; num_workers=; precision=; preload=; resume=; testar_apos=; converter_gguf=; drive_path=}",
+                                                            "type":  "object",
+                                                            "title":  "GerarRequest"
+                                                        },
+                                       "HTTPValidationError":  {
+                                                                   "properties":  "@{detail=}",
+                                                                   "type":  "object",
+                                                                   "title":  "HTTPValidationError"
+                                                               },
+                                       "IniciarRequest":  {
+                                                              "properties":  "@{dataset=; arquivo=; epochs=; max_exemplos=; pular_treinados=; forcar=}",
+                                                              "type":  "object",
+                                                              "required":  "dataset arquivo",
+                                                              "title":  "IniciarRequest"
+                                                          },
+                                       "LimitesRequest":  {
+                                                              "properties":  "@{cpu_max_pct=; mem_min_livre_pct=; nucleos=; workers=; batch=}",
+                                                              "type":  "object",
+                                                              "title":  "LimitesRequest"
+                                                          },
+                                       "Mensagem":  {
+                                                        "properties":  "@{mensagem=; historico=; usar_pesquisa=; search_api=; temperatura=}",
+                                                        "type":  "object",
+                                                        "required":  "mensagem",
+                                                        "title":  "Mensagem"
+                                                    },
+                                       "ModeloRequest":  {
+                                                             "properties":  "@{modelo=}",
+                                                             "type":  "object",
+                                                             "required":  "modelo",
+                                                             "title":  "ModeloRequest"
+                                                         },
+                                       "MoverRequest":  {
+                                                            "properties":  "@{dataset=}",
+                                                            "type":  "object",
+                                                            "required":  "dataset",
+                                                            "title":  "MoverRequest"
+                                                        },
+                                       "ProcessarRequest":  {
+                                                                "properties":  "@{url=; formato=; nome=; modo=; preferencia=; profundidade=; max_materias=}",
+                                                                "type":  "object",
+                                                                "required":  "url",
+                                                                "title":  "ProcessarRequest"
+                                                            },
+                                       "PromoverRequest":  {
+                                                               "properties":  "@{dataset=; remover_invalidos=}",
+                                                               "type":  "object",
+                                                               "required":  "dataset",
+                                                               "title":  "PromoverRequest"
+                                                           },
+                                       "RemoverExportRequest":  {
+                                                                    "properties":  "@{nome=}",
+                                                                    "type":  "object",
+                                                                    "required":  "nome",
+                                                                    "title":  "RemoverExportRequest"
+                                                                },
+                                       "RemoverRequest":  {
+                                                              "properties":  "@{nome=}",
+                                                              "type":  "object",
+                                                              "required":  "nome",
+                                                              "title":  "RemoverRequest"
+                                                          },
+                                       "RestaurarRequest":  {
+                                                                "properties":  "@{arquivo=}",
+                                                                "type":  "object",
+                                                                "required":  "arquivo",
+                                                                "title":  "RestaurarRequest"
+                                                            },
+                                       "RssRequest":  {
+                                                          "properties":  "@{quantidade=; feeds=; modelo_resumo=}",
+                                                          "type":  "object",
+                                                          "title":  "RssRequest"
+                                                      },
+                                       "RssTestRequest":  {
+                                                              "properties":  "@{url=}",
+                                                              "type":  "object",
+                                                              "required":  "url",
+                                                              "title":  "RssTestRequest"
+                                                          },
+                                       "SalvarConversaRequest":  {
+                                                                     "properties":  "@{mensagens=; topico=; personalidade=}",
+                                                                     "type":  "object",
+                                                                     "required":  "mensagens",
+                                                                     "title":  "SalvarConversaRequest"
+                                                                 },
+                                       "SanitizarRequest":  {
+                                                                "properties":  "@{acao=; origem=; saida_dir=; exemplos_por_arquivo=; max_arquivos=}",
+                                                                "type":  "object",
+                                                                "title":  "SanitizarRequest"
+                                                            },
+                                       "ScriptRequest":  {
+                                                             "properties":  "@{script=}",
+                                                             "type":  "object",
+                                                             "required":  "script",
+                                                             "title":  "ScriptRequest"
+                                                         },
+                                       "TestarRequest":  {
+                                                             "properties":  "@{url=}",
+                                                             "type":  "object",
+                                                             "required":  "url",
+                                                             "title":  "TestarRequest"
+                                                         },
+                                       "TratarRequest":  {
+                                                             "properties":  "@{nomes=}",
+                                                             "type":  "object",
+                                                             "title":  "TratarRequest"
+                                                         },
+                                       "TreinoRequest":  {
+                                                             "properties":  "@{pastas=; max_arquivos=; resume=; epochs=; tipo=}",
+                                                             "type":  "object",
+                                                             "title":  "TreinoRequest"
+                                                         },
+                                       "ValidationError":  {
+                                                               "properties":  "@{loc=; msg=; type=; input=; ctx=}",
+                                                               "type":  "object",
+                                                               "required":  "loc msg type",
+                                                               "title":  "ValidationError"
+                                                           },
+                                       "dashboard__routes__debate__GerarDebateRequest":  {
+                                                                                             "properties":  "@{modo=; perfil=; convidados=; tema=; turnos=; pesquisar=}",
+                                                                                             "type":  "object",
+                                                                                             "title":  "GerarDebateRequest"
+                                                                                         },
+                                       "dashboard__routes__generate__GerarDebateRequest":  {
+                                                                                               "properties":  "@{tema=; perfis=; quantidade_turnos=; pesquisar=}",
+                                                                                               "type":  "object",
+                                                                                               "title":  "GerarDebateRequest"
+                                                                                           }
+                                   }
+                   }
+}
