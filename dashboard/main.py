@@ -72,6 +72,41 @@ IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
 # ============================================================================
+# ANTI-TRAVAMENTO DE STDOUT/STDERR (uvicorn --reload no Windows)
+# ============================================================================
+# O uvicorn --reload no Windows roda o worker com stdout/stderr em PIPE para o
+# supervisor. Se o pipe não é drenado a tempo, qualquer print()/log dos
+# handlers BLOQUEIA o event loop (o healthcheck para de responder e o
+# watchdog do run_dashboard.bat mata o servidor — era o "Failed to fetch" e o
+# servidor subindo/descendo sozinho).
+#
+# Aqui redirecionamos stdout/stderr para um arquivo SEMPRE. Os logs continuam
+# gravados em logs/uvicorn_stdout.log (visíveis para debug) e o middleware de
+# requests.log continua registrando as chamadas /api. O console do supervisor
+# (janela "RigelSLM Uvicorn") não perde nada: o access log do worker --reload
+# já não aparece lá (vai para o pipe do supervisor).
+try:
+    import sys as _sys
+    _out_log = open(LOGS_DIR / "uvicorn_stdout.log", "a", encoding="utf-8", buffering=1)
+    _sys.stdout = _out_log
+    _sys.stderr = _out_log
+    print(f"[{datetime.now().isoformat()}] stdout/stderr redirecionado para "
+          f"uvicorn_stdout.log (anti-travamento de pipe)")
+except Exception:
+    pass
+
+# Desliga o ACCESS LOG do uvicorn: é ele quem escreve UMA linha por request no
+# stdout/stderr do worker --reload (que está em pipe) — a causa do pipe encher
+# e travar o event loop sob carga de polling. A visibilidade continua garantida
+# pelo middleware que grava logs/requests.log (status + tempo de toda /api).
+try:
+    import logging as _logging
+    _logging.getLogger("uvicorn.access").disabled = True
+    _logging.getLogger("uvicorn").setLevel(_logging.WARNING)
+except Exception:
+    pass
+
+# ============================================================================
 # LOG DE REQUISIÇÕES — visibilidade real (regra de ouro: "o usuário precisa
 # ver o que acontece"). Registra TODOS os erros (com a exceção real, nunca
 # "failed to fetch" sem causa) e todas as chamadas /api (status + tempo).
@@ -203,6 +238,20 @@ async def get_system_status():
 # ============================================================================
 # FUNÇÃO PARA DADOS DETALHADOS DO SISTEMA (com cache de 10s)
 # ============================================================================
+def _sanitizar_json(obj):
+    """Substitui float('inf')/float('-inf')/NaN por None recursivamente —
+    evita 'Out of range float values are not JSON compliant' (ex.: loss inf
+    no histórico de treino)."""
+    import math
+    if isinstance(obj, float):
+        return None if not math.isfinite(obj) else obj
+    if isinstance(obj, dict):
+        return {k: _sanitizar_json(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitizar_json(v) for v in obj]
+    return obj
+
+
 def get_full_status():
     global _cache
     now = datetime.now().timestamp()
@@ -358,6 +407,10 @@ def get_full_status():
         "metricas": historico_metricas,
         "maturidade": maturidade,
     }
+
+    # Sanitiza inf/nan (ex.: "melhor loss inf" no histórico de treino) para
+    # nunca estourar "Out of range float values are not JSON compliant".
+    result = _sanitizar_json(result)
 
     _cache["full_status"] = result
     _cache["full_status_time"] = now
@@ -629,9 +682,15 @@ async def local_gerar(request: Request):
 
             prompt = templates_map[tid](tema, eid)
 
-            # Chama o Ollama via subprocess
+            # Chama o Ollama via subprocess.
+            # IMPORTANTE: roda em thread (asyncio.to_thread) para NÃO bloquear
+            # o event loop do uvicorn. Antes era subprocess.run() direto no
+            # handler async → o servidor ficava 30-40s sem responder o
+            # healthcheck → o watchdog do run_dashboard.bat matava o servidor
+            # ("Failed to fetch" / servidor subindo e descendo sozinho).
             cmd = ["ollama", "run", modelo, prompt]
-            proc = subprocess.run(
+            proc = await asyncio.to_thread(
+                subprocess.run,
                 cmd,
                 capture_output=True,
                 text=True,

@@ -22,8 +22,8 @@ LOGS_DIR = BASE_DIR / "logs"
 OLLAMA_URL = "http://localhost:11434"
 
 # ─── Serviço de Pesquisa Web ───
-from dashboard.services.pesquisa import pesquisar
-from dashboard.services.limpeza import limpar_e_aviso, verificar_disponivel, PESQUISA_SEMPRE_ATIVA
+from dashboard.services.pesquisa import pesquisar, verificar_disponivel, PESQUISA_SEMPRE_ATIVA
+from dashboard.services.limpeza import limpar_e_aviso
 _ddgs_available = verificar_disponivel()
 
 
@@ -531,12 +531,7 @@ async def gerar_conteudo(req: GerarRequest):
 
     return StreamingResponse(
         _gerar_stream(modelo, system_msg, prompt_texto, temperatura, max_tokens, task_id),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-        }
+        media_type="text/event-stream"
     )
 
 

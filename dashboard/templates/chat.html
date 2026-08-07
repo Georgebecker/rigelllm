@@ -283,7 +283,7 @@
           <button @click="m.fontesAbertas = !m.fontesAbertas"
                   title="🔗 Fontes usadas para esta resposta"
                   class="text-[10px] bg-sky-600/10 hover:bg-sky-600/20 text-sky-400 px-2 py-0.5 rounded-lg">
-            <span x-text="m.fontesAbertas ? '🔽 Ocultar fontes (' + m.fontes.length + ')' : '🔗 Ver fontes (' + m.fontes.length + ')'"></span>
+            <span x-text="m.fontesAbertas ? '🔽 Ocultar fontes (' + (m.fontes?.length || 0) + ')' : '🔗 Ver fontes (' + (m.fontes?.length || 0) + ')'"></span>
           </button>
           <div x-show="m.fontesAbertas" class="mt-1 space-y-0.5">
             <template x-for="(f, fi) in m.fontes" :key="fi">

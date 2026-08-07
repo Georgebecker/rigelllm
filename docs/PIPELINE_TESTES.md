@@ -55,9 +55,34 @@
 - ✅ **CORRIGIDO**: ambas as chamadas agora checam `args.no_interactive` — em modo não-interativo não perguntam: checkpoint vira "não continuar" e épocas concluídas finalizam automaticamente.
 - ✅ **BOM — Treino TXT end-to-end**: `treino.py --dados dados/processed/Cronicas --max-arquivos 1 --batch-size 4 --no-interactive` completou 20 épocas + early stopping, salvou `modelo/modelo.pt` e **terminou sozinho com EXIT 0** (sem travar).
 
+### Conversão GGUF
+- ✅ **BOM — Conversão completa**: `converter_para_gguf.py --model modelo/modelo_melhor.pt --quant Q4_K_M` → 75 tensores mapeados, tokenizer exportado (23.830 tokens, 23.688 merges), base F16 111,55MB em 0,75s, quantização Q4_K_M real via llama-quantize → 36,39MB. "CONVERSÃO CONCLUÍDA".
+- ⚠️ **OBS — `--output` ignorado na etapa de quantização**: o GGUF base respeita `--output`, mas o quantizado sempre salva como `rigelslm_Q4_K_M.gguf` (padrão), sobrescrevendo o existente. Menor (a revisar se vale corrigir).
+
 ### Chat
 - ✅ **BOM — Envio de mensagem via Ollama**: `/api/chat/send` respondeu "A capital do Brasil é Brasília." em 13,8s (llama3.2:3b).
 - ✅ **BOM — Salvamento de conversa**: 2 pares salvos (já validado).
+- ✅ **BOM — Salvar conversa pelo dashboard (07/08 tarde)**: enviei "Me conte uma curiosidade sobre o Brasil" via chat → streaming completo → cliquei 💾 → `dados/gerados/jsonl/chat_salvos/conversa_20260807_201507.jsonl` (1,6 KB) criado no formato SFT (system+user+assistant) com `topico: geral`.
+- ✅ **CORRIGIDO — Erro Alpine `m.fontes.length`**: expressão `m.fontesAbertas ? ... m.fontes.length ...` quebrava quando `fontes` era `undefined` (mensagem sem pesquisa). Agora usa `(m.fontes?.length || 0)` — console limpo após correção.
+
+### Geração Local (página /gerar_local) — BUG GRAVE CORRIGIDO
+- 🔴 **RUIM — "Failed to fetch" na geração**: o POST `/api/local-generate/gerar` bloqueava o event loop do uvicorn por 30-44s → healthcheck não respondia → o watchdog do `run_dashboard.bat` matava o servidor ("Failed to fetch", servidor subindo/descendo, processos recriados a cada tentativa).
+- 🔍 **CAUSA RAIZ**: o `/gerar` do `main.py` (linha ~626, `local_gerar`) usava **`subprocess.run(["ollama", "run", ...])` SÍNCRONO dentro do handler async** — travava o event loop durante toda a geração. (O `local_generate.py` corrigido nem era usado — o main.py tem implementação própria com subprocess.)
+- ✅ **CORRIGIDO**: `proc = await asyncio.to_thread(subprocess.run, ...)` — roda em thread, não bloqueia o loop.
+- ✅ **VALIDADO no 8000 (servidor real)**: `/gerar` → **200 em 44s, resposta completa** ("Diálogo: Pessoa A/B sobre teste de geração"), **8000 VIVO após** (watchdog não mata mais).
+- ✅ **Teste de bloqueio**: durante a geração, o healthcheck respondeu 12/12 (antes: 3-6/12 com timeout).
+- ✅ **CORRIGIDO — Import quebrado em `local_generate.py`**: `from dashboard.services.limpeza import ... verificar_disponivel, PESQUISA_SEMPRE_ATIVA` → esses símbolos estão em `pesquisa.py`. Corrigido para `from dashboard.services.pesquisa import pesquisar, verificar_disponivel, PESQUISA_SEMPRE_ATIVA` + `from dashboard.services.limpeza import limpar_e_aviso`.
+
+### Sistema (API) — BUG CORRIGIDO
+- 🔴 **RUIM — `/api/system/details` 500**: `ValueError: Out of range float values are not JSON compliant: inf` (histórico de treino com "melhor loss inf").
+- ✅ **CORRIGIDO**: função `_sanitizar_json()` substitui `inf`/`nan` por `None` recursivamente no `get_full_status()`. Validado: `/api/system/details` → **200 em 209ms**.
+- 🛡️ **Anti-travamento de stdout**: `main.py` redireciona stdout/stderr para `logs/uvicorn_stdout.log` (worker `--reload` roda com pipe; print() sem drenagem travava) e desliga o access log do uvicorn (a visibilidade real segue no `logs/requests.log`).
+
+### Dashboard (testes de botões pelo navegador, 07/08 tarde)
+- ✅ **BOM — Converter GGUF**: cliquei "Converter" (modelo_melhor.pt → Q4_K_M) → "✅ Conversão iniciada" → completou; "Criar no Ollama" → "✅ Modelo criado com sucesso!" (rigelslm, exit 0, manifest escrito).
+- ✅ **BOM — Treinamento**: página carrega com dados reais (Época 6/20, Loss 8.4517, Checkpoint ✅); "💾 Salvar configurações" → `config_recursos.json` atualizado (NUCLEOS_USO=16, WORKERS=2, BATCH=16).
+- ✅ **BOM — RSS**: "Selecionar todos" marca os 36 feeds; "Limpar" desmarca; "Processar 1" (Agência Brasil) → "✅ 1 feed em 2º plano" → log ativo raspando notícias.
+- ✅ **BOM — Gerar Dados**: "⟳ Recarregar" popula centenas de tópicos; "🎲" sorteia ("O subtítulo e a especificação"); "🚀 Gerar via API" corretamente desabilitado (sem DEEPSEEK_API_KEY — não gasta saldo).
 
 ### Executor
 - ✅ **BOM — Gestor funciona**: inicia atividade (verificar_encoding), roda em subprocesso, captura erro com mensagem clara, estado persistido.
