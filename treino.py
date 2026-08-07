@@ -377,13 +377,23 @@ def perguntar_quantidade_arquivos(total_disponivel: int) -> int:
             print("⚠️ Entrada inválida. Digite um número ou 'todos'.")
 
 def perguntar_continuar_apos_epocas(epoch_atual: int, total_epochs: int, pasta_atual: str,
-                                    best_val_loss: float = float('inf')) -> Tuple[str, int, bool]:
+                                    best_val_loss: float = float('inf'),
+                                    no_interactive: bool = False) -> Tuple[str, int, bool]:
     """
     Retorna: (nova_pasta, novas_epocas, resetar)
     - novas_epocas > 0: adiciona épocas extras na pasta atual.
     - resetar = True: reinicia treino do zero (apenas em caso extremo).
     - Se resetar = False e pasta mudar, mantém checkpoint.
+
+    Em modo não-interativo (no_interactive=True), NÃO pode travar esperando
+    input: encerra o treino automaticamente (retorna a pasta atual sem
+    épocas extras → o loop cai no `break` e salva o modelo final).
     """
+    if no_interactive:
+        log(f"ℹ️ Modo não-interativo: épocas concluídas ({epoch_atual}/{total_epochs}). "
+            f"Finalizando treino automaticamente.", "INFO")
+        return pasta_atual, 0, False
+
     print("\n" + "="*60)
     print(f"📌 Você completou {epoch_atual} épocas (limite: {total_epochs}).")
     if best_val_loss != float('inf'):
@@ -1091,7 +1101,15 @@ def main():
             ep = checkpoint.get('epoch', 0)
             best_loss = checkpoint.get('best_val_loss', float('inf'))
             log(f"📦 Checkpoint encontrado (época {ep}, melhor loss {best_loss:.4f})")
-            resp = input("   Continuar de onde parou? (s/N): ").strip().lower()
+            if getattr(args, "no_interactive", False):
+                # Modo não-interativo (dashboard): NÃO pode travar esperando input.
+                # Trata como "não continuar" (começa do modelo salvo), a menos
+                # que --resume seja passado explicitamente.
+                log("ℹ️ Modo não-interativo: não continuando do checkpoint "
+                    "(use --resume para retomar).", "INFO")
+                resp = ""
+            else:
+                resp = input("   Continuar de onde parou? (s/N): ").strip().lower()
             if resp == 's':
                 RESUME = True
         except:
@@ -1194,7 +1212,9 @@ def main():
         # --- VERIFICA SE JÁ COMPLETOU AS ÉPOCAS ---
         if start_epoch >= EPOCHS:
             log(f"ℹ️ O checkpoint já completou {EPOCHS} épocas (limite: {EPOCHS}).", "INFO")
-            nova_pasta, novas_epocas, resetar = perguntar_continuar_apos_epocas(start_epoch, EPOCHS, PASTA_DADOS, best_val_loss)
+            nova_pasta, novas_epocas, resetar = perguntar_continuar_apos_epocas(
+                start_epoch, EPOCHS, PASTA_DADOS, best_val_loss,
+                no_interactive=getattr(args, "no_interactive", False))
             if resetar:
                 log("🔄 Reiniciando treino do zero.")
                 start_epoch = 0

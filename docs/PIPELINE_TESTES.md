@@ -48,6 +48,13 @@
 - ✅ **BOM — Treino JSONL end-to-end**: `treinar_com_jsonl.py` com 1 arquivo/20 exemplos/1 época concluiu em 0,9 min (5 batches, loss ~7,16, "TREINO SFT CONCLUÍDO", exemplo de geração emitido). Modelo bom (`modelo_melhor.pt`) preservado (o teste só tocou `modelo.pt`, restaurado).
 - ✅ **BOM — Feedback de material**: log mostrou `⚠️ Material BAIXO: 1 arquivo(s)...` — aviso funcionando.
 
+### Treino TXT
+- 🔴 **RUIM — TRAVAVA 2x (bug grave "trava sem sentido")**: `treino.py --no-interactive` ficava preso em `input()` mesmo em modo não-interativo:
+  1. `"Continuar de onde parou? (s/N):"` (linha ~1112) — processo preso com CPU 0/s e worker 1,1 GB RAM.
+  2. `"👉 Digite o número da opção (ou 'reset'):"` em `perguntar_continuar_apos_epocas` (linha ~409) — após completar as épocas.
+- ✅ **CORRIGIDO**: ambas as chamadas agora checam `args.no_interactive` — em modo não-interativo não perguntam: checkpoint vira "não continuar" e épocas concluídas finalizam automaticamente.
+- ✅ **BOM — Treino TXT end-to-end**: `treino.py --dados dados/processed/Cronicas --max-arquivos 1 --batch-size 4 --no-interactive` completou 20 épocas + early stopping, salvou `modelo/modelo.pt` e **terminou sozinho com EXIT 0** (sem travar).
+
 ### Chat
 - ✅ **BOM — Envio de mensagem via Ollama**: `/api/chat/send` respondeu "A capital do Brasil é Brasília." em 13,8s (llama3.2:3b).
 - ✅ **BOM — Salvamento de conversa**: 2 pares salvos (já validado).
@@ -58,7 +65,7 @@
 
 ### RSS
 - ✅ **BOM — RSS em volume funciona**: às 11:39 o dashboard processou 20 notícias (salvou curtos/longos, total 454 arquivos gerados acumulados).
-- 🔴 **RUIM — Teste de 2 notícias (17:57)**: o log parou em "Processando as primeiras 2..." e o processo morreu SEM registrar conclusão/erro nem salvar arquivos. **Pendência: RSS precisa registrar fim/falha do subprocesso** (senão "morre calado").
+- 🔴 **RUIM — Teste de 2 notícias (17:57)**: o log parou em "Processando as primeiras 2..." e o processo morreu SEM registrar conclusão/erro. **CAUSA CONFIRMADA**: o servidor foi reiniciado (o `run_dashboard.bat` do usuário subiu com `--reload`) no meio do processamento → o `background_tasks` do FastAPI morreu e levou o subprocesso RSS. **Não é bug do RSS em si — é o problema estrutural**: tarefas de fundo via `background_tasks` morrem com o reload. **Solução (pendente)**: tarefas longas devem rodar em subprocesso independente (não dependente da vida do uvicorn).
 
 ### Módulos (API)
 - ✅ **BOM — Converter**: `pode_converter=True`, recomendado `modelo_melhor.pt`, 2 GGUF existentes.
