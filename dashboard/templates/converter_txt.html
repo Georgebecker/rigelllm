@@ -65,16 +65,16 @@
           <span>Só Pergunta/Resposta (pula artigos)</span>
         </label>
       </div>
-      <div class="flex gap-2 mt-4">
+      <div class="flex flex-col sm:flex-row gap-2 mt-4">
         <button @click="converter()" :disabled="convertendo || !pastaSel || semafaro?.ocupado || scanTxt?.rodando"
-                class="bg-sky-600 hover:bg-sky-500 disabled:bg-zinc-700 disabled:opacity-40 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+                class="bg-sky-600 hover:bg-sky-500 disabled:bg-zinc-700 disabled:opacity-40 px-6 py-3 sm:py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2 flex-1 sm:flex-none"
                 title="Inicia a conversão da pasta selecionada para JSONL">
           <i class="fa-solid" :class="convertendo ? 'fa-spinner fa-spin' : 'fa-file-export'"></i>
-          <span x-text="convertendo ? 'Convertendo...' : '▶️ Converter'"></span>
+          <span x-text="convertendo ? 'Convertendo...' : 'Converter'"></span>
         </button>
-        <button @click="parar()" :disabled="!convertendo" class="bg-red-600 hover:bg-red-500 disabled:bg-zinc-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
-                title="Para a conversão em andamento">⏹️ Parar</button>
-        <button @click="recarregar()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5"
+        <button @click="parar()" :disabled="!convertendo" class="bg-red-600 hover:bg-red-500 disabled:bg-zinc-700 px-4 py-3 sm:py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-1.5 flex-1 sm:flex-none"
+                title="Para a conversão em andamento"><i class="fa-solid fa-stop"></i> Parar</button>
+        <button @click="recarregar()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-3 sm:py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-1.5 flex-1 sm:flex-none"
                 title="Recarrega a lista de pastas e o semáforo">
           <i class="fa-solid fa-rotate" :class="carregandoPastas ? 'fa-spin' : ''"></i> Recarregar
         </button>

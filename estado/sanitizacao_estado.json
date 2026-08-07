@@ -1,42 +1,47 @@
 {
   "rodando": false,
-  "status": "interrompido",
-  "origem": "dados/raw/dominguesm_brwac",
-  "saida_dir": "D:\\Projetos\\rigelllm\\dados\\sanitizados",
+  "status": "concluido",
+  "origem": "D:\\Projetos\\rigelllm\\dados\\gerados\\jsonl\\rigeljsonl_20260807_1750",
+  "saida_dir": "D:\\Projetos\\rigelllm\\dados\\sanitizados\\rigeljsonl_20260807_1750",
   "exemplos_por_arquivo": 1000,
-  "inicio": "2026-08-07T11:41:04.311299",
-  "fim": "2026-08-07T14:34:05.214141",
-  "total_lidas": 0,
+  "inicio": "2026-08-07T17:50:42.016640",
+  "fim": "2026-08-07T17:50:42.043382",
+  "total_lidas": 400,
   "total_ok": 0,
   "total_corrigidos": 0,
-  "total_descartados": 0,
+  "total_descartados": 400,
   "total_nao_pt": 0,
   "total_duplicados": 0,
   "total_gravados": 0,
   "arquivos_origem": 1,
-  "arquivo_atual": null,
+  "arquivo_atual": "rigeljsonl_20260807_1750_00001.jsonl",
   "eventos": [
     {
-      "data": "2026-08-07T11:41:04.312975",
+      "data": "2026-08-07T17:50:42.027208",
       "tipo": "inicio",
-      "msg": "Iniciando sanitização de 'dados/raw/dominguesm_brwac' → D:\\Projetos\\rigelllm\\dados\\sanitizados"
+      "msg": "Iniciando sanitização de 'D:\\Projetos\\rigelllm\\dados\\gerados\\jsonl\\rigeljsonl_20260807_1750' → D:\\Projetos\\rigelllm\\dados\\sanitizados\\rigeljsonl_20260807_1750"
     },
     {
-      "data": "2026-08-07T11:41:04.315921",
+      "data": "2026-08-07T17:50:42.029338",
       "tipo": "preparando",
       "msg": "Validando origem e verificando espaço..."
     },
     {
-      "data": "2026-08-07T11:41:04.320983",
+      "data": "2026-08-07T17:50:42.032275",
       "tipo": "aviso",
       "msg": "Espaço OK (livre 126.5 GB)"
     },
     {
-      "data": "2026-08-07T14:34:05.215134",
-      "tipo": "interrompido",
-      "msg": "Servidor reiniciou e interrompeu a sanitização em andamento. Estado liberado — pode reiniciar."
+      "data": "2026-08-07T17:50:42.038793",
+      "tipo": "progresso",
+      "msg": "1/1 arquivos | ok=0 descartados=400"
+    },
+    {
+      "data": "2026-08-07T17:50:42.041431",
+      "tipo": "concluido",
+      "msg": "Sanitização concluída: 0 exemplos em D:\\Projetos\\rigelllm\\dados\\sanitizados\\rigeljsonl_20260807_1750 (rigelsanitizadoNN.jsonl)"
     }
   ],
-  "erro": "Sanitização interrompida (servidor reiniciou — thread de fundo morreu). Retome ou reinicie.",
-  "pid_inicio": 16444
+  "erro": null,
+  "pid_inicio": 23096
 }

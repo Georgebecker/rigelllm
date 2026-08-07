@@ -445,6 +445,44 @@ def baixar_e_explodir(repo_id: str, max_total=None, tratamento: str = "auto") ->
                 _tratado = 0
                 _tratamento_usado = "nenhum"
                 import shutil as _sh
+                # 🔎 Detecta o FORMATO dos exemplos explodidos (messages vs text).
+                # Dataset pré-treino (text) NÃO serve para SFT — AVISA em vez de
+                # promover dado inútil ou dizer "concluído" sem dado aproveitável.
+                _formato_detectado = "desconhecido"
+                try:
+                    _ex_arq = next(Path(PASTA_JSONL / nome).glob("*.jsonl"), None)
+                    if _ex_arq:
+                        with open(_ex_arq, encoding="utf-8") as _f:
+                            _ln = _f.readline()
+                            if _ln:
+                                _ex = json.loads(_ln)
+                                if any(k in _ex for k in ("messages", "conversations", "chat")):
+                                    _formato_detectado = "messages"
+                                elif "text" in _ex:
+                                    _formato_detectado = "text"
+                except Exception:
+                    pass
+                if _formato_detectado == "text":
+                    # Pré-treino: NÃO é SFT. Avisa claramente e NÃO promove.
+                    _atualizar_estado(
+                        etapa="aviso", percentual=100,
+                        mensagem=("⚠️ Dataset PRÉ-TREINO (formato 'text', sem messages) — "
+                                  "NÃO serve para treino SFT (treinar_com_jsonl). "
+                                  "Use treino.py (causal) ou escolha um dataset de conversas "
+                                  "com 'messages'/'conversations'."),
+                        saida_dir=str(PASTA_JSONL / nome),
+                        total_exemplos=total_ex, total_arquivos=total_arq,
+                        total_pastas=total_pas, tratamento="nenhum",
+                        fim=datetime.now().isoformat())
+                    # limpa o raw baixado (libera HD), MANTÉM a pasta explodida
+                    # para o usuário decidir (apagar ou usar com treino.py)
+                    try:
+                        _raw_p = PROJETO_ROOT / "dados" / "raw" / repo_id.replace("/", "_")
+                        if _raw_p.exists():
+                            _sh.rmtree(str(_raw_p))
+                    except Exception:
+                        pass
+                    return
                 if tratamento != "nenhum":
                     if tratamento == "limpeza_leve":
                         # 🧹 limpeza leve v2 (jsonl explodido → rigel_sft/pretrain.parquet)

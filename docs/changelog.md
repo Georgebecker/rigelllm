@@ -1,3 +1,18 @@
+## [SESSÃO 07/08/2026 — FASE 2/OBJETIVOS] 🔍 Auditoria completa + correções estruturais
+> Auditoria: 174 rotas, 157 módulos compilados (0 erros), 103 rotas/páginas OK. Foco: parar travamentos, feedback real, pipeline funcional.
+
+- **🐛 BUG GRAVE — `/api/diagnostico/completo` travava o servidor inteiro**: escaneava `dados/processed` com `glob("*.txt")` (12,9M arquivos) + `torch.load` de checkpoint 665 MB + import local `import urllib.request, json` que tornava `json` variável local (`UnboundLocalError`). **Fix**: usa cache `estrutura_txt.json` (289 pastas/1,3M arqs) + verificação leve de cabeçalho do checkpoint. **Antes: travava o event loop ("failed to fetch") | Depois: 1,4s.** (Regra documentada: rotas async NUNCA fazem scan síncrono de milhões de arquivos.)
+- **🛡️ Explosão anti-reload (estado nunca mais preso)**: `explosao_local.py` ganhou `pid_inicio` + `_marcar_interrompida_se_orfao()` (mesmo mecanismo do sanitizacao) — se o servidor reiniciar no meio, o estado é marcado `interrompido` e liberado. Estado preso de 06/08 (61.400 ex) liberado.
+- **🧹 `explosao.log` 34,5 MB → 0,01 MB**: progresso logado a cada 1000 exemplos (era 50) + truncado.
+- **📜 Middleware de log de requisições**: `dashboard/main.py` registra TODAS as chamadas `/api` (status + tempo) e **erros reais com exceção** em `logs/requests.log` — fim do "failed to fetch" sem causa.
+- **📍 Pipeline de download com destino claro**: estado concluído agora inclui `saida_dir` (onde os dados foram salvos) + frontend mostra o caminho e o tratamento aplicado no card final.
+- **💬 Chat**: salvamento de conversas validado end-to-end (2 pares, arquivo 599 bytes, SFT messages) + **ícones 👍/👎 removidos** (taxa, botões e função JS).
+- **📱 Mobile verificado**: 13 páginas testadas em viewport 375px — **overflow horizontal 0 em todas** (layout responsivo OK).
+- **📊 Feedback de material no treino**: `treinar_com_jsonl.py` avisa se o material é BAIXO (<10 arqs), MODERADO (10-50) ou SUFICIENTE (>50) antes de treinar.
+- **🔧 Script de auditoria reutilizável**: `scripts/auditar_dashboard.py` (testa rotas GET + páginas, salva relatório incremental).
+- ⚠️ **PENDENTE**: `--reload` do uvicorn da porta 8000 não recarrega — **servidor precisa reiniciar para carregar estas correções**.
+- Docs: `docs/RELATORIO_AUDITORIA.md`, `docs/ROTAS_INVENTARIO.txt`, `docs/AUDITORIA_ROTAS_GET.txt`.
+
 ## [SESSÃO 07/08/2026] 🔧 Correções pós-testes do celular + diagnóstico do sistema
 > Diagnóstico completo dos testes noturnos (celular) e correções de bugs confirmados nos logs.
 
