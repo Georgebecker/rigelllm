@@ -74,19 +74,35 @@ def analisar_arquivo(caminho: str) -> dict:
 
 
 def main() -> int:
-    pasta = sys.argv[1] if len(sys.argv) > 1 else "dados/processed/jsonl/rigeljsonl_20260802_0136"
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+    alvo = sys.argv[1] if len(sys.argv) > 1 else "dados/processed/jsonl/rigeljsonl_20260802_0136"
     max_arq = int(sys.argv[2]) if len(sys.argv) > 2 else 10
-    raiz = os.path.abspath(pasta)
-    if not os.path.isdir(raiz):
-        print("Pasta não encontrada:", raiz)
+    raiz = os.path.abspath(alvo)
+
+    # Aceita ARQUIVO .jsonl OU PASTA (o Executor pode mandar um arquivo individual)
+    if os.path.isfile(raiz) and raiz.lower().endswith(".jsonl"):
+        caminhos = [raiz]
+        print(f"Arquivo: {raiz} | verificando...\n")
+    elif os.path.isdir(raiz):
+        jsonls = sorted(f for f in os.listdir(raiz) if f.endswith(".jsonl"))
+        caminhos = [os.path.join(raiz, f) for f in jsonls[:max_arq]]
+        print(f"Pasta: {raiz} | {len(jsonls)} arquivos | amostrando {len(caminhos)}\n")
+    else:
+        print("Caminho não encontrado (nem arquivo .jsonl nem pasta):", raiz)
         return 1
-    jsonls = sorted(f for f in os.listdir(raiz) if f.endswith(".jsonl"))
-    print(f"Pasta: {raiz} | {len(jsonls)} arquivos | amostrando {min(max_arq, len(jsonls))}\n")
+
+    if not caminhos:
+        print("Nenhum arquivo .jsonl encontrado no caminho:", raiz)
+        return 1
+
     total_fffd = 0
     total_moji = 0
     total_nao_utf8 = 0
-    for nome in jsonls[:max_arq]:
-        r = analisar_arquivo(os.path.join(raiz, nome))
+    for caminho_arq in caminhos:
+        r = analisar_arquivo(caminho_arq)
         total_fffd += r["qtd_fffd"]
         total_moji += r["total_moji"]
         if not r["utf8_valido"]:
@@ -97,7 +113,7 @@ def main() -> int:
         for ex in r["exemplos"]:
             print(f"      ex: {ex!r}")
     print("\n=== RESUMO ===")
-    print(f"Arquivos com UTF-8 inválido: {total_nao_utf8}/{min(max_arq, len(jsonls))}")
+    print(f"Arquivos com UTF-8 inválido: {total_nao_utf8}/{len(caminhos)}")
     print(f"Total U+FFFD na amostra: {total_fffd}")
     print(f"Total padrões mojibake na amostra: {total_moji}")
     if total_fffd or total_moji or total_nao_utf8:

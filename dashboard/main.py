@@ -585,36 +585,21 @@ async def local_topicos():
 
 @app.get("/api/local-generate/templates")
 async def local_templates():
-    """Retorna templates disponíveis para geração"""
-    templates = [
-        {"id": "dialogo_curto", "nome": "Diálogo Curto", "temperatura": 0.7, "max_tokens": 256, "descricao": "Gera um diálogo rápido entre duas pessoas."},
-        {"id": "artigo", "nome": "Artigo", "temperatura": 0.8, "max_tokens": 1024, "descricao": "Gera um artigo completo sobre o tema."},
-        {"id": "resumo", "nome": "Resumo", "temperatura": 0.5, "max_tokens": 200, "descricao": "Gera um resumo conciso do tema."},
-        {"id": "poema", "nome": "Poema", "temperatura": 0.9, "max_tokens": 150, "descricao": "Gera um poema criativo."},
-        {"id": "carta", "nome": "Carta", "temperatura": 0.7, "max_tokens": 300, "descricao": "Gera uma carta pessoal."},
-        {"id": "entrevista", "nome": "Entrevista", "temperatura": 0.8, "max_tokens": 500, "descricao": "Gera uma entrevista fictícia."},
-        {"id": "relatorio", "nome": "Relatório", "temperatura": 0.4, "max_tokens": 600, "descricao": "Gera um relatório técnico."},
-        {"id": "ensaio", "nome": "Ensaio", "temperatura": 0.6, "max_tokens": 400, "descricao": "Gera um ensaio reflexivo."},
-        {"id": "traducao", "nome": "Tradução", "temperatura": 0.3, "max_tokens": 300, "descricao": "Traduz o tema para outro idioma."},
-        {"id": "conto", "nome": "Conto", "temperatura": 0.9, "max_tokens": 800, "descricao": "Gera um conto fictício."},
-        {"id": "debate", "nome": "Debate", "temperatura": 0.7, "max_tokens": 500, "descricao": "Gera um debate entre dois pontos de vista."},
-    ]
-    return {"templates": templates}
+    """Retorna templates disponíveis — FONTE ÚNICA (mesmos da geração por API)."""
+    try:
+        from dashboard.services.templates_conteudo import listar_tipos
+        return {"templates": listar_tipos()}
+    except Exception as e:
+        return {"templates": [], "erro": str(e)}
 
 @app.get("/api/local-generate/estilos")
 async def local_estilos():
-    """Retorna estilos de escrita disponíveis"""
-    estilos = [
-        {"id": "neutro", "nome": "Neutro (padrão)", "descricao": "Estilo padrão do template, sem modificações."},
-        {"id": "profissional", "nome": "Profissional", "descricao": "Linguagem formal, técnica e corporativa."},
-        {"id": "criativo", "nome": "Criativo", "descricao": "Linguagem poética e imaginativa."},
-        {"id": "humoristico", "nome": "Humorístico", "descricao": "Tom leve e engraçado."},
-        {"id": "dramatico", "nome": "Dramático", "descricao": "Linguagem intensa e emocional."},
-        {"id": "cientifico", "nome": "Científico", "descricao": "Linguagem objetiva e baseada em fatos."},
-        {"id": "conversacional", "nome": "Conversacional", "descricao": "Tom natural, como uma conversa informal."},
-        {"id": "poetico", "nome": "Poético", "descricao": "Linguagem lírica e rítmica."},
-    ]
-    return {"estilos": estilos}
+    """Retorna estilos de escrita — FONTE ÚNICA (mesmos da geração por API)."""
+    try:
+        from dashboard.services.templates_conteudo import listar_estilos
+        return {"estilos": listar_estilos()}
+    except Exception as e:
+        return {"estilos": [], "erro": str(e)}
 
 # Listas para randomização quando quantidade > 1
 _TEMPLATES_IDS = ["dialogo_curto", "artigo", "resumo", "poema", "carta",
@@ -746,6 +731,49 @@ async def local_gerar(request: Request):
         return JSONResponse({"erro": "Tempo limite excedido (300s). Tente com quantidade menor ou um modelo mais rápido."}, status_code=504)
     except Exception as e:
         return JSONResponse({"erro": str(e)}, status_code=500)
+
+@app.post("/api/local-generate/gerar-massa")
+async def local_gerar_massa(req: dict | None = None):
+    """Geração EM MASSA local (Ollama): todos os tópicos × N repetições ×
+    todos os templates × todos os estilos. Roda como subprocesso (executor),
+    salva um por um na pasta temporária e aplica o pipeline pós-geração
+    (filtrar → classificar → sanitizar → pasta certa/jsonl)."""
+    body = req or {}
+    modelo = (body.get("modelo") or "").strip() or "llama3.2:3b"
+    repeticoes = int(body.get("repeticoes") or 1)
+    meta = int(body.get("meta") or 0)
+    templates = (body.get("templates") or "todos").strip() or "todos"
+    estilos = (body.get("estilos") or "todos").strip() or "todos"
+    formato = (body.get("formato") or "txt").strip() or "txt"
+    nome = (body.get("nome") or "Geração em massa").strip()
+    script = BASE_DIR / "scripts" / "gerar_massa_local.py"
+    if not script.exists():
+        return JSONResponse({"ok": False, "erro": f"Script não encontrado: {script}"},
+                            status_code=400)
+    cmd = ["python", str(script),
+           "--modelo", modelo,
+           "--repeticoes", str(repeticoes),
+           "--meta", str(meta),
+           "--templates", templates,
+           "--estilos", estilos,
+           "--formato", formato,
+           "--nome", nome]
+    from dashboard.services import executor as executor_service
+    return await asyncio.to_thread(
+        executor_service.iniciar, cmd, nome=nome, cwd=str(BASE_DIR))
+
+
+@app.get("/api/local-generate/massa-progresso")
+async def local_massa_progresso():
+    """Progresso da geração em massa (logs/massa_progresso.json) p/ a barra."""
+    p = LOGS_DIR / "massa_progresso.json"
+    if p.exists():
+        try:
+            return json.loads(p.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {"pct": 0, "gerados": 0, "erros": 0, "atual": "", "meta": 0}
+
 
 @app.get("/api/local-generate/arquivos-salvos")
 async def local_arquivos_salvos():

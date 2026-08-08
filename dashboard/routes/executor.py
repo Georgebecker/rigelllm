@@ -77,9 +77,22 @@ async def iniciar(req: ExecutarRequest):
     if not Path(script).exists():
         return {"ok": False, "erro": f"Script não encontrado: {info['script']}"}
 
+    # ==== MODO "TODOS" ==== (roda a atividade em TODAS as origens pendentes,
+    # uma por vez, via pipeline — não tranca, pula erros, mostra % e mural)
+    origem = (req.origem or "").strip().strip('"').strip("'")
+    if origem.lower() in ("todos", "todas", "*"):
+        pipeline_script = str(BASE_DIR / "scripts" / "executor_pipeline.py")
+        comando = ["python", pipeline_script,
+                   "--comandos", chave,
+                   "--origens", "todos",
+                   "--nome", f"{chave} (TODAS as origens)",
+                   "--mural", str(BASE_DIR / "logs" / "mural_pipeline.json")]
+        return await asyncio.to_thread(
+            executor.iniciar, comando, nome=f"{chave} (todas)",
+            cwd=str(BASE_DIR))
+
     # Monta o comando: [python, script, ...args, ...origem]
     comando = ["python", script]
-    origem = (req.origem or "").strip().strip('"').strip("'")
     tipo = info.get("origem_tipo", "pasta")
     if origem:
         # Validação de segurança: origem dentro de dados/
@@ -115,6 +128,38 @@ async def iniciar(req: ExecutarRequest):
     return await asyncio.to_thread(
         executor.iniciar, comando, nome=nome,
         cwd=str(BASE_DIR), resultado_path=rp)
+
+
+@router.post("/todas-atividades")
+async def todas_atividades(req: dict | None = None):
+    """Executa TODAS as atividades (sanitizar → limpeza → verificar →
+    diagnostico) sobre TODAS as origens pendentes, UMA POR VEZ (pipeline).
+    Não tranca: erros pulam para a próxima origem; progresso real + mural."""
+    from dashboard.services import executor
+    body = req or {}
+    nome = (body.get("nome") or "TODAS as atividades")
+    pipeline_script = str(BASE_DIR / "scripts" / "executor_pipeline.py")
+    comando = ["python", pipeline_script,
+               "--comandos", "tudo",
+               "--origens", "todos",
+               "--nome", nome,
+               "--mural", str(BASE_DIR / "logs" / "mural_pipeline.json")]
+    return await asyncio.to_thread(
+        executor.iniciar, comando, nome=nome, cwd=str(BASE_DIR))
+
+
+@router.get("/mural")
+async def mural():
+    """Lê o mural de resultados do pipeline (logs/mural_pipeline.json)."""
+    from dashboard.services import executor
+    return executor.ler_mural()
+
+
+@router.post("/mural/limpar")
+async def mural_limpar():
+    """Limpa o mural de resultados."""
+    from dashboard.services import executor
+    return executor.limpar_mural()
 
 
 @router.get("/status")

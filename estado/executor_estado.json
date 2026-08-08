@@ -1,18 +1,20 @@
 {
-  "atv-175639-f90d": {
-    "id": "atv-175639-f90d",
-    "nome": "verificar_encoding",
-    "comando": "D:\\Projetos\\rigelllm\\.venv\\Scripts\\python.exe -u D:\\Projetos\\rigelllm\\scripts\\verificar_encoding_jsonl.py D:\\Projetos\\rigelllm\\dados\\gerados\\jsonl\\rigeljsonl_20260807_1753\\rigeljsonl_20260807_1753_00001.jsonl",
+  "atv-230904-f043": {
+    "id": "atv-230904-f043",
+    "nome": "Geração em massa",
+    "comando": "D:\\Projetos\\rigelllm\\.venv\\Scripts\\python.exe -u D:\\Projetos\\rigelllm\\scripts\\gerar_massa_local.py --modelo llama3.2:1b --repeticoes 1 --meta 1 --templates todos --estilos todos --formato txt --nome Geração em massa",
     "cwd": "D:\\Projetos\\rigelllm",
     "status": "erro",
     "rodando": false,
     "pid": null,
-    "inicio": "2026-08-07T17:56:39.490808",
-    "fim": "2026-08-07T17:56:39.599628",
+    "inicio": "2026-08-07T23:09:04.643458",
+    "fim": "2026-08-07T23:09:44.122916",
     "exit_code": 1,
     "erro": null,
     "mensagens": [
-      "Pasta não encontrada: D:\\Projetos\\rigelllm\\dados\\gerados\\jsonl\\rigeljsonl_20260807_1753\\rigeljsonl_20260807_1753_00001.jsonl"
+      "🧠 Modelo: llama3.2:1b",
+      "📚 Tópicos: 644 × 1x | Templates: 21 | Estilos: 8 | Meta: 1",
+      "[1/1] resenha/profissional: O manual de A filosofia de vida e os valores..."
     ],
     "resultado": null,
     "resultado_path": null

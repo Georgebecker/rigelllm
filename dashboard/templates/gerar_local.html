@@ -99,6 +99,69 @@
     <p x-show="msg" class="text-xs mt-2" :class="msg.startsWith('✅')?'text-emerald-400':msg.startsWith('❌')?'text-red-400':'text-zinc-500'" x-text="msg"></p>
   </div>
 
+  <!-- ═══ GERAÇÃO EM MASSA (todos os tópicos × vezes × templates × estilos) ═══ -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
+    <h3 class="text-sm font-semibold mb-1">⚙️ Geração em MASSA (Ollama local)</h3>
+    <p class="text-xs text-zinc-500 mb-3">
+      Sorteia <b>TODOS os tópicos</b> × repetições × <b>TODOS os templates</b> × <b>TODOS os estilos</b>
+      (mesmos da geração por API). Faz um, salva, faz outro, salva... até a meta.
+      Depois <b>filtra qualidade → classifica por tipo → sanitiza → pasta certa ou JSONL</b>.
+    </p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+      <div>
+        <label class="text-[10px] text-zinc-400">🧠 Modelo</label>
+        <select x-model="massaModelo" class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none"
+                title="Modelo do Ollama usado na geração em massa">
+          <template x-for="m in modelos" :key="m"><option :value="m" x-text="m"></option></template>
+        </select>
+      </div>
+      <div>
+        <label class="text-[10px] text-zinc-400">🔁 Repetições por tópico</label>
+        <input type="number" x-model.number="massaRepeticoes" min="1" max="200"
+               class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none"
+               title="Quantas vezes cada tópico é sorteado (quantidade não é empecilho)">
+      </div>
+      <div>
+        <label class="text-[10px] text-zinc-400">🎯 Meta total (0 = todas)</label>
+        <input type="number" x-model.number="massaMeta" min="0"
+               class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none"
+               title="Meta máxima de itens (0 = tópicos × repetições)">
+      </div>
+      <div>
+        <label class="text-[10px] text-zinc-400">📦 Formato final</label>
+        <select x-model="massaFormato" class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none"
+                title="txt = pastas por tipo (dados/gerados/massa_final) | jsonl = dataset de treino">
+          <option value="txt">📄 TXT (pastas por tipo)</option>
+          <option value="jsonl">📦 JSONL (treino)</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <button @click="gerarMassa()" :disabled="massaRodando || !massaModelo"
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40"
+              title="Inicia a geração em massa no backend (sorteia todos os tópicos × repetições × todos os templates × todos os estilos; mostra o percentual real)">
+        <i class="fa-solid" :class="massaRodando?'fa-spinner fa-spin':'fa-industry'"></i>
+        <span class="ml-1" x-text="massaRodando ? 'Gerando...' : '🏭 Gerar em massa'"></span>
+      </button>
+      <span class="text-xs text-zinc-500" x-text="'📚 ' + topicos.length + ' tópicos · 🧩 ' + templates.length + ' templates · 🎨 ' + estilos.length + ' estilos'"></span>
+      <span class="text-xs text-zinc-500" x-text="massaMsg"></span>
+    </div>
+    <!-- Barra de progresso REAL da massa -->
+    <template x-if="massaPct > 0 && massaPct < 100">
+      <div class="mt-3">
+        <div class="flex justify-between text-[10px] mb-1">
+          <span class="text-sky-300" x-text="'⏳ ' + massaPct + '%'"></span>
+          <span class="text-zinc-500 truncate max-w-[60%]" x-text="massaAtual"></span>
+        </div>
+        <div class="bg-zinc-800 rounded-full h-2 overflow-hidden">
+          <div class="bg-sky-500 h-full rounded-full transition-all duration-700" :style="'width:'+massaPct+'%'"></div>
+        </div>
+        <p class="text-[10px] text-zinc-500 mt-1" x-text="'salvos: ' + massaGerados + ' · erros: ' + massaErros + ' de ' + massaMeta"></p>
+      </div>
+    </template>
+    <p x-show="massaPct >= 100 && massaMsg" class="text-[10px] text-emerald-400 mt-2" x-text="'✅ ' + massaMsg"></p>
+  </div>
+
   <!-- ═══ LISTA DE ARQUIVOS GERADOS ═══ -->
   <div x-show="arquivosGeradosLocal.length > 0" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
     <div class="flex items-center justify-between mb-3">
@@ -220,11 +283,15 @@ function gerarLocalState() {
     procExecutando: false, procMsg: '', gerando: false,
     quantidade: 1, quantidadeGerada: 0, quantidadeSolicitada: 0,
     formatoDialogos2: 'txt',
+    massaModelo: '', massaRepeticoes: 1, massaMeta: 0, massaFormato: 'txt',
+    massaRodando: false, massaPct: 0, massaAtual: '', massaGerados: 0, massaErros: 0, massaMsg: '',
+    _massaTimer: null,
     toast: '', toastTipo: '', toastIcone: '', toastTimer: null,
 
     init() {
       console.log("[GERAR_LOCAL] Inicializando...");
       this.carregarDados();
+      this.carregarMassaProgresso();
     },
 
     mostrarToast(msg, tipo='info') {
@@ -236,7 +303,7 @@ function gerarLocalState() {
 
     async carregarDados() {
       try{const r=await fetch('/api/generate/status'); if(r.ok) this.dados=await r.json();}catch(e){}
-      try{const r=await fetch('/api/local-generate/modelos'); if(r.ok){const d=await r.json(); this.modelos=d.modelos||[]; this.ollamaOnline=d.online||false; if(d.modelos?.length&&!this.modelo) this.modelo=d.modelos[0];}}catch(e){}
+      try{const r=await fetch('/api/local-generate/modelos'); if(r.ok){const d=await r.json(); this.modelos=d.modelos||[]; this.ollamaOnline=d.online||false; if(d.modelos?.length&&!this.modelo) this.modelo=d.modelos[0]; if(d.modelos?.length&&!this.massaModelo) this.massaModelo=d.modelos[0];}}catch(e){}
       try{const r=await fetch('/api/local-generate/templates'); if(r.ok){const d=await r.json(); this.templates=d.templates||[]; if(this.templates.length&&!this.template) this.template=this.templates[0].id;}}catch(e){}
       try{const r=await fetch('/api/local-generate/estilos'); if(r.ok){const d=await r.json(); this.estilos=d.estilos||[]; if(this.estilos.length&&!this.estilo) this.estilo=this.estilos[0].id;}}catch(e){}
       try{const r=await fetch('/api/local-generate/arquivos-salvos'); if(r.ok) this.localArquivosSalvos=(await r.json()).arquivos||[];}catch(e){}
@@ -247,6 +314,58 @@ function gerarLocalState() {
     },
     async sortearTopico() {
       try{const r=await fetch('/api/topicos/sortear'); if(r.ok){const d=await r.json(); if(d.topico) this.tema=d.topico;}}catch(e){}
+    },
+
+    // ═══════ GERAÇÃO EM MASSA (todos os tópicos × vezes × templates × estilos) ═══════
+    async gerarMassa() {
+      if (this.massaRodando) return;
+      if (!this.massaModelo) { this.massaMsg = '❌ Escolha o modelo.'; return; }
+      this.massaRodando = true; this.massaPct = 0; this.massaMsg = 'Iniciando...';
+      try {
+        const r = await fetch('/api/local-generate/gerar-massa', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            modelo: this.massaModelo,
+            repeticoes: Math.max(1, this.massaRepeticoes || 1),
+            meta: Math.max(0, this.massaMeta || 0),
+            templates: 'todos', estilos: 'todos',
+            formato: this.massaFormato,
+            nome: 'Geração em massa'
+          })
+        });
+        const d = await r.json();
+        if (d.ok) {
+          this.massaMsg = 'Iniciada no backend! (veja o percentual abaixo)';
+          if (this._massaTimer) clearInterval(this._massaTimer);
+          this._massaTimer = setInterval(() => this.carregarMassaProgresso(), 2500);
+          this.carregarMassaProgresso();
+        } else {
+          this.massaMsg = '❌ ' + (d.erro || 'erro');
+          this.massaRodando = false;
+        }
+      } catch(e) {
+        this.massaMsg = '❌ ' + e.message;
+        this.massaRodando = false;
+      }
+    },
+    async carregarMassaProgresso() {
+      try {
+        const r = await fetch('/api/local-generate/massa-progresso');
+        const d = await r.json();
+        this.massaPct = d.pct || 0;
+        this.massaAtual = d.atual || '';
+        this.massaGerados = d.gerados || 0;
+        this.massaErros = d.erros || 0;
+        this.massaMeta = d.meta || 0;
+        if (d.fim || d.pct >= 100) {
+          this.massaRodando = false;
+          if (this._massaTimer) { clearInterval(this._massaTimer); this._massaTimer = null; }
+          if (d.pct >= 100) {
+            this.massaMsg = 'Concluído! Gerados: ' + (d.gerados||0) + ' · Erros: ' + (d.erros||0);
+            this.carregarDados();
+          }
+        }
+      } catch(e) {}
     },
 
     async gerar() {

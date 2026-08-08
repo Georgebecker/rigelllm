@@ -291,6 +291,35 @@ def limpar_historico() -> dict:
 
 
 # ============================================================================
+# MURAL DE RESULTADOS — registra tudo que o pipeline executou (limpo sob demanda)
+# ============================================================================
+_MURAL_PATH = PROJETO_ROOT / "logs" / "mural_pipeline.json"
+
+
+def ler_mural() -> dict:
+    """Lê o mural de resultados do pipeline."""
+    try:
+        if not _MURAL_PATH.exists():
+            return {"ok": True, "mural": [], "total": 0}
+        dados = json.loads(_MURAL_PATH.read_text(encoding="utf-8"))
+        if not isinstance(dados, list):
+            return {"ok": True, "mural": [], "total": 0}
+        return {"ok": True, "mural": dados, "total": len(dados)}
+    except Exception as e:
+        return {"ok": False, "erro": str(e), "mural": [], "total": 0}
+
+
+def limpar_mural() -> dict:
+    """Apaga o mural de resultados (pode ser limpo a qualquer momento)."""
+    try:
+        if _MURAL_PATH.exists():
+            _MURAL_PATH.unlink()
+        return {"ok": True, "mensagem": "Mural de resultados limpo."}
+    except Exception as e:
+        return {"ok": False, "erro": str(e)}
+
+
+# ============================================================================
 # EXECUÇÃO (multi-atividade, guardião, subprocesso)
 # ============================================================================
 def _anexar(aid: str, linha: str) -> None:

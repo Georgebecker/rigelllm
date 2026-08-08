@@ -43,6 +43,8 @@
         <template x-if="comando !== 'sanitizar'">
           <option value="">— escolha o ARQUIVO .jsonl —</option>
         </template>
+        <!-- 📦 TODAS: pipeline roda a atividade em todas as origens pendentes -->
+        <option value="todos" :disabled="!origens.length">📦 TODAS as origens pendentes</option>
         <template x-if="!carregandoOrigens && !origens.length">
           <option value="" disabled>Nenhuma origem com .jsonl encontrada em dados/</option>
         </template>
@@ -63,6 +65,12 @@
         <i class="fa-solid" :class="iniciando ? 'fa-spinner fa-spin' : 'fa-play'"></i>
         <span class="ml-1" x-text="iniciando ? 'Iniciando...' : 'Executar no backend'"></span>
       </button>
+      <button @click="executarTodasAtividades()" :disabled="iniciando"
+              title="Roda TODAS as atividades (sanitizar → limpeza → verificar → diagnóstico) em TODAS as origens pendentes, uma por vez, sem travar"
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40">
+        <i class="fa-solid" :class="iniciando ? 'fa-spinner fa-spin' : 'fa-bolt'"></i>
+        <span class="ml-1" x-text="iniciando ? 'Iniciando...' : '🚀 Executar todas as atividades'"></span>
+      </button>
       <button @click="pararTodas()" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-4 py-2 rounded-xl text-xs font-medium">
         <i class="fa-solid fa-stop mr-1"></i>Parar todas
       </button>
@@ -70,6 +78,39 @@
         <i class="fa-solid fa-rotate mr-1"></i>Atualizar
       </button>
       <span class="text-xs text-zinc-500" x-text="ultimaMsg"></span>
+    </div>
+  </div>
+
+  <!-- 🖼️ MURAL de resultados (pode ser limpo) -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5" x-show="mural.length">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-base font-semibold">🖼️ Mural de resultados</h3>
+      <button @click="limparMural()" title="Apaga o mural de resultados (histórico do pipeline)"
+              class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3 py-1.5 rounded-xl text-xs font-medium">
+        <i class="fa-solid fa-trash mr-1"></i>Limpar mural
+      </button>
+    </div>
+    <div class="space-y-2 max-h-72 overflow-auto scrollbar-thin">
+      <template x-for="(m, mi) in mural" :key="m.id">
+        <div class="border border-zinc-800 rounded-xl p-3">
+          <div class="flex flex-wrap items-center gap-2 text-[11px]">
+            <b class="text-zinc-100" x-text="m.nome"></b>
+            <span class="text-zinc-500" x-text="m.inicio ? m.inicio.slice(0,16).replace('T',' ') : ''"></span>
+            <span class="ml-auto text-emerald-400" x-text="'✅ ' + (m.ok||0)"></span>
+            <span class="text-red-400" x-text="'❌ ' + (m.erros||0)"></span>
+            <span class="text-amber-300" x-text="'⏭️ ' + (m.pulados||0)"></span>
+            <span class="text-zinc-500" x-text="'de ' + (m.total||0)"></span>
+          </div>
+          <div class="flex flex-wrap gap-1 mt-1.5">
+            <template x-for="(i, ii) in (m.itens||[])" :key="ii">
+              <span class="text-[9px] px-1.5 py-0.5 rounded"
+                    :class="i.status==='ok' ? 'bg-emerald-600/15 text-emerald-400' : (i.status==='erro' ? 'bg-red-600/15 text-red-400' : 'bg-amber-600/15 text-amber-300')"
+                    :title="(i.origem||'') + (i.erro ? ' — ' + i.erro : '')"
+                    x-text="(i.comando||'').slice(0,8) + ':' + (i.status==='ok'?'✓':(i.status==='erro'?'✗':'⏭'))"></span>
+            </template>
+          </div>
+        </div>
+      </template>
     </div>
   </div>
 
@@ -140,6 +181,7 @@ function executorState() {
     gestor: null, comando: '', origem: '', iniciando: false, ultimaMsg: '',
     origens: [],           // origens disponíveis p/ o dropdown
     carregandoOrigens: false,
+    mural: [],             // mural de resultados do pipeline
     logs: {},              // id -> [linhas]
     _es: null,             // EventSource global (resumo)
     _esPorId: {},          // id -> EventSource (log individual)
@@ -189,7 +231,8 @@ function executorState() {
     init() {
       this.carregar();
       this.carregarOrigens();
-      setInterval(() => this.carregar(), 3000);
+      this.carregarMural();
+      setInterval(() => { this.carregar(); this.carregarMural(); }, 3000);
       // SSE global: atualiza o resumo (todas as atividades) em tempo real
       try {
         this._es = new EventSource('/api/executor/stream');
@@ -280,6 +323,42 @@ function executorState() {
         const d = await r.json();
         this.ultimaMsg = d.ok ? '⏹️ Parada solicitada para todas.' : ('❌ ' + (d.erro||''));
         this.carregar();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+    },
+
+    // 🚀 Executa TODAS as atividades em pipeline (uma por vez, sem travar)
+    async executarTodasAtividades() {
+      if (this.iniciando) return;
+      this.iniciando = true; this.ultimaMsg = '';
+      try {
+        const r = await fetch('/api/executor/todas-atividades', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({nome: 'TODAS as atividades'})
+        });
+        const d = await r.json();
+        this.ultimaMsg = d.ok ? ('✅ ' + d.mensagem) : ('❌ ' + (d.erro || 'erro'));
+        if (d.ok && d.id) { this.logs[d.id] = []; this.abrirLog(d.id); }
+        this.carregar();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+      finally { this.iniciando = false; }
+    },
+
+    // 🖼️ Mural de resultados
+    async carregarMural() {
+      try {
+        const r = await fetch('/api/executor/mural');
+        const d = await r.json();
+        if (d.ok) this.mural = (d.mural || []).slice().reverse();
+      } catch(e) {}
+    },
+    async limparMural() {
+      try {
+        const r = await fetch('/api/executor/mural/limpar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'}
+        });
+        const d = await r.json();
+        this.ultimaMsg = d.ok ? '🖼️ Mural limpo.' : ('❌ ' + (d.erro||''));
+        this.carregarMural();
       } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
     },
   };
