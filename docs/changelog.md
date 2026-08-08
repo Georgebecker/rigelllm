@@ -1,3 +1,16 @@
+## [SESSÃO 07/08/2026 — FASE 2/OBJETIVOS — continuação] 🚀 Executor pipeline + geração em massa + fixes do servidor
+- **🐛 BUG CRÍTICO — `/api/local-generate/gerar` derrubava o servidor**: `subprocess.run(["ollama", "run", ...])` síncrono dentro de handler async bloqueava o event loop 30-44s → healthcheck não respondia → watchdog do `run_dashboard.bat` matava o servidor ("Failed to fetch", sobe-desce). **Fix**: `await asyncio.to_thread(subprocess.run, ...)`. Validado: 200 em 44s no 8000, servidor vivo após, healthcheck 12/12 durante streaming.
+- **🐛 `/api/system/details` 500**: "Out of range float values are not JSON compliant: inf" (loss `inf` no histórico). **Fix**: `_sanitizar_json()` substitui `inf`/`nan` por `None` recursivamente. Validado: 200 em 209ms.
+- **🐛 Bug Alpine `chat.html`**: `m.fontes.length` com `undefined` quebrava a página → `(m.fontes?.length || 0)`.
+- **🐛 Import `local_generate.py`**: `verificar_disponivel`/`PESQUISA_SEMPRE_ATIVA` vinham de `limpeza.py` (não existem lá) → agora de `pesquisa.py`; `limpar_e_aviso` de `limpeza.py`.
+- **🛡️ Anti-travamento stdout do uvicorn**: `sys.stdout/stderr` redirecionados para `logs/uvicorn_stdout.log` + access log desligado (o `--reload` travava com muitos prints).
+- **🚀 Executor pipeline**: opção "📦 TODAS as origens pendentes" + botão "Executar todas as atividades" + mural de resultados (`logs/mural_pipeline.json`); `scripts/executor_pipeline.py` roda as atividades em sequência com progresso real e pula erros.
+- **🎨 Uniformização templates/estilos**: fonte única `dashboard/services/templates_conteudo.py` (21 tipos + 8 estilos) para local e API.
+- **⚡ Geração em massa local**: `scripts/gerar_massa_local.py` (Ollama, tópicos × repetições × templates × estilos) com pós-processamento (filtra → classifica por tipo → sanitiza → `dados/gerados/gerados_local/_massa/`).
+- **🔧 `verificar_encoding_jsonl.py`**: aceita arquivo OU pasta + resumo correto + UTF-8 no console.
+- **🐛 `treino.py` travava em `--no-interactive`**: 2 `input()` bloqueando (continuação de checkpoint + menu pós-épocas) → guards `no_interactive` (finaliza automaticamente). Validado: 20 épocas EXIT 0.
+- **🐛 `treinoparquet.py` congelava no Colab (Google Drive)**: contagem e loop principal faziam `os.walk` de `dados/processed` INTEIRO (289+ pastas) → no Drive montado cada pasta é chamada de rede → parecia travado (log parava após "Pastas de treino encontradas"). **Fix**: `_listar_apenas_pastas_treino()` varre só as pastas `limpo_*` resolvidas (fallback de base inteira preservado). Validado localmente + usuário confirmou funcionando no Colab (commit `a698451`).
+
 ## [SESSÃO 07/08/2026 — FASE 2/OBJETIVOS] 🔍 Auditoria completa + correções estruturais
 > Auditoria: 174 rotas, 157 módulos compilados (0 erros), 103 rotas/páginas OK. Foco: parar travamentos, feedback real, pipeline funcional.
 
