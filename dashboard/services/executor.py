@@ -124,8 +124,16 @@ def _concorrencia_ok() -> tuple[bool, str]:
 # ============================================================================
 # STATUS / LISTAGEM
 # ============================================================================
+MAX_REINICIOS_RELOAD = 2  # quantas vezes re-spawnar atividade morta pelo --reload
+
+
 def _recuperar_apos_reload() -> None:
-    """Após --reload, reancora as atividades que ainda estão rodando (PID órfão)."""
+    """Após --reload, reancora as atividades que ainda estão rodando (PID órfão).
+
+    Se o processo morreu no reinício do servidor, REINICIA automaticamente o
+    comando (até MAX_REINICIOS_RELOAD) — regra de ouro: o pipeline NÃO pode
+    morrer junto com o --reload do uvicorn (era isso que "travava" a geração
+    em massa: o servidor reiniciava e o filho morria em silêncio)."""
     try:
         if not _ARQUIVO_ESTADO.exists() or _atividades:
             return
@@ -140,13 +148,52 @@ def _recuperar_apos_reload() -> None:
                     if psutil.pid_exists(dados["pid"]):
                         dados["status"] = "rodando_externo"
                     else:
-                        dados["status"] = "interrompido"
-                        dados["erro"] = "Processo morreu após reinício do servidor."
+                        _reiniciar_apos_reload(aid, dados)
                 except Exception:
-                    dados["status"] = "interrompido"
+                    _reiniciar_apos_reload(aid, dados)
             _atividades[aid] = dados
     except Exception:
         pass
+
+
+def _reiniciar_apos_reload(aid: str, dados: dict) -> None:
+    """Re-spawna o comando da atividade que morreu junto com o servidor."""
+    reinicios = int(dados.get("reinicios") or 0)
+    comando = dados.get("comando") or ""
+    cwd = dados.get("cwd") or str(PROJETO_ROOT)
+    if reinicios >= MAX_REINICIOS_RELOAD or not comando:
+        dados["status"] = "interrompido"
+        dados["erro"] = "Processo morreu após reinício do servidor."
+        return
+    try:
+        import shlex
+        cmd = shlex.split(comando)
+        if cmd and cmd[0].lower() in ("python", "python3"):
+            cmd[0] = sys.executable
+        env = dict(os.environ)
+        env["PYTHONIOENCODING"] = "utf-8"
+        proc = subprocess.Popen(cmd, cwd=cwd,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                encoding="utf-8", errors="replace",
+                                env=env, bufsize=1)
+        dados["pid"] = proc.pid
+        dados["_processo"] = proc
+        dados["reinicios"] = reinicios + 1
+        dados["status"] = "rodando"
+        dados["rodando"] = True
+        dados["erro"] = None
+        dados["fim"] = None
+        dados["exit_code"] = None
+        dados.setdefault("mensagens", []).append(
+            f"🔄 Reiniciado automaticamente após reinício do servidor "
+            f"(tentativa {reinicios + 1}/{MAX_REINICIOS_RELOAD}).")
+        threading.Thread(target=_ler_saida, args=(aid, proc), daemon=True).start()
+        threading.Thread(target=_ler_stderr, args=(aid, proc), daemon=True).start()
+        threading.Thread(target=_monitorar_fim, args=(aid, proc), daemon=True).start()
+        _log_linha(f"🔄 [{aid}] reiniciado automaticamente (PID {proc.pid})")
+    except Exception as e:
+        dados["status"] = "interrompido"
+        dados["erro"] = f"Falha ao reiniciar após reload: {e}"
 
 
 def _atividade_externa() -> dict | None:

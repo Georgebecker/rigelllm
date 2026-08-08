@@ -146,20 +146,20 @@
       <span class="text-xs text-zinc-500" x-text="'📚 ' + topicos.length + ' tópicos · 🧩 ' + templates.length + ' templates · 🎨 ' + estilos.length + ' estilos'"></span>
       <span class="text-xs text-zinc-500" x-text="massaMsg"></span>
     </div>
-    <!-- Barra de progresso REAL da massa -->
-    <template x-if="massaPct > 0 && massaPct < 100">
+    <!-- Barra de progresso REAL da massa (visível desde o início) -->
+    <template x-if="massaRodando && massaPct < 100">
       <div class="mt-3">
         <div class="flex justify-between text-[10px] mb-1">
-          <span class="text-sky-300" x-text="'⏳ ' + massaPct + '%'"></span>
+          <span class="text-sky-300" x-text="'⏳ ' + (massaPct || 0) + '%'"></span>
           <span class="text-zinc-500 truncate max-w-[60%]" x-text="massaAtual"></span>
         </div>
         <div class="bg-zinc-800 rounded-full h-2 overflow-hidden">
-          <div class="bg-sky-500 h-full rounded-full transition-all duration-700" :style="'width:'+massaPct+'%'"></div>
+          <div class="bg-sky-500 h-full rounded-full transition-all duration-700" :style="'width:'+(massaPct||0)+'%'"></div>
         </div>
-        <p class="text-[10px] text-zinc-500 mt-1" x-text="'salvos: ' + massaGerados + ' · erros: ' + massaErros + ' de ' + massaMeta"></p>
+        <p class="text-[10px] text-zinc-500 mt-1" x-text="'salvos: ' + massaGerados + ' · erros: ' + massaErros + ' de ' + (massaMeta||0)"></p>
       </div>
     </template>
-    <p x-show="massaPct >= 100 && massaMsg" class="text-[10px] text-emerald-400 mt-2" x-text="'✅ ' + massaMsg"></p>
+    <p x-show="!massaRodando && massaMsg" class="text-[10px] text-emerald-400 mt-2" x-text="'✅ ' + massaMsg"></p>
   </div>
 
   <!-- ═══ LISTA DE ARQUIVOS GERADOS ═══ -->
@@ -362,6 +362,21 @@ function gerarLocalState() {
           if (this._massaTimer) { clearInterval(this._massaTimer); this._massaTimer = null; }
           if (d.pct >= 100) {
             this.massaMsg = 'Concluído! Gerados: ' + (d.gerados||0) + ' · Erros: ' + (d.erros||0);
+            this.carregarDados();
+          }
+          return;
+        }
+        // Se o processo morreu (ex.: servidor reiniciou), o progresso fica
+        // parado em 0% — detecta pelo status da atividade no executor.
+        const er = await fetch('/api/executor/status');
+        if (er.ok) {
+          const ed = await er.json();
+          const atv = (ed.atividades || []).find(a => (a.nome || '').includes('Geração em massa'));
+          if (atv && !['rodando','rodando_externo'].includes(atv.status)) {
+            this.massaRodando = false;
+            if (this._massaTimer) { clearInterval(this._massaTimer); this._massaTimer = null; }
+            this.massaMsg = (atv.status === 'concluido' ? 'Concluído! ' : 'Parado: ') +
+                            (atv.erro || ('status ' + atv.status));
             this.carregarDados();
           }
         }

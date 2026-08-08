@@ -270,6 +270,14 @@ def main() -> int:
     erros = 0
     inicio = time.time()
 
+    # Progresso inicial: a barra aparece JÁ (0%) em vez de ficar invisível
+    # até a primeira geração terminar (que demora com modelos grandes).
+    _gravar_progresso({
+        "pct": 0, "gerados": 0, "erros": 0,
+        "atual": "preparando primeira geração...", "meta": meta,
+        "timestamp": _agora(),
+    })
+
     # Gera um por um até atingir a meta (faz um, salva, faz outro, salva...)
     for i in range(meta):
         tema = random.choice(topicos)
@@ -304,6 +312,11 @@ def main() -> int:
 
     decorrido = round(time.time() - inicio)
     print(f"\n🏁 Geração concluída: {gerados} gerados · {erros} erros · em {decorrido}s")
+    _gravar_progresso({
+        "pct": 100, "gerados": gerados, "erros": erros,
+        "atual": "concluído — pós-processamento", "meta": meta, "fim": True,
+        "timestamp": _agora(),
+    })
 
     # Pipeline pós-geração
     pos = args.pos.strip().lower() in ("true", "1", "yes")
