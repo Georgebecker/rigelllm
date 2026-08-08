@@ -677,6 +677,18 @@ def listar_arquivos_recurssivo(pasta: str) -> List[str]:
                 arquivos.append(os.path.join(raiz, f))
     return arquivos
 
+def _listar_apenas_pastas_treino(base: str, pastas_resolvidas: List[str]) -> List[str]:
+    """Lista .parquet apenas dentro das pastas de treino resolvidas (limpo_*).
+    Evita varrer a árvore INTEIRA de dados/processed (289+ pastas), que congela
+    no Google Drive montado do Colab. Se caiu no fallback (nenhuma pasta limpo_*
+    achada), varre a base inteira mesmo (comportamento antigo)."""
+    if pastas_resolvidas == [base]:
+        return listar_arquivos_recurssivo(base)
+    arquivos = []
+    for p in pastas_resolvidas:
+        arquivos.extend(listar_arquivos_recurssivo(p))
+    return arquivos
+
 def criar_tokenizer() -> bool:
     log("🔧 Criando tokenizer (BPE) a partir das pastas de dados...")
     pastas_para_tokenizer = [PASTA_PROCESSED]
@@ -999,10 +1011,13 @@ def main():
             log(f"📊 Do registro: {total_disponivel} arquivos na pasta '{nome_pasta}'")
         else:
             log(f"⚠️ Registro {args.registro} não encontrado. Escaneando sistema...")
-            todos_arquivos = listar_arquivos_recurssivo(PASTA_DADOS)
+            # ⚡ Varre SÓ as pastas limpo_* resolvidas (não a base inteira —
+            # os.walk de dados/processed inteiro congela no Google Drive).
+            todos_arquivos = _listar_apenas_pastas_treino(PASTA_DADOS, pastas_resolvidas)
             total_disponivel = len(todos_arquivos)
     else:
-        todos_arquivos = listar_arquivos_recurssivo(PASTA_DADOS)
+        # ⚡ O mesmo: varre apenas as pastas limpo_* resolvidas.
+        todos_arquivos = _listar_apenas_pastas_treino(PASTA_DADOS, pastas_resolvidas)
         total_disponivel = len(todos_arquivos)
 
     if total_disponivel == 0:
@@ -1228,7 +1243,9 @@ def main():
     # --- LOOP PRINCIPAL (aprendizado contínuo) ---
     while True:
         # --- SE HOUVER TROCA DE PASTA OU RESET, RECARREGA DADOS ---
-        arquivos = listar_arquivos_recurssivo(PASTA_DADOS)
+        # ⚡ Só as pastas limpo_* resolvidas — varrer dados/processed inteiro
+        # congela no Google Drive montado do Colab.
+        arquivos = _listar_apenas_pastas_treino(PASTA_DADOS, pastas_resolvidas)
         if not arquivos:
             log(f"❌ Nenhum arquivo suportado em {PASTA_DADOS}. Verifique o caminho.", "ERROR")
             sys.exit(1)
