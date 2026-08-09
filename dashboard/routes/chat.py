@@ -276,18 +276,23 @@ async def verificar_ollama():
         _ollama_cache = {"online": False, "modelo_ativo": modelo_manual, "time": now, "manual": manual}
         return False
 
-    # Se o usuário escolheu manualmente, mantém a escolha (se ainda existir)
+    # Se o usuário escolheu manualmente, mantém a escolha (se ainda existir).
+    # O rigelslm roda via llama.cpp/modelo local — não precisa estar no Ollama.
     if manual and modelo_manual:
-        if modelo_manual in modelos:
+        if modelo_manual in modelos or _eh_rigel(modelo_manual):
             _ollama_cache = {"online": True, "modelo_ativo": modelo_manual, "time": now, "manual": True}
             return True
         # Se o modelo manual não existe mais, cai pra auto-detecção
         manual = False
 
-    # Auto-detecção: NÃO prioriza o rigelslm (ele fica só na lista de modelos).
+    # Auto-detecção: NÃO prioriza o rigelslm por padrão (fica só na lista).
+    # MAS se o usuário ESCOLHEU rigelslm (persistido), mantém a escolha — ele
+    # roda via llama.cpp/modelo local, sem precisar existir no Ollama. Antes,
+    # a escolha do rigelslm era perdida a cada verificação (o menu "voltava
+    # sozinho" para o fallback — bug reportado pelo usuário).
     # Preferência: escolha persistida > fallback > modelos conhecidos > primeiro não-rigel.
     preferido = _modelo_preferido_carregar()
-    if preferido and preferido in modelos:
+    if preferido and (preferido in modelos or _eh_rigel(preferido)):
         modelo = preferido
     else:
         modelo = ""
