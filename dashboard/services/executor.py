@@ -51,7 +51,41 @@ _PASTA_BUFFERS = PROJETO_ROOT / "logs"
 
 MAX_BUFFER = 2000            # linhas máx por atividade em memória (SSE)
 MAX_ATIVIDADES = 20          # teto de atividades registradas (evita crescer sem fim)
-MAX_CONCORRENCIA = 4         # teto de atividades PARALELAS (proteção extra)
+# ⚡ Concorrência INTELIGENTE (regra do usuário): no máximo 3 atividades ao
+# mesmo tempo, mas apenas 1 POR TIPO DE SERVIÇO (não pode 2 Ollama, 2 treinos,
+# 2 conversões...). Tipos diferentes podem rodar juntos (ex.: conversão +
+# geração de texto + RSS).
+MAX_CONCORRENCIA = 3         # teto GLOBAL de atividades paralelas
+MAX_POR_TIPO = 1             # teto POR TIPO de serviço
+
+
+# Classificação do comando por "serviço" — o recurso que ele usa.
+def _tipo_servico(comando: str) -> str:
+    """Tipo de serviço de um comando (para não rodar 2 do mesmo tipo)."""
+    c = (comando or "").lower()
+    # Ollama (geração de texto) — o recurso mais escasso (e o usuário é claro:
+    # "não pode 3 ollama rodando ao mesmo tempo")
+    if any(k in c for k in ("ollama", "gerar_massa", "dialogos2", "rss_processor")):
+        return "ollama"
+    if "sanitiz" in c:
+        return "sanitizacao"
+    if "limpeza" in c:
+        return "limpeza"
+    if "converter_txt" in c:
+        return "conversao"
+    if "scrap" in c:
+        return "scrap"
+    if "treino" in c or "treinar" in c:
+        return "treino"
+    if "executor_pipeline" in c:
+        return "pipeline"
+    if any(k in c for k in ("download", "downdata", "ultra", "datasets")):
+        return "download"
+    if "explosao" in c or "explod" in c:
+        return "explosao"
+    if "verificar" in c or "encoding" in c:
+        return "verificacao"
+    return "outro"
 
 _lock = threading.Lock()
 # id -> {id, nome, comando, cwd, pid, status, inicio, fim, exit_code, erro,
@@ -111,13 +145,26 @@ def _guardiao() -> tuple[bool, str]:
         return True, ""
 
 
-def _concorrencia_ok() -> tuple[bool, str]:
-    """(ok, motivo). Limite de atividades PARALELAS (MAX_CONCORRENCIA)."""
+def _concorrencia_ok(comando: str | None = None) -> tuple[bool, str]:
+    """(ok, motivo). Concorrência INTELIGENTE (regra do usuário):
+    - no máximo MAX_CONCORRENCIA atividades ao mesmo tempo (3);
+    - apenas 1 POR TIPO DE SERVIÇO (não pode 2 Ollama / 2 treinos...);
+    - tipos DIFERENTES podem rodar juntos (ex.: conversão + geração + RSS)."""
     rodando = sum(1 for a in _atividades.values() if a.get("_processo") is not None
                   or a.get("status") == "rodando")
     if rodando >= MAX_CONCORRENCIA:
-        return False, (f"Já há {rodando} atividades rodando (máx {MAX_CONCORRENCIA}). "
-                       f"Pare uma antes de iniciar outra.")
+        return False, (f"Já há {rodando} atividades rodando (máx {MAX_CONCORRENCIA} — "
+                       f"1 por serviço). Pare uma antes de iniciar outra.")
+    if comando:
+        tipo = _tipo_servico(comando)
+        # Só 1 do MESMO tipo: verifica as atividades RODANDO agora
+        for a in _atividades.values():
+            if not (a.get("_processo") is not None or a.get("status") == "rodando"):
+                continue
+            t_atv = _tipo_servico(a.get("comando") or "")
+            if t_atv == tipo:
+                return False, (f"Já há uma atividade do tipo '{tipo}' rodando "
+                               f"(só 1 por serviço). Aguarde terminar ou pare a outra.")
     return True, ""
 
 
@@ -481,8 +528,8 @@ def iniciar(comando: list[str], nome: str = "", cwd: str | None = None,
     if not ok:
         return {"ok": False, "erro": motivo}
 
-    # 2) Concorrência: limite de atividades paralelas
-    ok, motivo = _concorrencia_ok()
+    # 2) Concorrência INTELIGENTE: máx 3 simultâneas + 1 por tipo de serviço
+    ok, motivo = _concorrencia_ok(" ".join(comando))
     if not ok:
         return {"ok": False, "erro": motivo}
 
