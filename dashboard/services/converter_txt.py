@@ -217,6 +217,11 @@ def _monitorar_fim(proc: subprocess.Popen) -> None:
             _estado["etapa"] = "concluido"
             _estado["mensagem"] = "✅ Conversão concluída! Dataset em dados/gerados/jsonl."
             _estado["mensagens"].append(_estado["mensagem"])
+            # 🧼 SANITIZAÇÃO + CÓPIA AUTOMÁTICA (PT-BR/ABNT2): após converter,
+            # o dataset é sanitizado e COPIADO para dados/processed/jsonl/<saida>/
+            # (o original permanece em gerados). Regra de ouro: nada vai para
+            # processed sem passar pela sanitização.
+            _pos_processar_automatico()
         else:
             detalhe = _estado.get("erro_detalhe", "")
             _estado["etapa"] = "erro"
@@ -225,6 +230,42 @@ def _monitorar_fim(proc: subprocess.Popen) -> None:
             if detalhe:
                 _estado["mensagem"] += f"\n{detalhe}"
             _estado["mensagens"].append(_estado["mensagem"])
+
+
+def _pos_processar_automatico() -> dict:
+    """🧼 Sanitiza o dataset recém-convertido (PT-BR/ABNT2) e COPIA para
+    dados/processed/jsonl/<saida>/ (o original permanece em gerados/jsonl).
+
+    Regra de ouro: só vai para processed o que passou pela sanitização.
+    Nunca falha a conversão principal — erros aqui viram aviso no log."""
+    with _lock:
+        saida = _estado.get("saida")
+    if not saida:
+        return {"ok": False, "erro": "sem saida"}
+    origem = DESTINO_BASE / saida
+    destino = PROJETO_ROOT / "dados" / "processed" / "jsonl" / saida
+    if not origem.is_dir():
+        return {"ok": False, "erro": f"origem não encontrada: {origem}"}
+    try:
+        from sanitizador_ptbr import sanitizar_pasta
+        os.makedirs(destino, exist_ok=True)
+        rels = sanitizar_pasta(str(origem), str(destino), exigir_ptbr=False)
+        ok = sum(r.get("ok", 0) for r in rels)
+        desc = sum(r.get("descartados", 0) for r in rels)
+        msg = (f"🧼 Sanitizado (PT-BR/ABNT2) e COPIADO para "
+               f"dados/processed/jsonl/{saida}/ ({ok} ok · {desc} descartados).")
+        with _lock:
+            _estado["mensagens"].append(
+                f"[{datetime.now().strftime('%d/%m %H:%M:%S')}] {msg}")
+            _estado["mensagem"] = msg
+        return {"ok": True, "mensagem": msg, "relatorios": rels}
+    except Exception as e:
+        msg = f"⚠️ Sanitização automática falhou: {e}"
+        with _lock:
+            _estado["mensagens"].append(
+                f"[{datetime.now().strftime('%d/%m %H:%M:%S')}] {msg}")
+            _estado["mensagem"] = msg
+        return {"ok": False, "erro": str(e)}
 
 
 def _proximo_nome_rigeljsonl() -> str:
