@@ -172,11 +172,14 @@ def _ler_saida(proc: subprocess.Popen) -> None:
         linha = linha.rstrip("\n")
         if not linha.strip():
             continue
+        # ⏱️ Timestamp em cada linha: o log de conversão fica DINÂMICO e com
+        # horário (antes parecia travado/defasado — sem data nem hora).
+        linha_ts = f"[{datetime.now().strftime('%d/%m %H:%M:%S')}] {linha}"
         with _lock:
-            _estado["mensagens"].append(linha)
+            _estado["mensagens"].append(linha_ts)
             if len(_estado["mensagens"]) > MAX_MENSAGENS:
                 _estado["mensagens"] = _estado["mensagens"][-MAX_MENSAGENS:]
-            _estado["mensagem"] = linha
+            _estado["mensagem"] = linha_ts
 
 
 def _drenar_stderr(proc: subprocess.Popen) -> None:

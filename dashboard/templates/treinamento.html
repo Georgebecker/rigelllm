@@ -151,6 +151,24 @@
       <button @click="todas('txt')" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1 rounded-lg bg-zinc-800">Todas</button>
       <button @click="pastasSelTxt=[]" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1 rounded-lg bg-zinc-800">Limpar</button>
     </div>
+    <!-- ⚡ Converter TXT marcadas → JSONL (SFT messages) -->
+    <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-zinc-800">
+      <button @click="converterTxtParaJsonl()" :disabled="convertendoTxt || !pastasSelTxt.length"
+              class="bg-sky-600 hover:bg-sky-500 disabled:bg-zinc-700 disabled:opacity-40 px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+              title="Converte as pastas TXT marcadas para JSONL SFT (messages) — o resultado aparece na lista JSONL abaixo">
+        <i class="fa-solid" :class="convertendoTxt ? 'fa-spinner fa-spin' : 'fa-file-export'"></i>
+        <span x-text="convertendoTxt ? ('Convertendo ' + convAtual + '/' + convTotal + '...') : '🔄 Converter em JSONL'"></span>
+      </button>
+      <span class="text-xs" :class="convMsg.startsWith('❌') ? 'text-red-400' : (convMsg.startsWith('✅') ? 'text-emerald-400' : 'text-zinc-500')" x-text="convMsg"></span>
+      <template x-if="semafaroConv?.ocupado && !convertendoTxt">
+        <span class="text-xs text-amber-300">🛡️ Ocupado — <b x-text="semafaroConv?.processos?.[0]?.rotulo || 'operação pesada'"></b></span>
+      </template>
+    </div>
+    <!-- 📋 Log de conversão (dinâmico, com data/hora) -->
+    <div x-show="convertendoTxt || convLog" class="mt-2 bg-black/40 rounded-xl p-2">
+      <p class="text-[10px] text-zinc-500 mb-1">📋 Log de conversão <span class="text-zinc-600">(cada linha com data/hora)</span></p>
+      <pre class="text-[11px] font-mono text-sky-300/80 overflow-auto max-h-40 scrollbar-thin leading-relaxed" x-text="convLog || 'Aguardando início...'"></pre>
+    </div>
     <div x-show="scanTxt?.rodando" class="mt-3 bg-zinc-800/40 rounded-xl p-3 border border-sky-600/30">
       <div class="flex items-center justify-between mb-2">
         <span class="text-xs text-sky-300 flex items-center gap-2"><i class="fa-solid fa-spinner fa-spin"></i> Lendo estrutura TXT — <b x-text="scanTxt?.pasta_atual || '...'"></b></span>
@@ -282,6 +300,8 @@ function treinamentoState() {
     pastasSelTxt: [], pastasSelJsonl: [], pastasSelParquet: [],
     scanTxt: null, scanJsonl: null, scanParquet: null,
     recontando: null, scanPoll: null,
+    convertendoTxt: false, convAtual: 0, convTotal: 0, convMsg: '', convLog: '',
+    convTimer: null, semafaroConv: null, _filaConv: null,
     rec: null, reguaCpu: 70, reguaRam: 30, reguaInit: false,
     nucleosSel: null, workersSel: 2, batchSel: 8, paramsInit: false,
     init() {
@@ -381,6 +401,71 @@ function treinamentoState() {
       const lista = this.listaDe(tipo);
       lista.length = 0;
       for (const p of this.pastasDe(tipo)) lista.push(p.nome);
+    },
+    // ⚡ Converte as pastas TXT marcadas → JSONL, uma por vez (fila).
+    // Cada conversão roda em subprocesso no backend (não trava); quando uma
+    // termina, a próxima começa. Ao final, a lista JSONL é recarregada.
+    async converterTxtParaJsonl() {
+      const pastas = this.pastasSelTxt.slice();
+      if (!pastas.length) { this.msg = '❌ Marque ao menos uma pasta TXT.'; return; }
+      this.convertendoTxt = true; this.convTotal = pastas.length; this.convAtual = 0;
+      this.convLog = ''; this.convMsg = 'iniciando fila de conversão...';
+      if (this.convTimer) clearInterval(this.convTimer);
+      this.convTimer = setInterval(() => this.pollConv(), 2000);
+      this.proximaConv(pastas, 0);
+    },
+    async proximaConv(pastas, idx) {
+      if (idx >= pastas.length) {
+        this.convMsg = '✅ Todas convertidas! JSONL atualizado.';
+        this.convertendoTxt = false;
+        if (this.convTimer) { clearInterval(this.convTimer); this.convTimer = null; }
+        this.poll(); // recarrega listas (jsonl aparece)
+        return;
+      }
+      this.convAtual = idx + 1;
+      const nome = pastas[idx];
+      this.convMsg = 'Convertendo "' + nome + '"...';
+      try {
+        const r = await fetch('/api/convert_txt/converter', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ pasta: 'dados/processed/' + nome, saida: null,
+                                 max_exemplos: null, max_arquivos: null, apenas_qna: false })
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          this.convLog += '[ERRO] ' + (d.message || ('falha ao iniciar ' + nome)) + '\n';
+          this.convMsg = '❌ ' + (d.message || nome);
+          this.convertendoTxt = false;
+          if (this.convTimer) { clearInterval(this.convTimer); this.convTimer = null; }
+          return;
+        }
+      } catch (e) {
+        this.convLog += '[ERRO] ' + e.message + '\n';
+        this.convMsg = '❌ ' + e.message;
+        this.convertendoTxt = false;
+        if (this.convTimer) { clearInterval(this.convTimer); this.convTimer = null; }
+        return;
+      }
+      // Aguarda esta pasta terminar (pollConv detecta conclusão e segue a fila)
+      this._filaConv = { pastas, idx };
+    },
+    async pollConv() {
+      try {
+        const r = await fetch('/api/convert_txt/progresso');
+        const d = await r.json();
+        this.semafaroConv = d.semafaro || null;
+        if (d.mensagens && d.mensagens.length) this.convLog = d.mensagens.slice(-60).join('\n');
+        if (this._filaConv && !d.rodando && d.etapa !== 'convertendo') {
+          const { pastas, idx } = this._filaConv;
+          this._filaConv = null;
+          if (d.etapa === 'erro') {
+            this.convLog += '\n[❌] pasta ' + (idx+1) + '/' + pastas.length + ' falhou (' + (d.erro || 'erro') + ')\n';
+          } else {
+            this.convLog += '\n[✅] pasta ' + (idx+1) + '/' + pastas.length + ' concluída\n';
+          }
+          this.proximaConv(pastas, idx + 1);
+        }
+      } catch (e) { console.warn('[TREINAMENTO] pollConv:', e); }
     },
     async iniciarTreino(resume) {
       if (!this.ativoTipo) { this.msg = '❌ Selecione pastas de um tipo (txt, jsonl ou parquet).'; return; }
