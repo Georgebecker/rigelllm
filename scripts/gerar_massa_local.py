@@ -189,6 +189,14 @@ def _pos_processar(pasta_tmp: Path, formato: str) -> dict:
                 "fonte": "geracao_local_massa",
                 "data": _agora(),
             })
+            # Move o txt processado p/ subpasta: o próximo ciclo incremental
+            # NÃO reprocessa os já aprovados (senão duplicaria no jsonl).
+            try:
+                _proc_dir = pasta_tmp / "processados"
+                _proc_dir.mkdir(parents=True, exist_ok=True)
+                arq.rename(_proc_dir / arq.name)
+            except Exception:
+                pass
         else:
             # Manda para a pasta do tipo (classificação)
             pasta_tipo = destino_base / tipo_id
@@ -309,6 +317,15 @@ def main() -> int:
             "timestamp": _agora(),
         })
         print(f"    ▸ {pct}% ({i+1}/{meta}) | salvos={gerados} erros={erros}")
+
+        # ⚡ Pós-processamento INCREMENTAL (jsonl): a cada 10 itens processa os
+        # txt pendentes e gera jsonl — o usuário vê resultado DURANTE a geração
+        # (com meta 644, o jsonl só sairia no final = horas).
+        if args.formato == "jsonl" and (i + 1) % 10 == 0:
+            try:
+                _pos_processar(pasta_tmp, "jsonl")
+            except Exception as e:
+                print(f"    ⚠️ pós incremental falhou: {e}")
 
     decorrido = round(time.time() - inicio)
     print(f"\n🏁 Geração concluída: {gerados} gerados · {erros} erros · em {decorrido}s")

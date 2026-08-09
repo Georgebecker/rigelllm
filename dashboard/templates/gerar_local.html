@@ -366,18 +366,23 @@ function gerarLocalState() {
           }
           return;
         }
-        // Se o processo morreu (ex.: servidor reiniciou), o progresso fica
-        // parado em 0% — detecta pelo status da atividade no executor.
+        // Status da atividade no executor: se está rodando, mostra a barra
+        // mesmo sem clique nesta sessão (recarregou a página no meio). Se
+        // morreu/terminou, para o "Gerando..." e mostra o motivo.
         const er = await fetch('/api/executor/status');
         if (er.ok) {
           const ed = await er.json();
           const atv = (ed.atividades || []).find(a => (a.nome || '').includes('Geração em massa'));
-          if (atv && !['rodando','rodando_externo'].includes(atv.status)) {
-            this.massaRodando = false;
-            if (this._massaTimer) { clearInterval(this._massaTimer); this._massaTimer = null; }
-            this.massaMsg = (atv.status === 'concluido' ? 'Concluído! ' : 'Parado: ') +
-                            (atv.erro || ('status ' + atv.status));
-            this.carregarDados();
+          if (atv) {
+            if (['rodando','rodando_externo'].includes(atv.status)) {
+              this.massaRodando = true;
+            } else if (this.massaRodando) {
+              this.massaRodando = false;
+              if (this._massaTimer) { clearInterval(this._massaTimer); this._massaTimer = null; }
+              this.massaMsg = (atv.status === 'concluido' ? 'Concluído! ' : 'Parado: ') +
+                              (atv.erro || ('status ' + atv.status));
+              this.carregarDados();
+            }
           }
         }
       } catch(e) {}
