@@ -455,7 +455,7 @@ async def search_apis():
 
 
 async def _listar_modelos_ollama():
-    """Lista modelos do Ollama + o rigelslm via GGUF/llama.cpp (funciona offline)."""
+    """Lista modelos do Ollama + o rigelslm (GGUF/llama.cpp OU modelo local)."""
     modelos = []
     try:
         async with httpx.AsyncClient(timeout=3.0) as client:
@@ -464,8 +464,11 @@ async def _listar_modelos_ollama():
                 modelos = [m["name"] for m in resp.json().get("models", [])]
     except Exception:
         pass
-    # Sempre inclui o rigelslm (servido pelo llama.cpp), mesmo com o Ollama offline
-    if LLAMA_GGUF_PATH is not None:
+    # Sempre inclui o rigelslm: via llama.cpp (GGUF) OU modelo PyTorch local —
+    # o caminho que FUNCIONA é o local (modelo.pt); o GGUF pode nem existir.
+    tem_rigel = (LLAMA_GGUF_PATH is not None) or (
+        LOCAL_MODEL_PATH.exists() and LOCAL_TOKENIZER_PATH.exists())
+    if tem_rigel:
         base = MODELO_RIGEL
         if not any(m == base or m.split(":")[0] == base for m in modelos):
             modelos.append(f"{base}:latest")
