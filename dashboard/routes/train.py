@@ -703,9 +703,13 @@ async def start_training(
     else:
         # Treinador TXT (treino.py) — tem --num-workers/--batch-size; threads
         # via env (OMP_NUM_THREADS), pois o treino.py não tem --threads.
+        # ⚡ --no-interactive é OBRIGATÓRIO: sem ele, o treino.py mostra o MENU
+        # de seleção de pastas e fica esperando input (ninguém responde pelo
+        # dashboard → o treino trava no menu, como o usuário viu no log).
         mapa = {p["nome"]: p.get("caminho", p["nome"]) for p in listar_pastas_disponiveis(forcar=False)}
         alvos = [mapa.get(n, n) for n in pastas]
-        cmd = ["python", "treino.py", "--max-arquivos", str(req.max_arquivos),
+        cmd = ["python", "treino.py", "--no-interactive",
+               "--max-arquivos", str(req.max_arquivos),
                "--num-workers", str(prm["workers"]),
                "--batch-size", str(prm["batch"])]
         if alvos:
