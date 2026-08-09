@@ -142,20 +142,40 @@ def _limpar_artigo(texto: str) -> str:
     return "\n".join(linhas).strip()
 
 
+# ⚡ INSTRUÇÕES VARIADAS para artigos: o modelo generaliza quando vê DIFERENTES
+# formatos de pedido, não só "Escreva um texto sobre X" repetido 100 mil vezes.
+_INSTRUCOES_ARTIGO = (
+    "Escreva um texto informativo e completo sobre: {tema}.",
+    "Explique com detalhes e clareza o tema: {tema}.",
+    "Faça um resumo bem estruturado e informativo sobre: {tema}.",
+    "O que você pode me contar sobre: {tema}?",
+    "Descreva de forma completa e organizada: {tema}.",
+    "Produza um artigo bem escrito, com introdução e desenvolvimento, sobre: {tema}.",
+    "Conte, com riqueza de detalhes, tudo o que sabe sobre: {tema}.",
+    "Disserte sobre o tema {tema} de maneira aprofundada.",
+)
+
+
 def _artigo_para_qa(texto: str, tema: str) -> tuple[str, str] | None:
-    """Converte um texto contínuo (artigo) em (pergunta, resposta)."""
+    """Converte um texto contínuo (artigo) em (pergunta, resposta).
+
+    A pergunta varia entre instruções diferentes, escolhida de forma
+    DETERMINÍSTICA pelo conteúdo: mesmo arquivo → mesma instrução
+    (reprodutível), mas arquivos diferentes → instruções variadas
+    (o modelo aprende a responder a vários formatos → generaliza melhor)."""
     limpo = _limpar_artigo(texto)
     if len(limpo) < 200:
         return None
     # Melhor contexto: o PRÓPRIO título do artigo (ex.: "# As Eleições no Brasil...")
     m = re.search(r"^#\s+(.+)$", limpo, re.M)
     if m:
-        titulo = m.group(1).strip().strip("*")
-        pergunta = f"Escreva um texto informativo e completo sobre: {titulo}."
+        tema_uso = m.group(1).strip().strip("*")
     elif tema and tema.split()[0].lower() not in _TEMAS_NAO_ARTIGO:
-        pergunta = f"Escreva um texto informativo e completo sobre: {tema}."
+        tema_uso = tema
     else:
-        pergunta = "Escreva um texto informativo e completo sobre este tema."
+        tema_uso = "este tema"
+    idx = int(hashlib.md5(limpo.encode("utf-8")).hexdigest()[:8], 16) % len(_INSTRUCOES_ARTIGO)
+    pergunta = _INSTRUCOES_ARTIGO[idx].format(tema=tema_uso)
     return pergunta, limpo
 
 
