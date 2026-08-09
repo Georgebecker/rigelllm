@@ -1,6 +1,8 @@
 # ⭐ RigelSLM – Small Language Model para Português Brasileiro
 
-**Autor:** George Herman Becker · **Licença:** MIT · **Versão:** 1.0.0 · **Atualização:** 02/08/2026
+**Autor:** George Herman Becker · **Licença:** MIT · **Versão:** 1.0.0 · **Atualização:** 09/08/2026
+
+> 🧭 **Precisa de um comando?** Consulte o **Super Menu de Comandos (FAQ)**: [`docs/COMANDOS.md`](docs/COMANDOS.md) — "quando precisar fazer X, use o comando Y" (Python e dashboard).
 
 > 💚 **Gostou do projeto? Apoie o desenvolvimento:**
 > - **PIX:** `a8b68e14-edfe-4450-88f2-c2af4aca2a6c`
@@ -127,7 +129,42 @@ C:\Rigelllm\
 
 ---
 
-## 📜 Descrição de Cada Arquivo .py
+## � Pastas e o que guardam
+
+| Pasta | O que guarda |
+|---|---|
+| `dashboard/` | **Servidor web (FastAPI)** — `main.py` (app + rotas principais), `routes/` (rotas por funcionalidade: train, chat, convert, convert_txt, datasets, executor, tratamento, treino_local, scrap, debate, rss, logs, ollama...), `services/` (lógica de apoio: executor, sanitizacao, treino_global, pesquisa, recursos, estrutura_cache, templates_conteudo...), `templates/` (HTML Alpine.js de cada página), `static/` (assets) |
+| `docs/` | Documentação: `changelog.md` (histórico de sessões), diário de ideias, pipeline JSONL, relatório de auditoria, inventário de rotas, `MODULOS/` |
+| `estado/` | **Estados persistentes JSON** de cada funcionalidade (treino, sanitização, explosão, executor, datasets, Ollama, scrap, tratamento...) — a "memória do sistema" que sobrevive a reinícios |
+| `images/` | Ícones/favicons do dashboard + QR PIX + apoio |
+| `llama/` | Binários do **llama.cpp** (conversão/execução local de GGUF) |
+| `modelo/` | Modelos treinados: `modelo.pt`, `modelo_melhor.pt`, `checkpoint*.pt`, `backups/`, `versoes.json`, sinal `STOP_TREINO.signal` |
+| `scripts/` | ~60 utilitários de diagnóstico/verificação (GGUF, encoding, auditoria, sanitização, testes de geração) + `legado/` |
+| `skills/` | Guia de estilo para skills de IA do projeto |
+| `tests/` | Testes de qualidade (ex.: `test_dialogos2_quality.py`) |
+| `tokenizer/` | `tokenizer.json` — o vocabulário/tokenizador do modelo (**VOCAB 23830** — o correto) |
+| `dados/` | Todo o dado: `raw/` (bruto), `processed/` (pronto p/ treino), `gerados/` (sintético: jsonl, gerados_local, debates...), `sanitizados/`, `descartados/`, `ultratxt/`, `Celular/` (troca celular↔PC) |
+| `colab/` | Notebook pronto para rodar no **Google Colab** (`RigelSLM_Colab_pronto.ipynb`) |
+| `gguf/` | Modelos convertidos para GGUF + Modelfiles |
+| `logs/` | Logs do sistema (treino, dashboard, conversão, recursos, estrutura_cache, mural do executor...) |
+
+> 🧭 **Comandos de terminal e páginas do dashboard:** [`docs/COMANDOS.md`](docs/COMANDOS.md)
+
+---
+
+## 🎯 Gerenciadores e scripts principais
+
+- **`rigel.py`** — orquestrador geral (setup, treino, dashboard, Ollama).
+- **`dashboard/main.py`** — servidor web (o "site" inteiro).
+- **`main.py`** — CLI do gerador de dados via API (com limite de custo).
+- **`treino.py`** — **base do modelo** (define a arquitetura `RigelSLM`); é importado por `app.py`, `chat.py`, `converter_para_gguf.py`, `treinar_com_jsonl.py` e rotas do dashboard.
+- **Bibliotecas reutilizadas**: `config`, `utils`, `state`, `generation`, `validation`, `categories`, `saida_manager`, `sanitizador_ptbr`, `modelo_backup`, `organizar_pastas`, `createjsonl`, `deploy_package`.
+- **Scripts standalone/CLI** (executados direto, não importados): `agrupar.py`, `dialogos.py` (substituído pelo v2), `dialogos2.py`, `downdata.py`, `download_datasets.py`, `dividir_pastas.py`, `limpeza.py`, `limpeza_leve_rigel_v2.py`, `log_manager.py`, `preparar_dados.py`, `setup_env.py`, `treinov2.py`, `treinoparquet.py`, `treino_cloud.py`, `treino_colab.py`, `ultra.py`.
+- **Chamados como subprocesso pelo dashboard** (não import): `converter_txt_jsonl.py`, `rss_processor.py`, `treinar_com_jsonl.py`, `treino.py`/`treinoparquet.py`/`treino_colab.py`, `setup_env.py`, `dialogos2.py`.
+
+---
+
+## �📜 Descrição de Cada Arquivo .py
 
 ### 🧠 Núcleo do Modelo
 

@@ -31,7 +31,14 @@
 
 ---
 
-## 🤖 Modelos do Ollama (IMPORTANTE)
+## � Super Menu de Comandos
+
+> **Quando precisar fazer algo no projeto** (converter, treinar, sanitizar, baixar, empacotar...),
+> consulte o **guia de comandos**: **📄 [`docs/COMANDOS.md`](docs/COMANDOS.md)** — organizado por tarefa, com os comandos exatos de terminal e as páginas do dashboard.
+
+---
+
+## �🤖 Modelos do Ollama (IMPORTANTE)
 
 ### Obrigatórios (para o fluxo funcionar de verdade)
 ```bash

@@ -18,6 +18,18 @@ Você é um agente especializado no projeto **RigelSLM v1.0.0**. Sua função é
 - **Tokenizer**: BPE ByteLevel com `add_prefix_space=True`
 
 ### Estrutura de Diretórios (v1.0.0)
+
+> 🧭 **Guia de comandos (FAQ)**: [`docs/COMANDOS.md`](docs/COMANDOS.md) — "quando precisar fazer X, use o comando Y"
+> 📄 **Estrutura completa e pastas**: seção "📁 Pastas e o que guardam" do [`README.md`](README.md)
+> 📜 **Histórico de sessões**: [`docs/changelog.md`](docs/changelog.md)
+
+Resumo de pastas:
+- `dashboard/` — servidor FastAPI: `routes/` (rotas), `services/` (executor, sanitizacao, treino_global, pesquisa...), `templates/` (HTML Alpine)
+- `estado/` — estados persistentes JSON de cada funcionalidade
+- `scripts/` — utilitários de diagnóstico/verificação (~60)
+- `dados/` — raw / processed / gerados / sanitizados / descartados / ultratxt / Celular
+- `modelo/`, `tokenizer/`, `llama/`, `gguf/`, `docs/`, `colab/`, `skills/`, `tests/`, `images/`, `logs/`
+
 ```
 D:\Projetos\rigelllm/
 ├── .venv/                    # Ambiente virtual Python

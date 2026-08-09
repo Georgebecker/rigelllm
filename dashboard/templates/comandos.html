@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Comandos — FAQ{% endblock %}
+{% block content %}
+<div x-data="comandosState()" x-cloak>
+  <div class="max-w-4xl mx-auto">
+    <!-- Cabeçalho com botão voltar -->
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
+      <h2 class="text-2xl md:text-4xl font-bold">🧭 Super Menu de Comandos</h2>
+      <button @click="voltar()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+              title="Fecha esta página e volta ao dashboard">
+        <i class="fa-solid fa-arrow-left"></i> ⬅️ Voltar ao dashboard
+      </button>
+    </div>
+    <p class="text-zinc-500 text-sm mb-4">
+      Quando precisar fazer <b class="text-amber-400">X</b>, use o comando <b class="text-sky-400">Y</b>.
+      Guia rápido do projeto — vale para terminal (Python) e para o dashboard.
+      O guia completo (com todas as tabelas) está em
+      <code class="text-zinc-400">docs/COMANDOS.md</code>.
+    </p>
+
+    <!-- 🎯 Gerenciador principal -->
+    <section class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-4 border border-zinc-700/40">
+      <h3 class="text-sm font-semibold mb-3">🎯 Gerenciador principal</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="text-zinc-500"><tr><th class="text-left py-1">O que é</th><th class="text-left py-1">Comando</th></tr></thead>
+          <tbody class="font-mono text-zinc-300">
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Orquestrador geral (setup, treino, dashboard, Ollama)</td><td>python rigel.py</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Servidor web (dashboard)</td><td>run_dashboard.bat</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">CLI do gerador de dados (com limite de custo)</td><td>python main.py</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Teste do modelo no terminal</td><td>python chat.py</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Teste do modelo na web (Gradio)</td><td>python app.py</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 🏋️ Treino -->
+    <section class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-4 border border-zinc-700/40">
+      <h3 class="text-sm font-semibold mb-3">🏋️ Treino</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="text-zinc-500"><tr><th class="text-left py-1">Quando precisar</th><th class="text-left py-1">Comando</th></tr></thead>
+          <tbody class="font-mono text-zinc-300">
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Treino TXT (causal, base do modelo)</td><td>python treino.py --dados dados/processed --no-interactive</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Treino SFT JSONL (loss só no assistant)</td><td>python treinar_com_jsonl.py --dados dados/gerados/jsonl</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Treino PARQUET</td><td>python treinoparquet.py --dados dados/processed --no-interactive</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Treino para Colab/GPU</td><td>python treino_colab.py</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Pelo dashboard</td><td>/treinamento → marcar pastas → ▶️ Treinar</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 🔄 Conversão -->
+    <section class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-4 border border-zinc-700/40">
+      <h3 class="text-sm font-semibold mb-3">🔄 Conversão TXT → JSONL</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="text-zinc-500"><tr><th class="text-left py-1">Quando precisar</th><th class="text-left py-1">Comando</th></tr></thead>
+          <tbody class="font-mono text-zinc-300">
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Converter uma pasta de .txt p/ JSONL</td><td>python converter_txt_jsonl.py --pasta dados/processed</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Pelo dashboard (sanitiza + copia p/ processed)</td><td>/treinamento → marcar TXT → 🔄 Converter em JSONL</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 🧼 Sanitização / Qualidade -->
+    <section class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-4 border border-zinc-700/40">
+      <h3 class="text-sm font-semibold mb-3">🧼 Limpeza / Sanitização / Qualidade</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="text-zinc-500"><tr><th class="text-left py-1">Quando precisar</th><th class="text-left py-1">Comando</th></tr></thead>
+          <tbody class="font-mono text-zinc-300">
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Sanitizar PT-BR (ABNT2) — portão de qualidade</td><td>python sanitizador_ptbr.py</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Corrigir encoding de .txt p/ UTF-8</td><td>python limpeza.py</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Verificar regras de organização</td><td>python regras_ouro.py</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 📦 Distribuição / Diagnóstico -->
+    <section class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-4 border border-zinc-700/40">
+      <h3 class="text-sm font-semibold mb-3">📦 Distribuição / Diagnóstico</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="text-zinc-500"><tr><th class="text-left py-1">Quando precisar</th><th class="text-left py-1">Comando</th></tr></thead>
+          <tbody class="font-mono text-zinc-300">
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Empacotar o projeto num ZIP</td><td>python deploy_package.py</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Auditoria das rotas do dashboard</td><td>python scripts/auditar_dashboard.py --base http://127.0.0.1:8000</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Verificar encoding de jsonl/pasta</td><td>python scripts/verificar_encoding_jsonl.py caminho</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Backup manual do modelo</td><td>python modelo_backup.py</td></tr>
+            <tr class="border-t border-zinc-800"><td class="py-1.5 pr-3 font-sans">Converter .pt → GGUF (quantizado)</td><td>python converter_para_gguf.py</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ❓ FAQ rápido -->
+    <section class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-4 border border-zinc-700/40">
+      <h3 class="text-sm font-semibold mb-3">❓ Perguntas rápidas</h3>
+      <div class="space-y-2 text-xs">
+        <p><b class="text-amber-400">O treino TXT trava mostrando menu?</b> Use <code class="text-sky-300">--no-interactive</code> SEMPRE (ou inicie pelo dashboard).</p>
+        <p><b class="text-amber-400">O dashboard não recarrega mudanças?</b> O <code class="text-sky-300">--reload</code> desta máquina não recarrega → reinicie o servidor.</p>
+        <p><b class="text-amber-400">GGUF decodifica vazio no Ollama?</b> Bug conhecido → use o modelo PyTorch local (<code class="text-sky-300">modelo.pt</code>) no chat.</p>
+        <p><b class="text-amber-400">Quero ver o que cada script faz?</b> Leia o cabeçalho (docstring) do arquivo ou o mapa no <code class="text-sky-300">README.md</code>.</p>
+      </div>
+    </section>
+
+    <!-- Rodapé com voltar -->
+    <div class="flex justify-center mb-6">
+      <button @click="voltar()" class="bg-sky-600 hover:bg-sky-500 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
+              title="Fecha esta página e volta ao dashboard">
+        <i class="fa-solid fa-arrow-left"></i> ⬅️ Voltar ao dashboard
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function comandosState() {
+  return {
+    voltar() {
+      if (history.length > 1) { history.back(); } else { window.location.href = '/'; }
+    }
+  };
+}
+</script>
+{% endblock %}

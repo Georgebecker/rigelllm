@@ -1,29 +1,35 @@
-RIGELSLM - PACOTE PARA GOOGLE DRIVE (gerado em 05/08/2026)
+RIGELSLM - PACOTE PARA GOOGLE DRIVE (atualizado em 09/08/2026)
 ================================================================
 ESTRUTURA DESTA PASTA (e o que o notebook Colab espera):
 
 rigelllm/                     <- esta pasta vai para: MyDrive/rigelllm/
-|-- treinar_com_jsonl.py      <- treino SFT (pipeline atual)
-|-- treino.py                 <- importado pelo treinador
+|-- treino.py                 <- IMPORTADO pelo treinador (base do modelo)
+|-- treinar_com_jsonl.py      <- treino SFT jsonl (loss so no assistant)
+|-- treinoparquet.py          <- treino parquet (pastas limpo_*)
+|-- treino_colab.py           <- treino otimizado p/ Colab (T4)
 |-- chat.py                   <- teste do modelo (one-shot)
 |-- converter_para_gguf.py    <- (opcional) converter p/ GGUF
 |-- modelo_backup.py          <- backups cautelosos
 |-- tokenizer/
 |   `-- tokenizer.json        <- VOCAB 23830 (o CORRETO - nao usar outro)
 `-- modelo/
-    |-- modelo.pt             <- modelo BOM (val 6.87, 04/08)
-    |-- modelo_melhor.pt      <- = copia do modelo.pt (default do treino)
-    `-- estado_treino_jsonl.json  <- registro (epoch 5, best 6.87)
+    |-- modelo.pt             <- modelo atual
+    |-- modelo_melhor.pt      <- melhor modelo (default do treino)
+    `-- estado_treino_jsonl.json <- registro do treino
+
+DADOS:
+- Os dados ficam em dados/processed/jsonl/ (e limpo_* p/ parquet).
+- Copie as pastas desejadas para a pasta do Drive antes de treinar.
 
 ANTES DE TREINAR:
-1) Os DADOS ficam no projeto em: dados/processed/jsonl/
-   -> copie as pastas desejadas para: dados/processed/jsonl/ (na pasta do Drive)
-   -> (ou re-exploda com sanitizacao e copie os limpos)
-2) Na celula 5 do notebook:
-   - PASTA_DADOS = "dados/processed/jsonl"
-   - RESUME = False   <- treino com dados NOVOS (checkpoint antigo foi movido)
-   - MAX_ARQUIVOS = 5 (ou mais)
-3) Rode as celulas em ordem.
+1) Confira que tokenizer/tokenizer.json e modelo/modelo*.pt estao no Drive
+   (mesma estrutura acima).
+2) Rode SEMPRE com --no-interactive (sem isso o treino mostra menu e trava):
+   python treinar_com_jsonl.py --dados dados/gerados/jsonl --no-interactive
+   python treinoparquet.py --dados dados/processed --no-interactive
+3) Rode as celulas do notebook em ordem.
 
 ATENCAO: o tokenizer correto e o de VOCAB 23830 (tokenizer/tokenizer.json).
 NUNCA use o que estava em modelo/tokenizer.json (vocab 32000 - errado).
+
+Guia de comandos completo do projeto: docs/COMANDOS.md

@@ -443,6 +443,11 @@ async def treinamento():
 async def converter_txt():
     return _serve_html("converter_txt.html")
 
+@app.get("/comandos", response_class=HTMLResponse)
+async def pagina_comandos():
+    """🧭 Super Menu de Comandos (FAQ) — 'quando precisar fazer X, use Y'."""
+    return _serve_html("comandos.html")
+
 @app.get("/chat", response_class=HTMLResponse)
 async def chat():
     return _serve_html("chat.html")
