@@ -14,7 +14,7 @@
 
 Eu construí este projeto como uma **prova de conceito pessoal**, com a intenção de **buscar conhecimento**: aprender construindo um modelo de linguagem pequeno do zero em português brasileiro — e **conhecer, na prática, os problemas mais comuns** desse caminho (todos documentados no [README](README.md), na seção "Problemas Enfrentados e Soluções"). Minha intenção nunca foi lançar um produto.
 
-### Conselhos para quem quer aprender também
+### Ferramentas que eu usei e indico (porque me facilitaram — e indico também a API da DeepSeek)
 
 - **Use o VS Code** — eu o usei o tempo todo e recomendo: editor gratuito, com terminal integrado, depuração, controle de versão e IA de apoio (GitHub Copilot) para escrever e revisar código: <https://code.visualstudio.com/>
 - **Comece por uma API barata** — a **API da DeepSeek** foi a que eu escolhi: uma das opções mais acessíveis para quem está aprendendo (foi ela que me ajudou na geração de dados deste projeto): <https://platform.deepseek.com/> — preços: <https://api-docs.deepseek.com/quick_start/pricing>
