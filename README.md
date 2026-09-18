@@ -23,7 +23,7 @@ O nome **Rigel** vem da estrela mais brilhante da constelação de Órion.
 
 ## Prova de Conceito — o que este projeto é (e o que não é)
 
-Este repositório é uma **prova de conceito pessoal**: o objetivo foi **entender na prática as ferramentas, as técnicas e os obstáculos** de construir um modelo de linguagem pequeno do zero, em português brasileiro — e **documentar cada problema encontrado e sua solução** ao longo do caminho (ver a seção "Problemas Enfrentados e Soluções").
+Este repositório é uma **prova de conceito pessoal** movida por uma coisa: **busca pelo conhecimento**. A intenção **nunca foi lançar um produto** — foi **aprender construindo**: entender na prática as ferramentas, as técnicas e, principalmente, **conhecer os problemas mais comuns** que aparecem quando se treina um modelo de linguagem do zero. Cada obstáculo encontrado e sua solução foi documentado ao longo do caminho (ver a seção "Problemas Enfrentados e Soluções") — o valor desta prova de conceito está exatamente aí: no **conhecimento que fica registrado**.
 
 **O que a prova de conceito demonstrou (de ponta a ponta):**
 
@@ -43,6 +43,11 @@ Este repositório é uma **prova de conceito pessoal**: o objetivo foi **entende
 - Chaves de API e segredos — sempre via arquivo `.env` local (nunca versionado)
 
 **Estado honesto:** o modelo ainda está em evolução (subtreinado). A prova de conceito não terminou em um produto final — terminou em **conhecimento documentado**: cada erro, causa e correção está registrado nos problemas enfrentados, no changelog e nos módulos do projeto.
+
+### Para quem quer trilhar o mesmo caminho (conselhos)
+
+- **Use o VS Code como companheiro de aprendizado** — editor gratuito, com terminal integrado, depuração, controle de versão e IA de apoio (GitHub Copilot) para escrever e revisar código. Site oficial: <https://code.visualstudio.com/>
+- **Para experimentar com IA sem gastar muito, comece pela API da DeepSeek** — uma das opções de API mais acessíveis para quem está aprendendo (foi ela que ajudou na geração de dados sintéticos deste projeto). Plataforma: <https://platform.deepseek.com/> — preços: <https://api-docs.deepseek.com/quick_start/pricing>
 
 ---
 
