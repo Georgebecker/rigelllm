@@ -1,6 +1,6 @@
 # ⭐ RigelSLM – Small Language Model para Português Brasileiro
 
-**Autor:** George Herman Becker · **Licença:** MIT · **Versão:** 1.0.0 · **Atualização:** 09/08/2026
+**Autor:** George Herman Becker · **Licença:** MIT · **Versão:** 1.0.0 · **Atualização:** 18/08/2026
 
 > 🧭 **Precisa de um comando?** Consulte o **Super Menu de Comandos (FAQ)**: [`docs/COMANDOS.md`](docs/COMANDOS.md) — "quando precisar fazer X, use o comando Y" (Python e dashboard).
 
@@ -18,6 +18,31 @@ O projeto nasceu da necessidade de ter um modelo que entenda a **cultura brasile
 
 O nome **Rigel** vem da estrela mais brilhante da constelação de Órion.  
 **SLM** significa *Small Language Model*.
+
+---
+
+## Prova de Conceito — o que este projeto é (e o que não é)
+
+Este repositório é uma **prova de conceito pessoal**: o objetivo foi **entender na prática as ferramentas, as técnicas e os obstáculos** de construir um modelo de linguagem pequeno do zero, em português brasileiro — e **documentar cada problema encontrado e sua solução** ao longo do caminho (ver a seção "Problemas Enfrentados e Soluções").
+
+**O que a prova de conceito demonstrou (de ponta a ponta):**
+
+| Etapa | O que foi validado |
+| --- | --- |
+| Tokenizer | Treinar um tokenizer BPE ByteLevel próprio (vocab 23.830) e diagnosticar incompatibilidades de vocabulário |
+| Treino | Transformer decoder (~66M) treinado do zero em CPU, com SFT mascarado (loss só na resposta) e retomada por checkpoint |
+| Dados | Pipeline completo: coleta (RSS, HuggingFace, PDFs), sanitização rigorosa PT-BR, deduplicação e organização em lotes |
+| Quantização | Conversão real para GGUF (F16, Q8_0, Q4_K_M) e correções no export do tokenizer para o llama.cpp |
+| Integração | Ponte GGUF → Ollama, com diagnóstico de erros de arquitetura, norms em F32 e token types |
+| Gestão | Dashboard FastAPI com executor multi-atividade, guardião de recursos proporcionais ao hardware e progresso em tempo real (SSE) |
+
+**O que este repositório NÃO inclui (de propósito):**
+
+- Datasets e material de treinamento — ficam fora do Git (grandes, recriáveis pelo pipeline)
+- Pesos dos modelos, checkpoints e arquivos GGUF — gerados localmente
+- Chaves de API e segredos — sempre via arquivo `.env` local (nunca versionado)
+
+**Estado honesto:** o modelo ainda está em evolução (subtreinado). A prova de conceito não terminou em um produto final — terminou em **conhecimento documentado**: cada erro, causa e correção está registrado nos problemas enfrentados, no changelog e nos módulos do projeto.
 
 ---
 
@@ -99,7 +124,12 @@ C:\Rigelllm\
 ├── tokenizer/
 │   └── tokenizer.json         # Tokenizer BPE ByteLevel treinado
 ├── dados/
-│   ├── processed/             # Dados processados para treino
+│   ├── processed/             # Acervo final de treino — UMA pasta por tipo (18/08)
+│   │   ├── txt/               #  297 subpastas de TXT (≤1000 arq/cada)
+│   │   ├── jsonl/             #  112 subpastas: *_sanitizado (pronto) + brutas
+│   │   └── parquet/           #  7 subpastas de PARQUET
+│   ├── tratados/              # Saída do tratamento automático de datasets brutos
+│   ├── sanitizados/           # Staging do TRATAMENTO (sanitização) antes de promover
 │   ├── gerados/               # Dados sintéticos (DeepSeek, Ollama, RSS)
 │   │   ├── gerados_local/     # Conteúdo gerado via Ollama
 │   │   ├── debates/           # Debates e podcasts
@@ -121,6 +151,7 @@ C:\Rigelllm\
 ├── config_recursos.json       # 🛡️ Limites proporcionais (gerado na instalação)
 ├── setup_env.py               # Configuração inicial do ambiente
 ├── run_dashboard.bat          # 🚀 Dashboard com 1 clique (auto-recuperação)
+├── regras_pastas.py           # 🗂️ Fonte de verdade das pastas por tipo (18/08)
 ├── createjsonl.py             # Gerar/baixar/explodir datasets JSONL
 ├── treinar_com_jsonl.py       # ✅ Treinador SFT (JSONL messages)
 ├── saida_manager.py           # Escritor JSONL unificado (geração→JSONL)
@@ -143,7 +174,7 @@ C:\Rigelllm\
 | `skills/` | Guia de estilo para skills de IA do projeto |
 | `tests/` | Testes de qualidade (ex.: `test_dialogos2_quality.py`) |
 | `tokenizer/` | `tokenizer.json` — o vocabulário/tokenizador do modelo (**VOCAB 23830** — o correto) |
-| `dados/` | Todo o dado: `raw/` (bruto), `processed/` (pronto p/ treino), `gerados/` (sintético: jsonl, gerados_local, debates...), `sanitizados/`, `descartados/`, `ultratxt/`, `Celular/` (troca celular↔PC) |
+| `dados/` | Todo o dado: `raw/` (bruto), `processed/` (pronto p/ treino, com `jsonl/` = 112 subpastas), `tratados/` (saída do tratamento automático de brutos), `gerados/` (sintético: jsonl, gerados_local, debates...), `sanitizados/`, `descartados/`, `ultratxt/`, `Celular/` (troca celular↔PC) |
 | `colab/` | Notebook pronto para rodar no **Google Colab** (`RigelSLM_Colab_pronto.ipynb`) |
 | `gguf/` | Modelos convertidos para GGUF + Modelfiles |
 | `logs/` | Logs do sistema (treino, dashboard, conversão, recursos, estrutura_cache, mural do executor...) |
@@ -391,7 +422,29 @@ O projeto agora **tem limites em tudo que varre o disco**:
 
 ---
 
-## 🚀 Como Usar
+## �️ Qualidade do acervo & backup (18/08/2026)
+
+Novos utilitários automáticos de qualidade e organização do acervo:
+
+| Script | Função | Uso |
+|--------|--------|-----|
+| `scripts/validar_jsonl_acervo.py` | Valida a integridade do acervo JSONL (JSON válido + relatório por pasta) | `python scripts/validar_jsonl_acervo.py` |
+| `scripts/tratar_datasets_brutos.py` | Tratamento AUTOMÁTICO de datasets brutos: detecta formato (messages/text/alpaca/qna), corrige mojibake (via `sanitizador_ptbr`) e converte alpaca→messages | `python scripts/tratar_datasets_brutos.py` |
+| `scripts/gerar_relatorio_envio.py` | Gera relatório de envio do acervo JSONL (limpas vs brutas + avisos de duplicata) para backup no Google Drive | `python scripts/gerar_relatorio_envio.py` |
+
+**Estrutura padrão do acervo (18/08 — `regras_pastas.py`):**
+- `processed/txt/` · `processed/jsonl/` · `processed/parquet/` — uma pasta por tipo (minúsculas, por causa do Windows case-insensitive).
+- Geradores → `dados/gerados/`; **TRATAMENTO** (palavra unificadora: sanitizar+limpar+verificar) → staging `dados/sanitizados/` → **promover** → `processed/<tipo>/`.
+
+**Regras de ouro do acervo (18/08):**
+- ✅ Só material `*_sanitizado` é **treino pronto** (0 mojibake real, 782.806 linhas validadas).
+- ⚠️ Datasets brutos (ex.: `dominguesm_brwac`, 18 GB com mojibake) NÃO entram no treino: o SFT só aceita `messages` e o pré-treino só pastas com ≥10 `.txt` — eles ficam parados até passar pelo `tratar_datasets_brutos.py`.
+- 📦 Fluxo de backup: organizar por tipo (JSONL → PARQUET → TXT) → validar → usuário envia ao Google Drive → liberar área.
+- 🧠 Lição: regex de mojibake com `Ã` solto gera falso positivo (SÃO/MÃE/CÃES) — usar só duplo-encoding real.
+
+---
+
+## �🚀 Como Usar
 
 ### Dashboard (recomendado)
 
@@ -658,6 +711,8 @@ Principais: `torch>=2.0.0`, `tokenizers>=0.13.0`, `openai>=1.0.0`, `httpx>=0.24.
 ## 📜 Licença
 
 MIT — use, modifique, distribua e comercialize, desde que mantenha os créditos.
+
+O texto completo está em [`LICENSE`](LICENSE).
 
 ---
 
