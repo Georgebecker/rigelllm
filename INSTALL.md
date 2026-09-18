@@ -10,6 +10,17 @@
 
 ---
 
+## Prova de Conceito — busca pelo conhecimento
+
+Este projeto é uma **prova de conceito pessoal** cuja intenção é a **busca pelo conhecimento**: aprender construindo um modelo de linguagem pequeno do zero em português brasileiro — e **conhecer, na prática, os problemas mais comuns** desse caminho (todos documentados no [README](README.md), na seção "Problemas Enfrentados e Soluções"). A intenção nunca foi lançar um produto.
+
+### Conselhos para quem quer aprender também
+
+- **Use o VS Code** — editor gratuito, com terminal integrado, depuração, controle de versão e IA de apoio (GitHub Copilot) para escrever e revisar código: <https://code.visualstudio.com/>
+- **Comece por uma API barata** — a **API da DeepSeek** é uma das opções mais acessíveis para quem está aprendendo (foi ela que ajudou na geração de dados deste projeto): <https://platform.deepseek.com/> — preços: <https://api-docs.deepseek.com/quick_start/pricing>
+
+---
+
 ## 📖 Glossário (para entender o que este guia diz)
 
 | Termo | Significado |
