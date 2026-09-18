@@ -12,18 +12,18 @@
 
 ## Prova de Conceito — busca pelo conhecimento
 
-Este projeto é uma **prova de conceito pessoal** cuja intenção é a **busca pelo conhecimento**: aprender construindo um modelo de linguagem pequeno do zero em português brasileiro — e **conhecer, na prática, os problemas mais comuns** desse caminho (todos documentados no [README](README.md), na seção "Problemas Enfrentados e Soluções"). A intenção nunca foi lançar um produto.
+Eu construí este projeto como uma **prova de conceito pessoal**, com a intenção de **buscar conhecimento**: aprender construindo um modelo de linguagem pequeno do zero em português brasileiro — e **conhecer, na prática, os problemas mais comuns** desse caminho (todos documentados no [README](README.md), na seção "Problemas Enfrentados e Soluções"). Minha intenção nunca foi lançar um produto.
 
 ### Conselhos para quem quer aprender também
 
-- **Use o VS Code** — editor gratuito, com terminal integrado, depuração, controle de versão e IA de apoio (GitHub Copilot) para escrever e revisar código: <https://code.visualstudio.com/>
-- **Comece por uma API barata** — a **API da DeepSeek** é uma das opções mais acessíveis para quem está aprendendo (foi ela que ajudou na geração de dados deste projeto): <https://platform.deepseek.com/> — preços: <https://api-docs.deepseek.com/quick_start/pricing>
+- **Use o VS Code** — eu o usei o tempo todo e recomendo: editor gratuito, com terminal integrado, depuração, controle de versão e IA de apoio (GitHub Copilot) para escrever e revisar código: <https://code.visualstudio.com/>
+- **Comece por uma API barata** — a **API da DeepSeek** foi a que eu escolhi: uma das opções mais acessíveis para quem está aprendendo (foi ela que me ajudou na geração de dados deste projeto): <https://platform.deepseek.com/> — preços: <https://api-docs.deepseek.com/quick_start/pricing>
 
 ### A realidade do treino em CPU (aviso honesto)
 
-Treinar na própria máquina pede **muitos núcleos de CPU, bastante RAM e disco SSD** — e mesmo com uma máquina razoável (o caso deste projeto: **~32 GB de RAM, 36 núcleos, SSD de 223 GB, sem GPU aproveitável**) o processo é **massante**: o ritmo ficou em torno de **274 tokens/s**, ou cerca de **2 arquivos de 1.000 exemplos a cada 2 horas** de treino. **Não é impossível** — dá para aprender treinando lotes pequenos com paciência — mas no fim o autor apelou para o **Google Colab** (GPU com uso gratuito limitado) para acelerar: <https://colab.research.google.com/>
+Eu aprendi na prática: treinar na própria máquina pede **muitos núcleos de CPU, bastante RAM e disco SSD** — e mesmo com uma máquina razoável (a que eu tinha: **~32 GB de RAM, 36 núcleos, SSD de 223 GB, sem GPU aproveitável**) o processo é **massante**: o ritmo que eu media ficava em torno de **274 tokens/s**, ou cerca de **2 arquivos de 1.000 exemplos a cada 2 horas** de treino. **Não é impossível** — dá para aprender treinando lotes pequenos com paciência — mas no fim **eu apelei para o Google Colab** (GPU com uso gratuito limitado) para acelerar: <https://colab.research.google.com/>
 
-Mais sobre o autor: <https://ghbecker.com.br>
+Mais sobre mim: <https://ghbecker.com.br>
 
 ---
 

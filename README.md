@@ -12,9 +12,9 @@
 
 ## 📖 O que é o RigelSLM?
 
-RigelSLM é um **modelo de linguagem pequeno (SLM)** treinado do zero com foco exclusivo no **português do Brasil**. Possui aproximadamente **66 milhões de parâmetros**, sendo leve o suficiente para rodar em CPUs convencionais sem GPU.
+O RigelSLM é o **modelo de linguagem pequeno (SLM)** que eu treinei do zero, com foco exclusivo no **português do Brasil**. Ele tem aproximadamente **66 milhões de parâmetros** — leve o suficiente para rodar em CPUs convencionais sem GPU.
 
-O projeto nasceu da necessidade de ter um modelo que entenda a **cultura brasileira**, expressões regionais, história e geografia do país — algo que modelos grandes frequentemente ignoram ou tratam de forma genérica.
+Ele nasceu da minha necessidade de ter um modelo que entenda a **cultura brasileira**, expressões regionais, história e geografia do país — algo que modelos grandes frequentemente ignoram ou tratam de forma genérica.
 
 O nome **Rigel** vem da estrela mais brilhante da constelação de Órion.  
 **SLM** significa *Small Language Model*.
@@ -23,41 +23,41 @@ O nome **Rigel** vem da estrela mais brilhante da constelação de Órion.
 
 ## Prova de Conceito — o que este projeto é (e o que não é)
 
-Este repositório é uma **prova de conceito pessoal** movida por uma coisa: **busca pelo conhecimento**. A intenção **nunca foi lançar um produto** — foi **aprender construindo**: entender na prática as ferramentas, as técnicas e, principalmente, **conhecer os problemas mais comuns** que aparecem quando se treina um modelo de linguagem do zero. Cada obstáculo encontrado e sua solução foi documentado ao longo do caminho (ver a seção "Problemas Enfrentados e Soluções") — o valor desta prova de conceito está exatamente aí: no **conhecimento que fica registrado**.
+Eu criei este repositório como uma **prova de conceito pessoal**, movido por uma coisa: **busca pelo conhecimento**. Minha intenção **nunca foi lançar um produto** — foi **aprender construindo**: entender na prática as ferramentas, as técnicas e, principalmente, **conhecer os problemas mais comuns** que aparecem quando se treina um modelo de linguagem do zero. Cada obstáculo que eu enfrentei e a solução que eu encontrei está documentado ao longo do caminho (ver a seção "Problemas Enfrentados e Soluções") — o valor desta prova de conceito está exatamente aí: no **conhecimento que fica registrado**.
 
-**O que a prova de conceito demonstrou (de ponta a ponta):**
+**O que eu validei, de ponta a ponta:**
 
-| Etapa | O que foi validado |
+| Etapa | O que eu aprendi e validei |
 | --- | --- |
-| Tokenizer | Treinar um tokenizer BPE ByteLevel próprio (vocab 23.830) e diagnosticar incompatibilidades de vocabulário |
-| Treino | Transformer decoder (~66M) treinado do zero em CPU, com SFT mascarado (loss só na resposta) e retomada por checkpoint |
-| Dados | Pipeline completo: coleta (RSS, HuggingFace, PDFs), sanitização rigorosa PT-BR, deduplicação e organização em lotes |
-| Quantização | Conversão real para GGUF (F16, Q8_0, Q4_K_M) e correções no export do tokenizer para o llama.cpp |
-| Integração | Ponte GGUF → Ollama, com diagnóstico de erros de arquitetura, norms em F32 e token types |
-| Gestão | Dashboard FastAPI com executor multi-atividade, guardião de recursos proporcionais ao hardware e progresso em tempo real (SSE) |
+| Tokenizer | Treinei um tokenizer BPE ByteLevel próprio (vocab 23.830) e diagnostiquei incompatibilidades de vocabulário |
+| Treino | Treinei um Transformer decoder (~66M) do zero em CPU, com SFT mascarado (loss só na resposta) e retomada por checkpoint |
+| Dados | Montei o pipeline completo: coleta (RSS, HuggingFace, PDFs), sanitização rigorosa PT-BR, deduplicação e organização em lotes |
+| Quantização | Fiz a conversão real para GGUF (F16, Q8_0, Q4_K_M) e corrigi o export do tokenizer para o llama.cpp |
+| Integração | Construí a ponte GGUF → Ollama, com diagnóstico de erros de arquitetura, norms em F32 e token types |
+| Gestão | Desenvolvi um dashboard FastAPI com executor multi-atividade, guardião de recursos proporcionais ao hardware e progresso em tempo real (SSE) |
 
-**O que este repositório NÃO inclui (de propósito):**
+**O que eu deixei FORA do repositório (de propósito):**
 
-- Datasets e material de treinamento — ficam fora do Git (grandes, recriáveis pelo pipeline)
-- Pesos dos modelos, checkpoints e arquivos GGUF — gerados localmente
-- Chaves de API e segredos — sempre via arquivo `.env` local (nunca versionado)
+- Datasets e material de treinamento — eu os mantenho fora do Git (são grandes e recriáveis pelo pipeline)
+- Pesos dos modelos, checkpoints e arquivos GGUF — gerados localmente, não versionados
+- Chaves de API e segredos — eu os guardo em um arquivo `.env` local (nunca versionado)
 
-**Estado honesto:** o modelo ainda está em evolução (subtreinado). A prova de conceito não terminou em um produto final — terminou em **conhecimento documentado**: cada erro, causa e correção está registrado nos problemas enfrentados, no changelog e nos módulos do projeto.
+**Estado honesto:** o modelo que eu treinei ainda está em evolução (subtreinado). Minha prova de conceito não terminou em um produto final — terminou em **conhecimento documentado**: cada erro, causa e correção que eu vivi está registrado nos problemas enfrentados, no changelog e nos módulos do projeto.
 
 ### A realidade do treino em CPU (leia antes de tentar)
 
-Treinar um modelo do zero na própria máquina exige **muitos núcleos de CPU, bastante memória RAM e disco SSD** (HD mecânico sofre). E mesmo com uma máquina razoável o processo é **massante**: não é impossível, mas é lento.
+Eu aprendi na prática: treinar um modelo do zero na própria máquina exige **muitos núcleos de CPU, bastante memória RAM e disco SSD** (HD mecânico sofre). E mesmo com uma máquina razoável o processo é **massante** — não é impossível, mas é lento.
 
-O que este projeto tinha à disposição: **~32 GB de RAM, 36 núcleos de CPU, SSD de 223 GB e nenhuma GPU aproveitável**. Mesmo assim, o ritmo real de treino ficou em torno de **274 tokens/s** — cerca de **2 arquivos de 1.000 exemplos a cada 2 horas**. Treinar o acervo inteiro em CPU levaria semanas.
+A máquina que eu tinha à disposição: **~32 GB de RAM, 36 núcleos de CPU, SSD de 223 GB e nenhuma GPU aproveitável**. Mesmo assim, o ritmo real que eu media no treino ficava em torno de **274 tokens/s** — cerca de **2 arquivos de 1.000 exemplos a cada 2 horas**. Treinar o acervo inteiro em CPU levaria semanas.
 
-No fim, para acelerar de verdade, o autor **apelou para o Google Colab** (GPU com uso gratuito limitado). A recomendação que fica: **aprenda localmente com lotes pequenos** e rode as rodadas maiores no Colab — <https://colab.research.google.com/>
+No fim, para acelerar de verdade, **eu apelei para o Google Colab** (GPU com uso gratuito limitado). O conselho que eu deixo: **aprenda localmente com lotes pequenos** e rode as rodadas maiores no Colab — <https://colab.research.google.com/>
 
-### Para quem quer trilhar o mesmo caminho (conselhos)
+### Para quem quer trilhar o mesmo caminho (os conselhos que eu dou)
 
-- **Use o VS Code como companheiro de aprendizado** — editor gratuito, com terminal integrado, depuração, controle de versão e IA de apoio (GitHub Copilot) para escrever e revisar código. Site oficial: <https://code.visualstudio.com/>
-- **Para experimentar com IA sem gastar muito, comece pela API da DeepSeek** — uma das opções de API mais acessíveis para quem está aprendendo (foi ela que ajudou na geração de dados sintéticos deste projeto). Plataforma: <https://platform.deepseek.com/> — preços: <https://api-docs.deepseek.com/quick_start/pricing>
+- **Eu usei o VS Code o tempo todo e recomendo** — editor gratuito, com terminal integrado, depuração, controle de versão e IA de apoio (GitHub Copilot) para escrever e revisar código: <https://code.visualstudio.com/>
+- **Para experimentar com IA sem gastar muito, eu comecei pela API da DeepSeek** — uma das APIs mais acessíveis que encontrei para quem está aprendendo (foi ela que me ajudou na geração de dados sintéticos deste projeto): <https://platform.deepseek.com/> — preços: <https://api-docs.deepseek.com/quick_start/pricing>
 
-Mais sobre o autor: <https://ghbecker.com.br>
+Mais sobre mim: <https://ghbecker.com.br>
 
 ---
 
@@ -332,6 +332,8 @@ O dashboard é uma **SPA (Single Page Application)** construída com:
 ---
 
 ## ⚠️ Problemas Enfrentados e Soluções
+
+Os problemas abaixo são os que **eu enfrentei de verdade**, na ordem em que apareceram — com a causa que **eu identifiquei** e a solução que **eu apliquei**:
 
 ### 1. VOCAB_SIZE vs Tokenizer Real
 - **Problema:** Modelo com `VOCAB_SIZE=32000`, tokenizer com 23830 tokens → slots mortos
