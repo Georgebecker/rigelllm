@@ -183,6 +183,36 @@ def _atualizar_progresso(**kwargs) -> None:
               flush=True)
     except Exception:
         pass
+
+# ============================================================================
+# NUMERAÇÃO CONTÍNUA dos parciais (Fix 18/08 — regra do usuário)
+# ============================================================================
+# Os parciais (rigel_sft.parquet.partNNN.parquet) DEVEM continuar a numeração
+# do lote anterior (ex.: último foi part013 → próximo começa no part014), e não
+# reiniciar do zero. O índice é persistido em logs/limpeza_indices.json para
+# sobreviver mesmo quando os parts antigos já foram enviados/apagados.
+INDICES_LOG = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "logs", "limpeza_indices.json")
+
+
+def _carregar_indices() -> dict:
+    """Lê o último índice gravado por arquivo final (ex.: ...rigel_sft.parquet)."""
+    try:
+        with open(INDICES_LOG, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _salvar_indices(indices: dict) -> None:
+    try:
+        os.makedirs(os.path.dirname(INDICES_LOG), exist_ok=True)
+        with open(INDICES_LOG, "w", encoding="utf-8") as f:
+            json.dump(indices, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
+
+
 # Palavras típicas de Portugal (2.5 — heurística opcional PT-PT)
 _PT_PT_HINTS = ("autocarro", "comboio", "telemóvel", "ecrã", "pulover",
                 "peúgas", "frigorífico", "canadiana", "fatia", "casa de banho",
@@ -587,7 +617,8 @@ def _ler_documentos(origem: str) -> Iterator[dict]:
             elif ext == ".txt":
                 try:
                     texto = arq.read_text(encoding="utf-8", errors="replace")
-                    yield {"text": texto}
+                    # Marca a origem TXT (p/ a retenção de elite — regra 14/08)
+                    yield {"text": texto, "_e_txt": True, "_nome_txt": arq.name}
                 except Exception:
                     continue
             elif ext == ".parquet":
@@ -602,6 +633,18 @@ def _ler_documentos(origem: str) -> Iterator[dict]:
                     continue
         except Exception:
             continue  # arquivo com problema não derruba o lote
+
+
+def _pontos_elite(texto: str) -> tuple:
+    """Score de 'elite' p/ TXT (quanto maior, melhor): (TTR, nº de palavras).
+    Textos com maior diversidade lexical e mais conteúdo são os preferidos
+    p/ permanecerem como .txt ensinando estrutura/fluência natural."""
+    palavras = re.findall(r"[a-záéíóúâêôãõàüçñ]+", (texto or "").lower())
+    n = len(palavras)
+    if n < 30:
+        return (0.0, n)
+    ttr = len(set(palavras)) / n
+    return (round(ttr, 4), n)
 
 
 def _texto_principal(doc: dict) -> str:
@@ -798,12 +841,57 @@ class _EscritorParquet:
     Streaming: RAM constante (1 lote de cada vez no disco).
     """
 
-    def __init__(self, caminho_final: str, lote: int = 5000):
+    def __init__(self, caminho_final: str, lote: int = 5000, continuar: bool = True):
         self.caminho_final = caminho_final
         self.lote = lote
         self._indice = 0
         self._partes: list[str] = []
         self.gravados = 0
+        # Fix 18/08: continuar a numeração do último part gerado (não zerar).
+        # Ex.: último foi rigel_sft.parquet.part013.parquet → começa no 014.
+        if continuar:
+            self._iniciar_indice_do_disco()
+
+    def _iniciar_indice_do_disco(self) -> None:
+        """Descobre o maior .partNNN existente (e o último persistido em logs)
+        e continua a numeração a partir dele + 1.
+
+        Fontes:
+         1. Parts ainda presentes na pasta de saída (part013 → próximo 014);
+         2. Último índice persistido em logs/limpeza_indices.json — cobre o
+            caso de os parts antigos já terem sido enviados/apagados.
+        Usa o MAIOR entre os dois. Se ainda existem parts antigos no disco,
+        junta-os para a mescla final (não perde o que já foi processado).
+        """
+        import re
+        base = os.path.basename(self.caminho_final)          # rigel_sft.parquet
+        diretorio = os.path.dirname(self.caminho_final) or "."
+        padrao = re.compile(re.escape(base) + r"\.part(\d{3})\.parquet$")
+        maior_disco = -1
+        try:
+            for nome in os.listdir(diretorio):
+                m = padrao.match(nome)
+                if m:
+                    maior_disco = max(maior_disco, int(m.group(1)))
+        except OSError:
+            pass
+        # Último índice persistido (sobrevive mesmo sem os parts no disco)
+        indices = _carregar_indices()
+        try:
+            ultimo_persistido = int(indices.get(self.caminho_final, -1))
+        except (TypeError, ValueError):
+            ultimo_persistido = -1
+        maior = max(maior_disco, ultimo_persistido)
+        if maior >= 0:
+            self._indice = maior + 1
+        # Se ainda existem parts antigos, junta para mesclar no fechamento
+        if maior_disco >= 0:
+            try:
+                for nome in sorted(os.listdir(diretorio)):
+                    if padrao.match(nome):
+                        self._partes.append(os.path.join(diretorio, nome))
+            except OSError:
+                pass
 
     def gravar(self, exemplos: list[dict]) -> int:
         if not exemplos:
@@ -814,6 +902,13 @@ class _EscritorParquet:
             self._partes.append(part)
             self._indice += 1
             self.gravados += n
+            # Persiste o último índice (numeração contínua entre lotes)
+            try:
+                indices = _carregar_indices()
+                indices[self.caminho_final] = self._indice - 1
+                _salvar_indices(indices)
+            except Exception:
+                pass
         return n
 
     def fechar(self) -> int:
@@ -839,8 +934,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(
         description="Pipeline LEVE de limpeza de datasets (SFT + Pretrain) para SLMs")
     ap.add_argument("--origem", required=True, help="Pasta ou arquivo de origem")
-    ap.add_argument("--saida", default="dados/processed",
-                    help="Pasta de saída (default: dados/processed)")
+    ap.add_argument("--saida", default="dados/processed/parquet",
+                    help="Pasta de saída p/ os .parquet (padrão 18/08: dados/processed/parquet)")
     ap.add_argument("--lid-model", default="",
                     help="Caminho do modelo fasttext lid.176.bin")
     ap.add_argument("--max-docs", type=int, default=0,
@@ -849,6 +944,10 @@ def main() -> int:
                     help="Desliga o filtro de idioma PT-BR (não recomendado)")
     ap.add_argument("--lote", type=int, default=5000,
                     help="Exemplos por lote de escrita (RAM controlada)")
+    ap.add_argument("--elite-pct", type=int, default=20,
+                    help="%% dos TXT mais qualificados a RETER como .txt (0 = desliga)")
+    ap.add_argument("--elite-dir", default="dados/processed/txt",  # padrão 18/08: TXT em processed/txt
+                    help="Pasta p/ guardar os TXT de elite (não convertidos)")
     args = ap.parse_args()
 
     t_inicio = time.time()
@@ -876,6 +975,7 @@ def main() -> int:
 
     lote_sft: list[dict] = []
     lote_pre: list[dict] = []
+    txt_aprovados: list[dict] = []   # TXT que passaram todas as bandeiras (elite)
     caminho_sft = os.path.join(args.saida, "rigel_sft.parquet")
     caminho_pre = os.path.join(args.saida, "rigel_pretrain.parquet")
     escritor_sft = _EscritorParquet(caminho_sft, lote=args.lote)
@@ -914,6 +1014,8 @@ def main() -> int:
 
     for doc in _ler_documentos(origem):
         contadores["lidos"] += 1
+        if doc.get("_e_txt"):
+            contadores["txt_lidos"] = contadores.get("txt_lidos", 0) + 1
         if args.max_docs and contadores["lidos"] > args.max_docs:
             break
         try:
@@ -924,6 +1026,19 @@ def main() -> int:
             contadores["qualidade"] += 1  # documento que falhou não derruba
             continue
         if exemplo is None:
+            continue
+        if doc.get("_e_txt") and args.elite_pct > 0:
+            # 🧹 TXT de elite: segura p/ reter os 20% melhores como .txt no fim
+            texto_ex = exemplo.get("text") or ""
+            if isinstance(texto_ex, str) and texto_ex.strip():
+                if len(txt_aprovados) < 200_000:   # guarda de RAM (streaming)
+                    txt_aprovados.append({
+                        "score": _pontos_elite(texto_ex),
+                        "texto": texto_ex,
+                        "nome": doc.get("_nome_txt") or "txt",
+                    })
+                else:
+                    lote_pre.append(exemplo)  # além do limite → converte direto
             continue
         if tipo == "sft":
             lote_sft.append(exemplo)
@@ -949,6 +1064,60 @@ def main() -> int:
             print(f"  ⏳ {pct:5.1f}% | {total} lidos | "
                   f"SFT={contadores['sft']} Pretrain={contadores['pretrain']}",
                   flush=True)
+
+    # === TXT DE ELITE: retém os N% mais qualificados como .txt (regra 14/08) ===
+    # O usuário: não converter 100% nem apagar 100% — os TXT "perfeitos"
+    # (passaram todas as bandeiras) permanecem para ensinar estrutura/fluência.
+    # 🚦 LIMITE POR PASTA = 5000 (regra do usuário): se a elite passar disso,
+    # divide em subpastas numeradas (txt_elite_01, txt_elite_02, ...) — nunca
+    # acumular dezenas de milhares numa pasta única.
+    ELITE_LIMITE_POR_PASTA = 5000
+    elite_salvos = 0
+    if args.elite_pct > 0 and txt_aprovados:
+        total_txt = contadores.get("txt_lidos", 0) or len(txt_aprovados)
+        alvo = max(1, round(args.elite_pct / 100.0 * total_txt))
+        txt_aprovados.sort(key=lambda x: x["score"], reverse=True)
+        elite = txt_aprovados[:alvo]
+        resto = txt_aprovados[alvo:]
+        elite_dir = Path(args.elite_dir)
+        elite_dir.mkdir(parents=True, exist_ok=True)
+        manifest = []
+        for i, item in enumerate(elite, 1):
+            # 📁 escolhe a subpasta atual (cria numeradas conforme enche)
+            subpasta = elite_dir
+            if i > ELITE_LIMITE_POR_PASTA:
+                idx = (i - 1) // ELITE_LIMITE_POR_PASTA + 1
+                subpasta = elite_dir / f"txt_elite_{idx:02d}"
+                subpasta.mkdir(parents=True, exist_ok=True)
+            nome = f"elite_{i:05d}_{Path(item['nome']).stem}.txt"
+            try:
+                (subpasta / nome).write_text(item["texto"], encoding="utf-8")
+                elite_salvos += 1
+                manifest.append({"arquivo": nome, "origem": item["nome"],
+                                 "chars": len(item["texto"])})
+            except Exception:
+                continue
+        try:
+            (elite_dir / "_manifesto.json").write_text(
+                json.dumps({"data": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                            "elite_pct": args.elite_pct,
+                            "txt_total": total_txt, "elite_salvos": elite_salvos,
+                            "limite_por_pasta": ELITE_LIMITE_POR_PASTA,
+                            "itens": manifest}, ensure_ascii=False, indent=2),
+                encoding="utf-8")
+        except Exception:
+            pass
+        # O restante (não-elite) VAI para o parquet (pretrain)
+        for item in resto:
+            lote_pre.append({"text": item["texto"]})
+        contadores["elite_txt"] = elite_salvos
+        contadores["txt_convertidos"] = len(resto)
+        print(f"\n🧹 TXT de elite: retidos {elite_salvos} (de {total_txt} txt) "
+              f"em {args.elite_dir} (máx {ELITE_LIMITE_POR_PASTA}/pasta)")
+        print(f"   → convertidos p/ parquet: {len(resto)}")
+    else:
+        contadores["elite_txt"] = 0
+        contadores["txt_convertidos"] = len(txt_aprovados)
 
     # Flush final + mescla dos parciais no arquivo final
     _flush_lotes()

@@ -30,30 +30,23 @@ RE_INVALIDO = re.compile(r"[\ufffd]")
 RE_MOJIBAKE = re.compile("|".join(p[0] for p in PADROES_MOJIBAKE))
 
 
-def analisar_arquivo(caminho: str) -> dict:
-    with open(caminho, "rb") as f:
-        bruto = f.read()
-    # 1) O arquivo é UTF-8 válido?
+def _checar_texto(texto: str, bruto: bytes, nome: str) -> dict:
+    """Checagens comuns sobre o TEXTO decodificado (encoding/mojibake)."""
     try:
         bruto.decode("utf-8", errors="strict")
         utf8_valido = True
     except UnicodeDecodeError as e:
         utf8_valido = False
         pos_erro = e.start
-    texto = bruto.decode("utf-8", errors="replace")
-    # 2) Conta U+FFFD
     qtd_fffd = len(RE_INVALIDO.findall(texto))
-    # 3) Conta padrões de mojibake
     mojis = RE_MOJIBAKE.findall(texto)
     contagem_moji = Counter()
     for m in mojis:
-        # classifica pelo primeiro padrão que casou
-        for padrao, nome in PADROES_MOJIBAKE:
+        for padrao, nome_p in PADROES_MOJIBAKE:
             if re.match(padrao, m):
-                contagem_moji[nome] += 1
+                contagem_moji[nome_p] += 1
                 break
-    # 4) Amostra de linhas com problema
-    exemplos: list[str] = []
+    exemplos = []
     for linha in texto.splitlines()[:400]:
         if RE_INVALIDO.search(linha) or RE_MOJIBAKE.search(linha):
             trecho = linha[:160]
@@ -62,7 +55,7 @@ def analisar_arquivo(caminho: str) -> dict:
             if len(exemplos) >= 3:
                 break
     return {
-        "arquivo": os.path.basename(caminho),
+        "arquivo": os.path.basename(nome),
         "tamanho_kb": round(len(bruto) / 1024, 1),
         "utf8_valido": utf8_valido,
         "pos_erro": pos_erro if not utf8_valido else None,
@@ -71,6 +64,44 @@ def analisar_arquivo(caminho: str) -> dict:
         "tipos_moji": dict(contagem_moji.most_common(5)),
         "exemplos": exemplos,
     }
+
+
+def _extrair_texto_parquet(caminho: str) -> tuple[str, bytes]:
+    """Extrai o texto das colunas string de um .parquet (p/ checar encoding)."""
+    try:
+        import pyarrow.parquet as pq
+        partes = []
+        with pq.ParquetFile(caminho) as pf:
+            for batch in pf.iter_batches(batch_size=512):
+                for row in batch.to_pylist():
+                    for v in row.values():
+                        if isinstance(v, str):
+                            partes.append(v)
+                        elif isinstance(v, list):
+                            for m in v:
+                                if isinstance(m, dict):
+                                    for v2 in m.values():
+                                        if isinstance(v2, str):
+                                            partes.append(v2)
+        texto = "\n".join(partes)
+        return texto, texto.encode("utf-8", errors="replace")
+    except Exception as e:
+        return "", ("erro: %s" % e).encode("utf-8")
+
+
+def analisar_arquivo(caminho: str) -> dict:
+    ext = os.path.splitext(caminho)[1].lower()
+    if ext == ".parquet":
+        texto, bruto = _extrair_texto_parquet(caminho)
+        if not texto.strip():
+            return {"arquivo": os.path.basename(caminho), "tamanho_kb": 0,
+                    "utf8_valido": None, "pos_erro": None, "qtd_fffd": 0,
+                    "total_moji": 0, "tipos_moji": {}, "exemplos": []}
+        return _checar_texto(texto, bruto, caminho)
+    with open(caminho, "rb") as f:
+        bruto = f.read()
+    texto = bruto.decode("utf-8", errors="replace")
+    return _checar_texto(texto, bruto, caminho)
 
 
 def main() -> int:
@@ -82,20 +113,22 @@ def main() -> int:
     max_arq = int(sys.argv[2]) if len(sys.argv) > 2 else 10
     raiz = os.path.abspath(alvo)
 
-    # Aceita ARQUIVO .jsonl OU PASTA (o Executor pode mandar um arquivo individual)
-    if os.path.isfile(raiz) and raiz.lower().endswith(".jsonl"):
+    # Aceita ARQUIVO (txt/json/jsonl/parquet) OU PASTA
+    EXTS = (".txt", ".json", ".jsonl", ".parquet")
+    if os.path.isfile(raiz) and raiz.lower().endswith(EXTS):
         caminhos = [raiz]
         print(f"Arquivo: {raiz} | verificando...\n")
     elif os.path.isdir(raiz):
-        jsonls = sorted(f for f in os.listdir(raiz) if f.endswith(".jsonl"))
-        caminhos = [os.path.join(raiz, f) for f in jsonls[:max_arq]]
-        print(f"Pasta: {raiz} | {len(jsonls)} arquivos | amostrando {len(caminhos)}\n")
+        arquivos = sorted(f for f in os.listdir(raiz)
+                          if f.lower().endswith(EXTS))
+        caminhos = [os.path.join(raiz, f) for f in arquivos[:max_arq]]
+        print(f"Pasta: {raiz} | {len(arquivos)} arquivos | amostrando {len(caminhos)}\n")
     else:
-        print("Caminho não encontrado (nem arquivo .jsonl nem pasta):", raiz)
+        print("Caminho não encontrado (nem arquivo txt/json/jsonl/parquet nem pasta):", raiz)
         return 1
 
     if not caminhos:
-        print("Nenhum arquivo .jsonl encontrado no caminho:", raiz)
+        print("Nenhum arquivo txt/json/jsonl/parquet encontrado no caminho:", raiz)
         return 1
 
     total_fffd = 0

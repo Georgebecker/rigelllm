@@ -117,12 +117,18 @@ VAL_BATCHES_LIMIT = 200
 
 PASTA_BASE = "dados"
 PASTA_PROCESSED = os.path.join(PASTA_BASE, "processed")
+PASTA_TXT = os.path.join(PASTA_PROCESSED, "txt")
+
+
+def _base_txt_efetiva() -> str:
+    """Base das pastas .txt: processed/txt se existir (padrão 18/08), senão processed."""
+    return PASTA_TXT if os.path.isdir(PASTA_TXT) else PASTA_PROCESSED
 PASTA_GERADOS = os.path.join(PASTA_BASE, "gerados")
 PASTA_CURTOS = os.path.join(PASTA_GERADOS, "curtos")
 PASTA_LONGOS = os.path.join(PASTA_GERADOS, "longos")
 PASTA_RESUMIDOS = os.path.join(PASTA_GERADOS, "resumidos")
 
-PASTAS_ULTRACHAT = ["ultrachat1", "ultrachat2"]
+##PASTAS_ULTRACHAT = ["ultrachat1", "ultrachat2"]
 
 TOKENIZER_PATH = "tokenizer/tokenizer.json"
 MODEL_PATH = "modelo/modelo.pt"
@@ -631,6 +637,46 @@ def listar_arquivos_recurssivo(pasta: str) -> List[str]:
                 arquivos.append(os.path.join(raiz, f))
     return arquivos
 
+
+def _resolver_pastas_dados(args) -> List[str]:
+    """Resolve --dados com VÁRIAS pastas (separadas por vírgula ou ';') —
+    exatamente como o dashboard envia (ex.: "--dados A,B,C").
+    Cada item: caminho direto OU nome dentro de dados/processed/txt ou
+    dados/processed. Pastas inexistentes são ignoradas com aviso."""
+    bruto = (args.dados or "").strip()
+    itens = [p.strip() for p in re.split(r"[;,]", bruto) if p.strip()]
+    bases = ["dados/processed/txt", "dados/processed"]
+    encontradas: List[str] = []
+    ignoradas: List[str] = []
+    for item in itens:
+        if os.path.isdir(item):
+            encontradas.append(item)
+            continue
+        achou = False
+        for base in bases:
+            cand = os.path.join(base, item)
+            if os.path.isdir(cand):
+                encontradas.append(cand)
+                achou = True
+                break
+        if not achou:
+            ignoradas.append(item)
+    if ignoradas:
+        log(f"⚠️ Pasta(s) não encontradas e IGNORADAS: {', '.join(ignoradas)}", "WARNING")
+    return encontradas
+
+
+def _listar_arquivos_varias(pastas: List[str]) -> List[str]:
+    """Lista arquivos suportados em VÁRIAS pastas (sem duplicatas)."""
+    arquivos: List[str] = []
+    vistos = set()
+    for pasta in pastas:
+        for a in listar_arquivos_recurssivo(pasta):
+            if a not in vistos:
+                vistos.add(a)
+                arquivos.append(a)
+    return arquivos
+
 def criar_tokenizer() -> bool:
     log("🔧 Criando tokenizer (BPE) a partir das pastas de dados...")
     pastas_para_tokenizer = [PASTA_PROCESSED]
@@ -797,12 +843,15 @@ class StreamingTextDataset(IterableDataset):
             return self._arquivos
         arquivos = []
         extensoes = ('.txt', '.pdf', '.html', '.htm', '.xml', '.csv', '.jsonl')
-        if not os.path.exists(self.pasta_dados):
-            return arquivos
-        for raiz, _, files in os.walk(self.pasta_dados):
-            for f in files:
-                if f.lower().endswith(extensoes):
-                    arquivos.append(os.path.join(raiz, f))
+        # 🔀 Aceita VÁRIAS pastas (vírgula/;) — como o dashboard envia
+        pastas = [p.strip() for p in re.split(r"[;,]", self.pasta_dados or "") if p.strip()]
+        for pasta in pastas:
+            if not os.path.exists(pasta):
+                continue
+            for raiz, _, files in os.walk(pasta):
+                for f in files:
+                    if f.lower().endswith(extensoes):
+                        arquivos.append(os.path.join(raiz, f))
         if self.shuffle:
             random.shuffle(arquivos)
         if self.max_arquivos is not None and len(arquivos) > self.max_arquivos:
@@ -866,7 +915,7 @@ def main():
         pass
 
     parser = argparse.ArgumentParser(description="Treino do RigelSLM com aprendizado contínuo")
-    parser.add_argument("--dados", type=str, default=PASTA_PROCESSED,
+    parser.add_argument("--dados", type=str, default=_base_txt_efetiva(),
                         help="Pasta com dados (padrão: dados/processed)")
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     parser.add_argument("--seq-len", type=int, default=SEQ_LEN)
@@ -890,6 +939,17 @@ def main():
 
     args = parser.parse_args()
 
+    # ── REGRA DE OURO: backup de modelo.pt + modelo_melhor.pt ANTES de treinar ──
+    # (09/08/2026 — usuário exigiu: nunca treinar sem backup dos modelos atuais)
+    try:
+        from modelo_backup import criar_backup
+        _bkp = criar_backup(motivo="pre_treino")
+        log(f"💾 Backup do modelo antes do treino: "
+            f"{len(_bkp.get('criados', []))} arquivo(s) em modelo/backups/")
+    except Exception as _e:
+        log(f"⚠️ Não foi possível fazer o backup do modelo (seguindo mesmo assim): {_e}",
+            "WARNING")
+
     # ------------------------------------------------------------------
     # ⚠️ AVISO: QUAL TREINADOR USA O QUÊ?
     # ------------------------------------------------------------------
@@ -909,7 +969,7 @@ def main():
     # --- SELEÇÃO INTERATIVA DE PASTA (sempre, a menos que --no-interactive) ---
     if not args.no_interactive:
         ## MODIFICADO: passar usar_registro=args.usar_registro
-        pasta_escolhida = selecionar_pasta_interativamente(PASTA_PROCESSED, args.dados, usar_registro=args.usar_registro)
+        pasta_escolhida = selecionar_pasta_interativamente(_base_txt_efetiva(), args.dados, usar_registro=args.usar_registro)
         if pasta_escolhida is not None:
             args.dados = pasta_escolhida
             log(f"📁 Pasta selecionada: {args.dados}")
@@ -919,6 +979,15 @@ def main():
         log(f"📁 Modo não-interativo. Pasta: {args.dados}")
 
     PASTA_DADOS = args.dados
+
+    # 🔀 --dados pode conter VÁRIAS pastas (vírgula/;), como o dashboard envia.
+    # Resolve cada uma — senão "pasta1,pasta2" vira UM caminho inexistente e o
+    # treino falha com "Nenhum arquivo suportado" (bug visto no log 19/08).
+    pastas_efetivas = _resolver_pastas_dados(args)
+    if not pastas_efetivas:
+        log(f"❌ Nenhuma pasta válida em '{args.dados}'. Verifique o caminho.", "ERROR")
+        sys.exit(1)
+    PASTA_DADOS = pastas_efetivas[0]  # base p/ logs (a lista real segue abaixo)
 
     # --- CONTAGEM TOTAL DE ARQUIVOS NA PASTA ESCOLHIDA ---
     if args.usar_registro:
@@ -931,10 +1000,10 @@ def main():
             log(f"📊 Do registro: {total_disponivel} arquivos na pasta '{nome_pasta}'")
         else:
             log(f"⚠️ Registro {args.registro} não encontrado. Escaneando sistema...")
-            todos_arquivos = listar_arquivos_recurssivo(PASTA_DADOS)
+            todos_arquivos = _listar_arquivos_varias(pastas_efetivas)
             total_disponivel = len(todos_arquivos)
     else:
-        todos_arquivos = listar_arquivos_recurssivo(PASTA_DADOS)
+        todos_arquivos = _listar_arquivos_varias(pastas_efetivas)
         total_disponivel = len(todos_arquivos)
 
     if total_disponivel == 0:
@@ -1159,7 +1228,7 @@ def main():
     # --- LOOP PRINCIPAL (aprendizado contínuo) ---
     while True:
         # --- SE HOUVER TROCA DE PASTA OU RESET, RECARREGA DADOS ---
-        arquivos = listar_arquivos_recurssivo(PASTA_DADOS)
+        arquivos = _listar_arquivos_varias(pastas_efetivas)
         if not arquivos:
             log(f"❌ Nenhum arquivo suportado em {PASTA_DADOS}. Verifique o caminho.", "ERROR")
             sys.exit(1)

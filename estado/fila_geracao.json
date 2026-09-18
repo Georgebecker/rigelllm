@@ -1,0 +1,87 @@
+{
+  "ordens": [
+    {
+      "id": 196,
+      "titulo": "Ordem #196",
+      "modelo": "llama3.2:3b",
+      "templates": [
+        "artigo"
+      ],
+      "estilos": [
+        "todos"
+      ],
+      "fonte": "misto",
+      "categorias": "todas",
+      "rss_limite": 0,
+      "meta": 1000,
+      "formato": "jsonl",
+      "ajuizar": true,
+      "timeout_item": 300,
+      "max_reinicio": 2,
+      "reinicios": 3,
+      "diagnostico": "",
+      "status": "erro",
+      "gerados": 0,
+      "erros": 0,
+      "inicio": "2026-08-21T05:52:05.481088",
+      "fim": "2026-08-21T06:04:22.475564",
+      "log": [
+        {
+          "t": "2026-08-21T05:52:05.482474",
+          "msg": "▶️ Ordem 1/1: Ordem #196 (1000 itens · misto · jsonl)"
+        },
+        {
+          "t": "2026-08-21T05:52:05.581166",
+          "msg": "▶️ Subprocesso iniciado (tentativa 1)."
+        },
+        {
+          "t": "2026-08-21T05:52:05.603283",
+          "msg": "⏱️ Vigilância ativa (stall 240s · timeout total ~360300s)"
+        },
+        {
+          "t": "2026-08-21T05:52:10.607604",
+          "msg": "  ▸ 0% — preparando primeira geração (misto)..."
+        },
+        {
+          "t": "2026-08-21T05:56:11.273500",
+          "msg": "🔄 stall (sem progresso por 4 min) — REINICIANDO ordem (1/2)..."
+        },
+        {
+          "t": "2026-08-21T05:56:11.297479",
+          "msg": "▶️ Subprocesso iniciado (tentativa 2)."
+        },
+        {
+          "t": "2026-08-21T05:56:11.311004",
+          "msg": "⏱️ Vigilância ativa (stall 240s · timeout total ~360300s)"
+        },
+        {
+          "t": "2026-08-21T05:56:16.314331",
+          "msg": "  ▸ 0% — preparando primeira geração (misto)..."
+        },
+        {
+          "t": "2026-08-21T06:00:16.731349",
+          "msg": "🔄 stall (sem progresso por 4 min) — REINICIANDO ordem (2/2)..."
+        },
+        {
+          "t": "2026-08-21T06:00:16.737886",
+          "msg": "▶️ Subprocesso iniciado (tentativa 3)."
+        },
+        {
+          "t": "2026-08-21T06:00:16.744043",
+          "msg": "⏱️ Vigilância ativa (stall 240s · timeout total ~360300s)"
+        },
+        {
+          "t": "2026-08-21T06:00:21.748565",
+          "msg": "  ▸ 0% — preparando primeira geração (misto)..."
+        },
+        {
+          "t": "2026-08-21T06:04:22.473677",
+          "msg": "❌ stall (sem progresso por 4 min) após 2 reinícios — ordem marcada como erro."
+        }
+      ]
+    }
+  ],
+  "proximo_id": 197,
+  "rodando": false,
+  "pausado": false
+}

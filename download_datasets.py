@@ -64,6 +64,7 @@ csv.field_size_limit(sys.maxsize)
 PASTA_BASE = "dados"
 PASTA_GERADOS = os.path.join(PASTA_BASE, "gerados")
 PASTA_PROCESSED = os.path.join(PASTA_BASE, "processed")
+PASTA_PROCESSED_TXT = os.path.join(PASTA_PROCESSED, "txt")  # padrão 18/08: TXT por tipo
 PASTA_RAW = os.path.join(PASTA_BASE, "raw")
 PASTA_LOGS = "logs"
 PASTA_MODELO = "modelo"
@@ -807,13 +808,15 @@ def qualificar_fonte(fonte, args):
         if not nome_base.startswith(fonte):
             nome_base = f"{fonte}_{estatisticas['aprovados']:06d}.txt"
 
-        destino = os.path.join(PASTA_PROCESSED, nome_base)
+        # Padrão 18/08: TXT qualificado vai para dados/processed/txt/
+        os.makedirs(PASTA_PROCESSED_TXT, exist_ok=True)
+        destino = os.path.join(PASTA_PROCESSED_TXT, nome_base)
         if os.path.exists(destino):
             base, ext = os.path.splitext(nome_base)
             cont = 1
-            while os.path.exists(os.path.join(PASTA_PROCESSED, f"{base}_{cont:02d}{ext}")):
+            while os.path.exists(os.path.join(PASTA_PROCESSED_TXT, f"{base}_{cont:02d}{ext}")):
                 cont += 1
-            destino = os.path.join(PASTA_PROCESSED, f"{base}_{cont:02d}{ext}")
+            destino = os.path.join(PASTA_PROCESSED_TXT, f"{base}_{cont:02d}{ext}")
 
         with open(destino, 'w', encoding='utf-8') as f:
             f.write(resultado)

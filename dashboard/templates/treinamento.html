@@ -151,23 +151,12 @@
       <button @click="todas('txt')" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1 rounded-lg bg-zinc-800">Todas</button>
       <button @click="pastasSelTxt=[]" class="text-xs text-zinc-500 hover:text-zinc-300 px-3 py-1 rounded-lg bg-zinc-800">Limpar</button>
     </div>
-    <!-- ⚡ Converter TXT marcadas → JSONL (SFT messages) -->
-    <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-zinc-800">
-      <button @click="converterTxtParaJsonl()" :disabled="convertendoTxt || !pastasSelTxt.length"
-              class="bg-sky-600 hover:bg-sky-500 disabled:bg-zinc-700 disabled:opacity-40 px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2"
-              title="Converte as pastas TXT marcadas para JSONL SFT (messages) — o resultado aparece na lista JSONL abaixo">
-        <i class="fa-solid" :class="convertendoTxt ? 'fa-spinner fa-spin' : 'fa-file-export'"></i>
-        <span x-text="convertendoTxt ? ('Convertendo ' + convAtual + '/' + convTotal + '...') : '🔄 Converter em JSONL'"></span>
+    <div class="flex gap-2 mt-2">
+      <button @click="pastasSelTxt=[]" :disabled="convertendoTxt"
+              class="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 px-3 py-2 rounded-xl text-sm transition-all flex items-center gap-1.5"
+              title="Desmarca TODAS as pastas TXT (útil quando há muitas marcadas)">
+        <i class="fa-solid fa-square-minus"></i> Desmarcar todas
       </button>
-      <span class="text-xs" :class="convMsg.startsWith('❌') ? 'text-red-400' : (convMsg.startsWith('✅') ? 'text-emerald-400' : 'text-zinc-500')" x-text="convMsg"></span>
-      <template x-if="semafaroConv?.ocupado && !convertendoTxt">
-        <span class="text-xs text-amber-300">🛡️ Ocupado — <b x-text="semafaroConv?.processos?.[0]?.rotulo || 'operação pesada'"></b></span>
-      </template>
-    </div>
-    <!-- 📋 Log de conversão (dinâmico, com data/hora) -->
-    <div x-show="convertendoTxt || convLog" class="mt-2 bg-black/40 rounded-xl p-2">
-      <p class="text-[10px] text-zinc-500 mb-1">📋 Log de conversão <span class="text-zinc-600">(cada linha com data/hora)</span></p>
-      <pre class="text-[11px] font-mono text-sky-300/80 overflow-auto max-h-40 scrollbar-thin leading-relaxed" x-text="convLog || 'Aguardando início...'"></pre>
     </div>
     <div x-show="scanTxt?.rodando" class="mt-3 bg-zinc-800/40 rounded-xl p-3 border border-sky-600/30">
       <div class="flex items-center justify-between mb-2">
@@ -262,14 +251,19 @@
   <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
     <div class="flex flex-wrap gap-3 items-center">
       <div><label class="text-xs text-zinc-500 block mb-1">Máx arquivos</label>
-        <input type="number" x-model="maxArq" min="100" max="100000" step="100" class="bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm w-28"></div>
-      <div class="flex gap-2 mt-4">
-        <button @click="iniciarTreino(false)" :disabled="treinando || !ativoTipo" class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:opacity-40 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
-          <i class="fa-solid" :class="treinando?'fa-spinner fa-spin':'fa-play'"></i>▶️ Treinar
+        <input type="number" x-model="maxArq" min="100" max="100000" step="100" title="Limite de arquivos por pasta no treino"
+               class="bg-zinc-800 border border-zinc-700 rounded-xl px-2.5 md:px-3 py-2 text-xs md:text-sm w-24 md:w-28"></div>
+      <div class="flex flex-wrap gap-2 mt-3 md:mt-4">
+        <button @click="iniciarTreino(false)" :disabled="treinando || !ativoTipo" title="Inicia o treino com as pastas selecionadas"
+                class="bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:opacity-40 px-3 md:px-6 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all flex items-center gap-1.5">
+          <i class="fa-solid" :class="treinando?'fa-spinner fa-spin':'fa-play'"></i> Treinar
         </button>
-        <button @click="iniciarTreino(true)" :disabled="treinando || !ativoTipo" class="bg-amber-600 hover:bg-amber-500 disabled:bg-zinc-700 disabled:opacity-40 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all">⏯️ Continuar</button>
-        <button @click="pararTreino()" :disabled="!treinando" class="bg-red-600 hover:bg-red-500 disabled:bg-zinc-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">⏹️ Parar</button>
-        <button @click="testarModelo()" class="bg-sky-600 hover:bg-sky-500 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">🧪 Testar</button>
+        <button @click="iniciarTreino(true)" :disabled="treinando || !ativoTipo" title="Continua o treino a partir do último checkpoint"
+                class="bg-amber-600 hover:bg-amber-500 disabled:bg-zinc-700 disabled:opacity-40 px-3 md:px-6 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all">⏯️ Continuar</button>
+        <button @click="pararTreino()" :disabled="!treinando" title="Para o treino em andamento"
+                class="bg-red-600 hover:bg-red-500 disabled:bg-zinc-700 px-3 md:px-4 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all">⏹️ Parar</button>
+        <button @click="testarModelo()" title="Teste rápido do modelo (só TXT — parquet/jsonl podem demorar)"
+                class="bg-sky-600 hover:bg-sky-500 px-3 md:px-4 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all">🧪 Testar</button>
       </div>
     </div>
     <p x-show="ativoTipo" class="text-xs text-zinc-400 mt-3">

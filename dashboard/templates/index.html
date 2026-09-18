@@ -19,7 +19,8 @@
             class="text-zinc-500 hover:text-emerald-400 text-xl shrink-0 ml-2 transition-transform active:scale-90">
       <i class="fa-solid fa-rotate" :class="{'fa-spin': loading}"></i>
     </button>
-    <a href="/comandos" title="🧭 Super Menu de Comandos (FAQ) — quando precisar fazer X, use o comando Y"
+    <a href="/comandos" title="🧭 Super Menu de Comandos (FAQ) — quando pre    sh setup.sh          # também funciona
+    ./setup.sh           # exige dar permissão antes: chmod +x setup.sh
        class="bg-zinc-800 hover:bg-zinc-700 text-sky-300 px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 ml-2">
       <i class="fa-solid fa-circle-question"></i> Comandos
     </a>
@@ -72,7 +73,20 @@
       <p class="text-lg md:text-xl font-bold" x-text="ramPct + '%'"></p>
       <p class="text-xs text-zinc-600 mt-1" x-text="ramInfo"></p>
     </div>
-    <!-- 💽 Disco -->
+    <!-- � Boletim do Rigel (piscante) -->
+    <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
+      <button @click="abrirBoletim()"
+              :title="boletimDica || 'Ver o boletim do dia (o que aconteceu: treino, geração, erros e saúde)'"
+              class="w-full text-left">
+        <div class="flex items-center gap-2">
+          <span class="text-zinc-500 text-xs">📰 Boletim</span>
+          <span class="w-2.5 h-2.5 rounded-full nav-atv"
+                :class="boletimSinalErro ? 'bg-red-400 text-red-400' : 'bg-emerald-400 text-emerald-400'"></span>
+        </div>
+        <p class="text-[10px] text-zinc-600 mt-1 truncate" x-text="boletimResumo || 'carregando...'"></p>
+      </button>
+    </div>
+    <!-- �💽 Disco -->
     <div class="bg-zinc-900 p-4 md:p-5 rounded-2xl card">
       <p class="text-zinc-500 text-xs mb-1">💽 Disco</p>
       <p class="text-lg md:text-xl font-bold" x-text="diskPct + '%'"></p>
@@ -104,6 +118,30 @@
       </a>
     </div>
   </aside>
+
+  <!-- 📰 Boletim do Rigel — painel expansível (dropdown na própria página) -->
+  <div x-show="boletimAberto" x-cloak class="order-3 lg:order-3 mb-6">
+    <div class="bg-zinc-900 rounded-2xl md:rounded-3xl border border-sky-600/30 overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-zinc-800">
+        <h3 class="text-sm font-bold text-sky-300" x-text="boletimTitulo || '📰 Boletim do Rigel'"></h3>
+        <button @click="boletimAberto = false" title="Fechar boletim" aria-label="Fechar boletim"
+                class="text-zinc-500 hover:text-zinc-200 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-1.5 text-sm text-zinc-300 leading-relaxed max-h-96 overflow-auto scrollbar-thin">
+        <template x-for="(linha, i) in boletimLinhas" :key="i">
+          <p class="font-mono text-[12.5px] whitespace-pre-wrap"
+             :class="linha.startsWith('──') ? 'text-sky-400 font-bold mt-3' : (linha.includes('⚠️') || linha.includes('🔴') ? 'text-red-400' : (linha.includes('🟢') ? 'text-emerald-400' : 'text-zinc-300'))"
+             x-text="linha"></p>
+        </template>
+        <p x-show="!boletimLinhas.length" class="text-zinc-500">Carregando boletim...</p>
+      </div>
+      <div class="px-5 py-3 border-t border-zinc-800 text-[10px] text-zinc-600">
+        💡 Também disponível por linha de comando: <code class="text-zinc-400">python scripts/boletim_rigel.py --salvar</code>
+      </div>
+    </div>
+  </div>
 
   <!-- Conteúdo principal -->
   <div class="min-w-0 space-y-6 order-2 lg:order-1">
@@ -239,6 +277,8 @@ function homeState() {
     treinando: false, treinoEtapa: 'idle', treinoDataset: '', treinoMensagem: '', treinoProgresso: 0, treinoIndeterminado: false,
     cpuPct: 0, cpuCores: '?', ramPct: 0, ramInfo: '', diskPct: 0, diskIO: '',
     totalFiles: 0, logTexto: '', metricas: [], metricasFonte: '',
+    boletimResumo: '', boletimHora: '', boletimDica: '', boletimSinalErro: false, boletimSinalGerando: false, boletimPendente: false,
+    boletimAberto: false, boletimLinhas: [], boletimTitulo: '',
     deployRodando: false, deployMensagem: '', deployVersoes: [], _deployTimer: null,
     celRodando: false, celOperacao: '', celMensagem: '', celExportacoes: [], celPendentes: {zips: [], soltos: []}, _celTimer: null,
     init() {
@@ -311,6 +351,57 @@ function homeState() {
         this.carregarCelular();
       } catch(e) { console.error("[DASHBOARD] Erro remover export:", e); }
     },
+    async carregarBoletim() {
+      try {
+        const r = await fetch('/api/boletim/resumo');
+        if (r.ok) {
+          const d = await r.json();
+          // Resumo em 1 linha para o card (a linha mais informativa)
+          const pedacos = [d.treino, d.geracao, d.saude].filter(x => x);
+          this.boletimResumo = (pedacos[0] || '') + (pedacos[1] ? ' · ' + pedacos[1] : '');
+          if (this.boletimResumo.length > 90) this.boletimResumo = this.boletimResumo.slice(0, 90) + '…';
+          const sinais = d.sinais || {};
+          this.boletimSinalErro = !!sinais.tem_erro;
+          const pend = d.pendentes || 0;
+          this.boletimPendente = pend > 0;
+          this.boletimDica = (sinais.tem_erro ? '🔴 Algo deu errado — clique para ver o que foi. '
+                              : '🟢 Está tudo certo — clique para ver o boletim do dia. ')
+                           + (sinais.gerando ? '🟢 Gerando textos agora. ' : '')
+                           + (pend ? `${pend} pendência(s) em aberto. ` : '');
+          const ts = d.gerado_em;
+          this.boletimHora = ts ? new Date(ts).toLocaleTimeString() : '';
+        }
+      } catch(e) { console.error("[DASHBOARD] Erro boletim:", e); }
+    },
+    async abrirBoletim() {
+      // Se já está aberto, apenas fecha (toggle)
+      if (this.boletimAberto) { this.boletimAberto = false; return; }
+      try {
+        const r = await fetch('/api/boletim');
+        if (!r.ok) return;
+        const d = await r.json();
+        const secoes = d.secoes || {};
+        const linhas = [];
+        const rotulos = [
+          ['treino', '📚 Treino'],
+          ['geracao', '📝 Geração'],
+          ['erros', '🔧 Avisos'],
+          ['saude', '🖥️ Saúde'],
+          ['pendencias', '✅ Pendências'],
+          ['pastas', '🗂️ Pastas de treino'],
+        ];
+        for (const [chave, rotulo] of rotulos) {
+          const conteudo = (secoes[chave] || []).filter(l => l && l.trim());
+          if (conteudo.length) {
+            linhas.push('── ' + rotulo + ' ──');
+            conteudo.forEach(l => linhas.push(l));
+          }
+        }
+        this.boletimLinhas = linhas;
+        this.boletimTitulo = '📰 Boletim do Rigel — ' + (d.gerado_em ? new Date(d.gerado_em).toLocaleString() : 'agora');
+        this.boletimAberto = true;
+      } catch(e) { console.error("[DASHBOARD] Erro abrir boletim:", e); }
+    },
     async importarDados() {
       try {
         const r = await fetch('/api/celular/importar', { method: 'POST' });
@@ -366,6 +457,7 @@ function homeState() {
       } catch(e) { console.error("[DASHBOARD] Erro log:", e); }
       await this.carregarDeploy();
       await this.carregarCelular();
+      await this.carregarBoletim();
       this.loading = false; // para o giro do botão
     }
   };

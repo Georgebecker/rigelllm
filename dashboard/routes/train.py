@@ -80,6 +80,30 @@ def _scan_estrutura_txt(report) -> list[dict]:
         if not ok:
             report(fase="interrompido", percentual=100, erro=motivo)
             raise LimiteEstourado(motivo)
+        # 📁 ACHATAR: se a pasta tem subpastas (ex.: txt_elite/txt_elite_01..11
+        # — divididas p/ respeitar o limite de 5000/pasta), lista CADA subpasta
+        # como item separado. Assim nunca aparece "txt_elite (52456 arqs)".
+        subpastas = sorted(s for s in item.iterdir() if s.is_dir()) if item.is_dir() else []
+        tem_arquivo_direto = any(f.is_file() for f in item.iterdir())
+        if subpastas and not tem_arquivo_direto:
+            # Pasta "contêiner" de subpastas → lista as subpastas
+            for j, sub in enumerate(subpastas):
+                try:
+                    qtde, cap = _contar_txt_incremental(sub, report, i, total, len(pastas))
+                except LimiteEstourado as e:
+                    report(fase="interrompido", percentual=100, erro=str(e))
+                    raise
+                if qtde > 0 or cap:
+                    entrada = {"nome": f"{item.name}/{sub.name}", "arquivos": qtde,
+                               "caminho": f"dados/processed/{item.name}/{sub.name}"}
+                    if cap:
+                        entrada["cap_atingido"] = True
+                    pastas.append(entrada)
+                report(percentual=((i + 1 + j / max(1, len(subpastas))) / total) * 100 if total else 100,
+                       fase="varrendo", pasta_atual=sub.name,
+                       itens_processados=i + 1, total_itens=total,
+                       encontrados=len(pastas))
+            continue
         try:
             qtde, cap = _contar_txt_incremental(item, report, i, total, len(pastas))
         except LimiteEstourado as e:
@@ -235,10 +259,26 @@ def _scan_jsonl(report):
 
 
 def _scan_parquet(report):
-    """Pastas com .parquet em dados/processed — scan RASO (nível 1).
-    Os parquet ficam direto nas pastas (ex.: limpo_*/rigel_*.parquet), então
-    não precisa varrer os milhões de .txt — é instantâneo e não martela o SSD."""
-    return _scan_raso(PROCESSED_DIR, ".parquet", report)
+    """Pastas com .parquet em dados/processed/parquet (estrutura 18/08):
+    lista as SUBPASTAS com contagem RECURSIVA (ex.: cnmoro, scrap) + os
+    .parquet soltos na base (ex.: rigel_sft.parquet). Se a base parquet não
+    existir, cai para o layout antigo (parquet direto em dados/processed)."""
+    base = PROCESSED_DIR / "parquet"
+    if not base.is_dir():
+        return _scan_raso(PROCESSED_DIR, ".parquet", report)
+    pastas = _scan_estrutura(base, ".parquet", report)
+    # Arquivos .parquet soltos na base (não estão dentro de subpasta)
+    soltos = 0
+    try:
+        for f in os.scandir(base):
+            if f.is_file() and f.name.lower().endswith(".parquet"):
+                soltos += 1
+    except Exception:
+        pass
+    if soltos:
+        pastas.append({"nome": "parquet (soltos na base)", "arquivos": soltos,
+                       "caminho": "dados/processed/parquet"})
+    return sorted(pastas, key=lambda x: x["nome"])
 
 
 _ESCANEADORES = {
@@ -509,7 +549,7 @@ def extrair_progresso_treino(log_texto: str) -> dict:
         bt = re.search(r"Batch\s*(\d+)\s*/\s*(\d+)", linha, re.IGNORECASE)
         if bt:
             progresso["batch_atual"] = int(bt.group(1))
-        loss = re.search(r"(?:loss|loss:)\s*([\d.]+)", linha, re.IGNORECASE)
+        loss = re.search(r"loss\s*:\s*([-+]?\d+(?:\.\d+)?)", linha, re.IGNORECASE)
         if loss and not progresso.get("loss_atual"):
             progresso["loss_atual"] = float(loss.group(1))
 
@@ -691,13 +731,20 @@ async def start_training(
         if req.resume:
             cmd += ["--resume"]
     elif tipo == "parquet":
-        # Treinador PARQUET (treinoparquet.py) — resolve as pastas limpo_*
-        # dentro do --dados (base), então usamos dados/processed.
+        # Treinador PARQUET (treinoparquet.py) — resolve pastas limpo_*
+        # dentro do --dados. O dashboard envia AS PASTAS MARCADAS (separadas
+        # por vírgula) — não mais "dados/processed" inteiro (treinava TUDO,
+        # ex.: cnmoro 33GB, mesmo marcando 1 pasta pequena).
+        mapa = {p["nome"]: p.get("caminho", p["nome"]) for p in _pastas_do_cache(escaneador_parquet)}
+        alvos = list(dict.fromkeys(mapa.get(n, n) for n in pastas))  # sem duplicatas
         cmd = ["python", "treinoparquet.py", "--no-interactive",
                "--threads", str(prm["threads"]),
                "--num-workers", str(prm["workers"]),
                "--batch-size", str(prm["batch"])]
-        cmd += ["--dados", str(PROCESSED_DIR.relative_to(BASE_DIR))]
+        if alvos:
+            cmd += ["--dados", ",".join(alvos)]
+        else:
+            cmd += ["--dados", str(PROCESSED_DIR.relative_to(BASE_DIR))]
         if req.resume:
             cmd += ["--resume"]
     else:

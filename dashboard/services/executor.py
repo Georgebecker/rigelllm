@@ -35,6 +35,7 @@ import os
 import subprocess
 import sys
 import threading
+import time
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -171,7 +172,8 @@ def _concorrencia_ok(comando: str | None = None) -> tuple[bool, str]:
 # ============================================================================
 # STATUS / LISTAGEM
 # ============================================================================
-MAX_REINICIOS_RELOAD = 2  # quantas vezes re-spawnar atividade morta pelo --reload
+MAX_REINICIOS_RELOAD = 6  # quantas vezes re-spawnar atividade morta pelo --reload
+                         # (após cair 6x seguidas, pergunta se quer continuar +6)
 
 
 def _recuperar_apos_reload() -> None:
@@ -199,35 +201,61 @@ def _recuperar_apos_reload() -> None:
                 except Exception:
                     _reiniciar_apos_reload(aid, dados)
             _atividades[aid] = dados
+        _persistir()  # reflete no disco: respawn / aguardando / rodando_externo
     except Exception:
         pass
 
 
 def _reiniciar_apos_reload(aid: str, dados: dict) -> None:
-    """Re-spawna o comando da atividade que morreu junto com o servidor."""
+    """Re-spawna o comando da atividade que morreu junto com o servidor.
+
+    Se cair MAX_REINICIOS_RELOAD vezes seguidas, PARA e PERGUNTA ao usuário
+    se deseja continuar por mais MAX_REINICIOS_RELOAD tentativas
+    (status 'aguardando' → botão ▶️ Continuar no painel /executor)."""
     reinicios = int(dados.get("reinicios") or 0)
     comando = dados.get("comando") or ""
     cwd = dados.get("cwd") or str(PROJETO_ROOT)
-    if reinicios >= MAX_REINICIOS_RELOAD or not comando:
-        dados["status"] = "interrompido"
-        dados["erro"] = "Processo morreu após reinício do servidor."
+    if reinicios >= MAX_REINICIOS_RELOAD or (not comando and not dados.get("comando_lista")):
+        dados["status"] = "aguardando"
+        dados["rodando"] = False
+        dados["aguardando_continuar"] = True
+        dados["pid"] = None
+        dados["_processo"] = None
+        dados["erro"] = (
+            f"⚠️ Este processo caiu {MAX_REINICIOS_RELOAD} vezes após "
+            f"reinícios do servidor. Clique em ▶️ Continuar para tentar mais "
+            f"{MAX_REINICIOS_RELOAD} vezes, ou em Parar para abandonar.")
+        _persistir()
         return
     try:
-        import shlex
-        cmd = shlex.split(comando)
+        # Usa a LISTA EXATA de argumentos quando disponível (comando_lista) —
+        # re-divisar a string quebraria argumentos com espaços (ex.:
+        # "--nome TODAS as atividades" → 3 args) e caminhos do Windows.
+        cmd = list(dados.get("comando_lista") or [])
+        if not cmd:
+            import shlex
+            # posix=False preserva as barras invertidas dos caminhos (o modo
+            # POSIX destruiria D:\Projetos\... e falharia com [WinError 2]).
+            cmd = shlex.split(comando, posix=False)
         if cmd and cmd[0].lower() in ("python", "python3"):
             cmd[0] = sys.executable
         env = dict(os.environ)
         env["PYTHONIOENCODING"] = "utf-8"
+        # Windows: grupo de processo próprio — o filho NÃO é cancelado junto
+        # com o uvicorn/watchdog (regra 13/08: atividade deve rodar em paralelo).
+        flags = 0
+        if os.name == "nt":
+            flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW
         proc = subprocess.Popen(cmd, cwd=cwd,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                 encoding="utf-8", errors="replace",
-                                env=env, bufsize=1)
+                                env=env, bufsize=1, creationflags=flags)
         dados["pid"] = proc.pid
         dados["_processo"] = proc
         dados["reinicios"] = reinicios + 1
         dados["status"] = "rodando"
         dados["rodando"] = True
+        dados["aguardando_continuar"] = False
         dados["erro"] = None
         dados["fim"] = None
         dados["exit_code"] = None
@@ -238,9 +266,108 @@ def _reiniciar_apos_reload(aid: str, dados: dict) -> None:
         threading.Thread(target=_ler_stderr, args=(aid, proc), daemon=True).start()
         threading.Thread(target=_monitorar_fim, args=(aid, proc), daemon=True).start()
         _log_linha(f"🔄 [{aid}] reiniciado automaticamente (PID {proc.pid})")
+        _persistir()
     except Exception as e:
         dados["status"] = "interrompido"
+        dados["rodando"] = False
+        dados["aguardando_continuar"] = False
         dados["erro"] = f"Falha ao reiniciar após reload: {e}"
+        _persistir()
+
+
+def continuar_apos_reload(aid: str) -> dict:
+    """Continua por mais MAX_REINICIOS_RELOAD tentativas uma atividade que
+    caiu o número máximo de vezes após reinícios do servidor (status
+    'aguardando'). Zera o contador e re-spawna o comando."""
+    with _lock:
+        a = _atividades.get(aid)
+        if a is None:
+            return {"ok": False, "erro": "Atividade não encontrada."}
+        if not a.get("aguardando_continuar"):
+            return {"ok": False,
+                    "erro": "Atividade não está aguardando continuação."}
+        a["aguardando_continuar"] = False
+        a["reinicios"] = 0
+        a["status"] = "rodando"
+        a["rodando"] = True
+    _reiniciar_apos_reload(aid, a)
+    if a.get("status") == "rodando":
+        return {"ok": True, "mensagem":
+                f"▶️ Continuando — nova rodada de {MAX_REINICIOS_RELOAD} tentativas."}
+    return {"ok": False, "erro": a.get("erro") or "Falha ao continuar."}
+
+
+def _detectar_processos_mortos() -> None:
+    """Detecta atividades marcadas como 'rodando' cujo processo JÁ MORREU
+    (estado fantasma: PID não existe mais no sistema — ex.: morreu em silêncio
+    após um --reload sem respawn eficaz).
+
+    Marca como status 'morto' + mensagem + log — o painel oferece o botão
+    🔄 Reiniciar para o USUÁRIO tratar pelo próprio sistema (regra 13/08:
+    recomeçar deve ser algo previsto, registrado e tratado pelo sistema).
+    """
+    try:
+        import psutil
+    except Exception:
+        return
+    with _lock:
+        alvos = [(aid, a) for aid, a in _atividades.items()
+                 if a.get("status") in ("rodando", "rodando_externo") and a.get("pid")]
+    for aid, a in alvos:
+        proc = a.get("_processo")
+        try:
+            if proc is not None and proc.poll() is None:
+                continue  # Popen vivo
+            if not psutil.pid_exists(a["pid"]):
+                with _lock:
+                    atv = _atividades.get(aid)
+                    if atv is None or atv.get("status") not in ("rodando", "rodando_externo"):
+                        continue
+                    atv["status"] = "morto"
+                    atv["rodando"] = False
+                    atv["pid"] = None
+                    atv["_processo"] = None
+                    atv.setdefault("mensagens", []).append(
+                        "💀 Processo morreu sem aviso (PID não existe mais). "
+                        "Clique em 🔄 Reiniciar para recomeçar — registro feito pelo sistema.")
+                    _persistir()
+                _log_linha(
+                    f"💀 [{aid}] processo morto detectado (PID {a['pid']} não existe) "
+                    f"— status 'morto', aguardando Reiniciar.")
+        except Exception:
+            continue
+
+
+def reiniciar(aid: str) -> dict:
+    """🔄 Recomeça uma atividade que morreu/interrompeu (mesmo comando).
+
+    Ação DENTRO do sistema (regra 13/08): o usuário trata pelo painel. Cria
+    uma NOVA atividade com o comando original registrado (comando_lista),
+    passando pelo guardião + concorrência + persistência. Zera o contador de
+    reinícios (recomeço manual = nova rodada de auto-restart).
+    """
+    with _lock:
+        a = _atividades.get(aid)
+        if a is None:
+            return {"ok": False, "erro": "Atividade não encontrada."}
+        if a.get("status") in ("rodando", "rodando_externo"):
+            return {"ok": False, "erro": "Atividade ainda está rodando."}
+        if a.get("aguardando_continuar"):
+            return {"ok": False,
+                    "erro": "Esta atividade está aguardando sua decisão — use ▶️ Continuar."}
+        cmd = list(a.get("comando_lista") or [])
+        if not cmd:
+            import shlex
+            cmd = shlex.split(a.get("comando") or "", posix=False)
+        if not cmd:
+            return {"ok": False, "erro": "Sem comando registrado para reiniciar."}
+        nome = a.get("nome") or "atividade"
+        cwd = a.get("cwd") or str(PROJETO_ROOT)
+        resultado_path = a.get("resultado_path")
+        a["reinicios"] = 0  # recomeço manual = nova rodada de auto-restart
+        _persistir()
+    _log_linha(f"🔄 [{aid}] reinício MANUAL solicitado pelo usuário: {nome}")
+    return iniciar(cmd, nome=nome, cwd=cwd, resultado_path=resultado_path)
 
 
 def _atividade_externa() -> dict | None:
@@ -300,6 +427,7 @@ def listar() -> dict:
     Inclui execuções EXTERNAS detectadas pelo progresso (harmonia com o backend).
     """
     _recuperar_apos_reload()
+    _detectar_processos_mortos()
     with _lock:
         items = []
         for aid, a in _atividades.items():
@@ -326,6 +454,7 @@ def listar() -> dict:
 def status(aid: str = "") -> dict:
     """Status de UMA atividade (ou resumo se aid vazio)."""
     _recuperar_apos_reload()
+    _detectar_processos_mortos()
     if not aid:
         # ⚠️ NÃO chama listar() dentro de lock (deadlock: Lock não é reentrante).
         resumo = listar()
@@ -370,6 +499,25 @@ def limpar_buffer(aid: str = "") -> dict:
             if a in _atividades:
                 _atividades[a]["mensagens"] = []
     return {"ok": True, "mensagem": "Buffer limpo."}
+
+
+def ler_buffer_disco(aid: str, linhas: int = 40) -> dict:
+    """Lê as últimas linhas do buffer em disco de uma atividade.
+
+    O buffer é gravado em logs/executor_buffer_<id>.log a cada linha —
+    isso sobrevive ao fechamento do SSE e mostra o RESULTADO real
+    (ex.: '✅ 494 aprovados | 🟡 299 suspeitos') mesmo após concluir.
+    """
+    try:
+        p = _PASTA_BUFFERS / f"executor_buffer_{aid}.log"
+        if not p.exists():
+            return {"ok": True, "aid": aid, "linhas": [], "existe": False}
+        texto = p.read_text(encoding="utf-8", errors="replace")
+        todas = [l for l in texto.splitlines() if l.strip()]
+        return {"ok": True, "aid": aid, "linhas": todas[-linhas:],
+                "total": len(todas), "existe": True}
+    except Exception as e:
+        return {"ok": False, "aid": aid, "erro": str(e)}
 
 
 def limpar_historico() -> dict:
@@ -488,10 +636,17 @@ def _monitorar_fim(aid: str, proc: subprocess.Popen) -> None:
 
 
 # Caminhos de progresso que o executor conhece (lê p/ expor a barra no painel)
+# Ordem importa: pipeline_progresso.json é o que o executor_pipeline grava
+# quando a atividade roda "todas as origens" (o sanitizar (todas)). Sem ele
+# o painel lia sanitizacao_progresso.json (do script direto) e o % ficava
+# parado mesmo com o pipeline avançando (bug 18/08).
 _CAMINHOS_PROGRESSO = [
+    ("sanitizar", PROJETO_ROOT / "logs" / "pipeline_progresso.json"),
     ("sanitizar", PROJETO_ROOT / "logs" / "sanitizacao_progresso.json"),
+    ("limpeza_leve", PROJETO_ROOT / "logs" / "pipeline_progresso.json"),
     ("limpeza_leve", PROJETO_ROOT / "logs" / "limpeza_progresso.json"),
     ("limpeza", PROJETO_ROOT / "logs" / "limpeza_progresso.json"),
+    ("espaco", PROJETO_ROOT / "logs" / "espaco_progresso.json"),
 ]
 
 
@@ -556,11 +711,12 @@ def iniciar(comando: list[str], nome: str = "", cwd: str | None = None,
         _atividades[aid] = {
             "id": aid, "nome": nome or os.path.basename(cmd[0]),
             "comando": " ".join(cmd), "cwd": cwd or str(PROJETO_ROOT),
+            "comando_lista": list(cmd),  # args EXATOS p/ re-spawnar (não re-divisar string)
             "status": "rodando", "rodando": True, "pid": None,
             "inicio": datetime.now().isoformat(), "fim": None,
             "exit_code": None, "erro": None, "mensagens": [],
             "resultado": None, "resultado_path": resultado_path,
-            "_processo": None,
+            "reinicios": 0, "_processo": None,
         }
         _persistir()
     _log_linha(f">>> [{aid}] {nome or ''}: {' '.join(cmd)}")
@@ -568,10 +724,15 @@ def iniciar(comando: list[str], nome: str = "", cwd: str | None = None,
     try:
         env = dict(os.environ)
         env["PYTHONIOENCODING"] = "utf-8"
+        # Windows: grupo de processo próprio — sobrevive ao reload do uvicorn
+        # e ao taskkill /T do watchdog (regra 13/08: rodar em paralelo).
+        flags = 0
+        if os.name == "nt":
+            flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW
         proc = subprocess.Popen(cmd, cwd=_atividades[aid]["cwd"],
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                 encoding="utf-8", errors="replace",
-                                env=env, bufsize=1)
+                                env=env, bufsize=1, creationflags=flags)
         with _lock:
             _atividades[aid]["pid"] = proc.pid
             _atividades[aid]["_processo"] = proc
@@ -627,7 +788,19 @@ def parar(aid: str = "") -> dict:
                                    capture_output=True, timeout=30)
                 resultados.append({"id": a_id, "ok": True, "mensagem": "parada (órfão)"})
             else:
-                resultados.append({"id": a_id, "ok": False, "erro": "sem processo"})
+                if a.get("status") == "aguardando":
+                    # Abandonar: para de pedir confirmação e marca interrompido
+                    with _lock:
+                        a["status"] = "interrompido"
+                        a["rodando"] = False
+                        a["aguardando_continuar"] = False
+                        a["pid"] = None
+                        a["_processo"] = None
+                        _persistir()
+                    resultados.append({"id": a_id, "ok": True,
+                                       "mensagem": "abandonada (sem mais reinícios)"})
+                else:
+                    resultados.append({"id": a_id, "ok": False, "erro": "sem processo"})
         except Exception as e:
             resultados.append({"id": a_id, "ok": False, "erro": str(e)})
     _log_linha(f"⏹️ Parada solicitada para {len(resultados)} atividade(s).")
@@ -687,7 +860,101 @@ def _agrupar_jsonl_por_pasta(pastas: list[Path]) -> list[dict]:
                 "tipo": "arquivo",
                 "arquivos": 1,
             }
+    for it in agrupados.values():
+        it.setdefault("formatos", ["jsonl"])
     return list(agrupados.values())
+
+
+def _contar_arquivos(c: Path, exts: tuple, limite: int = 1500,
+                     prof_max: int = 1, tempo_max: float = 6.0) -> int:
+    """Conta arquivos das extensões até a profundidade prof_max.
+    Para CEDO ao atingir o limite OU o orçamento de tempo — nunca varre a
+    árvore inteira nem trava o painel (regras 05/08)."""
+    n = 0
+    fim = time.time() + tempo_max
+    try:
+        base_s = str(c)
+        for raiz, dirs, files in os.walk(c):
+            if time.time() > fim:
+                return n
+            prof = raiz[len(base_s):].count(os.sep)
+            if prof >= prof_max:
+                dirs[:] = []
+                continue
+            for f in files:
+                if f.lower().endswith(exts):
+                    n += 1
+                    if n >= limite:
+                        return n
+    except Exception:
+        pass
+    return n
+
+
+def _itens_txt(tempo_max: float = 6.0) -> list[dict]:
+    """Pastas com .txt — RASO (nível 1 de gerados/processed) e LIMITADO."""
+    itens = []
+    vistos = set()
+    for base in (PROJETO_ROOT / "dados" / "gerados",
+                 PROJETO_ROOT / "dados" / "processed"):
+        if not base.exists():
+            continue
+        try:
+            subdirs = [d for d in base.iterdir() if d.is_dir()]
+        except Exception:
+            continue
+        for d in subdirs:
+            nome = (d.name or "").lower()
+            if nome.startswith("_") or nome in ("jsonl", "parquet", "estado",
+                                                 "logs", "raw", "celular",
+                                                 "descartados", "arquivo",
+                                                 "massa_final", "gerados_local"):
+                continue
+            chave = str(d).lower()
+            if chave in vistos:
+                continue
+            vistos.add(chave)
+            n = _contar_arquivos(d, (".txt",), limite=1500, prof_max=1,
+                                 tempo_max=tempo_max)
+            if n == 0:
+                continue
+            rel = d.relative_to(PROJETO_ROOT)
+            itens.append({
+                "nome": d.name, "caminho": str(rel).replace("\\", "/"),
+                "tipo": "pasta", "arquivos": n, "formatos": ["txt"],
+                "sanitizado": False, "parcial": False,
+            })
+    return itens
+
+
+def _itens_parquet(tempo_max: float = 6.0) -> list[dict]:
+    """Pastas com .parquet — RASO (nível 1 de processed/raw) e LIMITADO."""
+    itens = []
+    vistos = set()
+    for base in (PROJETO_ROOT / "dados" / "processed",
+                 PROJETO_ROOT / "dados" / "raw"):
+        if not base.exists():
+            continue
+        try:
+            subdirs = [d for d in base.iterdir() if d.is_dir()]
+        except Exception:
+            continue
+        for d in subdirs:
+            chave = str(d).lower()
+            if chave in vistos:
+                continue
+            vistos.add(chave)
+            n = _contar_arquivos(d, (".parquet",), limite=1500, prof_max=1,
+                                 tempo_max=tempo_max)
+            if n == 0:
+                continue
+            rel = d.relative_to(PROJETO_ROOT)
+            itens.append({
+                "nome": d.name, "caminho": str(rel).replace("\\", "/"),
+                "tipo": "pasta", "arquivos": n, "formatos": ["parquet"],
+                "sanitizado": False, "parcial": False,
+            })
+    return itens
 
 
 def listar_origens() -> dict:
@@ -713,14 +980,21 @@ def listar_origens() -> dict:
             PROJETO_ROOT / "dados" / "gerados" / "jsonl",
             PROJETO_ROOT / "dados" / "raw",
         ]
+        fim_orcamento = time.time() + 6.0   # 🛡️ orçamento: nunca travar o painel
         for base in alvos:
             if not base.exists():
                 continue
             try:
                 for p in base.glob("**/*.jsonl"):
+                    if time.time() > fim_orcamento:
+                        break
                     pastas.append(p)
+                    if len(pastas) >= 2500:   # cap de segurança (dropdown)
+                        break
             except Exception:
                 continue
+            if len(pastas) >= 2500 or time.time() > fim_orcamento:
+                break
         # Arquivos .jsonl soltos na raiz de dados/
         try:
             for p in (PROJETO_ROOT / "dados").glob("*.jsonl"):
@@ -739,11 +1013,17 @@ def listar_origens() -> dict:
             it["total_arquivos"] = h.get("total_arquivos") if h else None
             it["arquivos_processados"] = h.get("arquivos_processados") if h else None
 
-        # Ordena: pendentes primeiro, depois parciais, depois já feitas
-        def _chave(it: dict) -> tuple:
-            return (0 if not it["sanitizado"] else 1,
-                    it["nome"].lower())
-        itens.sort(key=_chave)
+        # 🆕 Origens universais: TXT e PARQUET (qualificação vale p/ qualquer
+        # formato — regra 14/08). Raso, limitado e com orçamento de tempo.
+        restante = max(0.5, fim_orcamento - time.time())
+        itens += _itens_txt(tempo_max=restante)
+        restante = max(0.5, fim_orcamento - time.time())
+        itens += _itens_parquet(tempo_max=restante)
+
+        # Cap de segurança (dropdown não explode) — prioriza pendentes
+        itens.sort(key=lambda it: (0 if not it.get("sanitizado") else 1,
+                                   it["nome"].lower()))
+        itens = itens[:500]
 
         return {
             "ok": True,

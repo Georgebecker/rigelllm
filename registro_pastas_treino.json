@@ -1,0 +1,4002 @@
+{
+  "pastas": {
+    "Artigo": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/Artigo",
+      "arquivos": 19,
+      "mb": 0.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "Cronicas": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/Cronicas",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "Debates": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/Debates",
+      "arquivos": 9,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "Dicas": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/Dicas",
+      "arquivos": 10,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "Dicionário": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/Dicionário",
+      "arquivos": 33,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "Dicionário_aprovado": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/Dicionário_aprovado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "Gerados_local": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/Gerados_local",
+      "arquivos": 208,
+      "mb": 0.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "PerguntaseRespostas": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/PerguntaseRespostas",
+      "arquivos": 22,
+      "mb": 0.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "Profundo": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/Profundo",
+      "arquivos": 9,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "Receitas": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/Receitas",
+      "arquivos": 8,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "Resenhas": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/Resenhas",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "api_gerados": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/api_gerados",
+      "arquivos": 13,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "canarim_1": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/canarim_1",
+      "arquivos": 5000,
+      "mb": 1.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "canarim_10": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/canarim_10",
+      "arquivos": 5000,
+      "mb": 1.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "canarim_2": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/canarim_2",
+      "arquivos": 5000,
+      "mb": 1.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "canarim_3": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/canarim_3",
+      "arquivos": 5000,
+      "mb": 1.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "canarim_4": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/canarim_4",
+      "arquivos": 5000,
+      "mb": 1.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "canarim_5": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/canarim_5",
+      "arquivos": 5000,
+      "mb": 1.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "canarim_6": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/canarim_6",
+      "arquivos": 5000,
+      "mb": 1.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "canarim_7": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/canarim_7",
+      "arquivos": 5000,
+      "mb": 1.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "canarim_8": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/canarim_8",
+      "arquivos": 5000,
+      "mb": 1.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "canarim_9": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/canarim_9",
+      "arquivos": 5000,
+      "mb": 1.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "chat_salvos": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/chat_salvos",
+      "arquivos": 2,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "completos": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/completos",
+      "arquivos": 337,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos",
+      "arquivos": 2130,
+      "mb": 1.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2_10": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2_10",
+      "arquivos": 4965,
+      "mb": 8.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2_2": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2_2",
+      "arquivos": 5000,
+      "mb": 9.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2_3": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2_3",
+      "arquivos": 5000,
+      "mb": 8.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2_4": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2_4",
+      "arquivos": 5000,
+      "mb": 8.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2_5": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2_5",
+      "arquivos": 5000,
+      "mb": 9.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2_6": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2_6",
+      "arquivos": 5000,
+      "mb": 8.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2_7": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2_7",
+      "arquivos": 5000,
+      "mb": 8.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2_8": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2_8",
+      "arquivos": 5000,
+      "mb": 8.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2_9": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2_9",
+      "arquivos": 5000,
+      "mb": 7.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2a": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2a",
+      "arquivos": 5000,
+      "mb": 8.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2b": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2b",
+      "arquivos": 5000,
+      "mb": 8.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2c": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2c",
+      "arquivos": 5000,
+      "mb": 8.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2d": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2d",
+      "arquivos": 5000,
+      "mb": 8.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2e": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2e",
+      "arquivos": 5000,
+      "mb": 8.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2f": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2f",
+      "arquivos": 5000,
+      "mb": 8.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2g": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2g",
+      "arquivos": 5000,
+      "mb": 8.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2h": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2h",
+      "arquivos": 5000,
+      "mb": 8.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos2i": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos2i",
+      "arquivos": 4964,
+      "mb": 8.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos_aprovado": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/curtos_aprovado",
+      "arquivos": 2,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets",
+      "arquivos": 1259,
+      "mb": 0.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets01": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets01",
+      "arquivos": 1089,
+      "mb": 0.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_1": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_1",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_10": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_10",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_100": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_100",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_101": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_101",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_102": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_102",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_103": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_103",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_104": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_104",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_105": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_105",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_106": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_106",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_107": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_107",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_108": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_108",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_109": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_109",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_11": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_11",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_110": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_110",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_111": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_111",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_112": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_112",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_113": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_113",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_114": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_114",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_115": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_115",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_116": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_116",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_117": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_117",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_118": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_118",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_119": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_119",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_12": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_12",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_120": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_120",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_121": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_121",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_122": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_122",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_123": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_123",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_124": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_124",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_125": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_125",
+      "arquivos": 2508,
+      "mb": 1.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_13": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_13",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_14": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_14",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_15": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_15",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_16": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_16",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_17": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_17",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_18": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_18",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_19": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_19",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_2": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_2",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_20": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_20",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_21": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_21",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_22": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_22",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_23": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_23",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_24": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_24",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_25": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_25",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_26": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_26",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_27": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_27",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_28": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_28",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_29": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_29",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_3": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_3",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_30": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_30",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_31": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_31",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_32": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_32",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_33": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_33",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_34": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_34",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_35": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_35",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_36": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_36",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_37": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_37",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_38": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_38",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_39": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_39",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_4": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_4",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_40": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_40",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_41": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_41",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_42": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_42",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_43": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_43",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_44": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_44",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_45": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_45",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_46": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_46",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_47": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_47",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_48": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_48",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_49": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_49",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_5": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_5",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_50": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_50",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_51": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_51",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_52": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_52",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_53": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_53",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_54": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_54",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_55": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_55",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_56": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_56",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_57": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_57",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_58": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_58",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_59": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_59",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_6": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_6",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_60": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_60",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_61": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_61",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_62": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_62",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_63": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_63",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_64": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_64",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_65": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_65",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_66": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_66",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_67": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_67",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_68": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_68",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_69": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_69",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_7": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_7",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_70": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_70",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_71": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_71",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_72": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_72",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_73": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_73",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_74": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_74",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_75": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_75",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_76": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_76",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_77": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_77",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_78": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_78",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_79": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_79",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_8": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_8",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_80": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_80",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_81": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_81",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_82": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_82",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_83": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_83",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_84": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_84",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_85": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_85",
+      "arquivos": 5000,
+      "mb": 3.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_86": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_86",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_87": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_87",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_88": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_88",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_89": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_89",
+      "arquivos": 5000,
+      "mb": 3.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_9": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_9",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_90": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_90",
+      "arquivos": 5000,
+      "mb": 3.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_91": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_91",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_92": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_92",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_93": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_93",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_94": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_94",
+      "arquivos": 5000,
+      "mb": 3.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_95": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_95",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_96": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_96",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_97": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_97",
+      "arquivos": 5000,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_98": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_98",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets2_99": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets2_99",
+      "arquivos": 5000,
+      "mb": 3.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_1": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_1",
+      "arquivos": 5000,
+      "mb": 4.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_10": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_10",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_100": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_100",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_101": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_101",
+      "arquivos": 5000,
+      "mb": 4.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_102": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_102",
+      "arquivos": 3020,
+      "mb": 2.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_11": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_11",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_12": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_12",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_13": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_13",
+      "arquivos": 5000,
+      "mb": 4.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_14": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_14",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_15": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_15",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_16": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_16",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_17": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_17",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_18": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_18",
+      "arquivos": 5000,
+      "mb": 4.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_19": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_19",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_2": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_2",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_20": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_20",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_21": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_21",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_22": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_22",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_23": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_23",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_24": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_24",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_25": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_25",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_26": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_26",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_27": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_27",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_28": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_28",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_29": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_29",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_3": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_3",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_30": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_30",
+      "arquivos": 5000,
+      "mb": 4.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_31": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_31",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_32": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_32",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_33": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_33",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_34": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_34",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_35": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_35",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_36": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_36",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_37": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_37",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_38": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_38",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_39": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_39",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_4": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_4",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_40": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_40",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_41": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_41",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_42": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_42",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_43": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_43",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_44": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_44",
+      "arquivos": 5000,
+      "mb": 4.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_45": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_45",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_46": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_46",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_47": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_47",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_48": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_48",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_49": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_49",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_5": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_5",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_50": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_50",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_51": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_51",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_52": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_52",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_53": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_53",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_54": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_54",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_55": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_55",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_56": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_56",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_57": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_57",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_58": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_58",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_59": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_59",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_6": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_6",
+      "arquivos": 5000,
+      "mb": 4.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_60": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_60",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_61": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_61",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_62": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_62",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_63": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_63",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_64": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_64",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_65": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_65",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_66": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_66",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_67": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_67",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_68": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_68",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_69": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_69",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_7": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_7",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_70": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_70",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_71": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_71",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_72": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_72",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_73": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_73",
+      "arquivos": 5000,
+      "mb": 4.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_74": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_74",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_75": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_75",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_76": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_76",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_77": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_77",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_78": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_78",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_79": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_79",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_8": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_8",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_80": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_80",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_81": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_81",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_82": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_82",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_83": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_83",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_84": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_84",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_85": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_85",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_86": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_86",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_87": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_87",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_88": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_88",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_89": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_89",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_9": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_9",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_90": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_90",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_91": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_91",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_92": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_92",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_93": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_93",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_94": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_94",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_95": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_95",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_96": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_96",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_97": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_97",
+      "arquivos": 5000,
+      "mb": 4.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_98": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_98",
+      "arquivos": 5000,
+      "mb": 4.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "datasets3_99": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/datasets3_99",
+      "arquivos": 5000,
+      "mb": 4.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "gerados_local_aprovado": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/gerados_local_aprovado",
+      "arquivos": 665,
+      "mb": 1.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "livros": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/livros",
+      "arquivos": 49,
+      "mb": 0.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "longos": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/longos",
+      "arquivos": 3826,
+      "mb": 11.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "longos_aprovado": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/longos_aprovado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "massa_final_aprovado": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/massa_final_aprovado",
+      "arquivos": 461,
+      "mb": 1.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "medios": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/medios",
+      "arquivos": 68,
+      "mb": 0.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "processed_limpo_1": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/processed_limpo_1",
+      "arquivos": 5000,
+      "mb": 8.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "processed_limpo_2": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/processed_limpo_2",
+      "arquivos": 5000,
+      "mb": 8.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "processed_limpo_3": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/processed_limpo_3",
+      "arquivos": 5000,
+      "mb": 7.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "processed_limpo_4": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/processed_limpo_4",
+      "arquivos": 5000,
+      "mb": 7.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "processed_limpo_5": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/processed_limpo_5",
+      "arquivos": 977,
+      "mb": 1.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "processed_lotes": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/processed_lotes",
+      "arquivos": 784,
+      "mb": 270.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "resumidos": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/resumidos",
+      "arquivos": 55,
+      "mb": 0.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "tucano_1": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/tucano_1",
+      "arquivos": 5000,
+      "mb": 7.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "tucano_2": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/tucano_2",
+      "arquivos": 5000,
+      "mb": 7.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "tucano_3": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/tucano_3",
+      "arquivos": 5000,
+      "mb": 7.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "tucano_4": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/tucano_4",
+      "arquivos": 5000,
+      "mb": 7.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "tucano_5": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/tucano_5",
+      "arquivos": 5000,
+      "mb": 7.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "tucano_6": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/tucano_6",
+      "arquivos": 3700,
+      "mb": 5.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "txt_elite": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/txt_elite",
+      "arquivos": 52456,
+      "mb": 29.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "txt_livros_aprovado": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/txt_livros_aprovado",
+      "arquivos": 3,
+      "mb": 1.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "ultrachat": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/ultrachat",
+      "arquivos": 123,
+      "mb": 0.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "ultrachat_2": {
+      "tipo": "txt",
+      "caminho": "dados/processed/txt/ultrachat_2",
+      "arquivos": 48,
+      "mb": 0.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "BrunoN-Dev_ultra-alpaca-ptbr": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/BrunoN-Dev_ultra-alpaca-ptbr",
+      "arquivos": 1,
+      "mb": 1544.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "Dicionário_aprovado_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/Dicionário_aprovado_sanitizado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "api_gerados_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/api_gerados_sanitizado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "chat_salvos_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/chat_salvos_sanitizado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "curtos_aprovado_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/curtos_aprovado_sanitizado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "debates_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/debates_sanitizado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "dominguesm_brwac": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/dominguesm_brwac",
+      "arquivos": 1,
+      "mb": 18022.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "dominguesm_restore-punctuation-ptbr-dataset": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/dominguesm_restore-punctuation-ptbr-dataset",
+      "arquivos": 1,
+      "mb": 1040.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "gerados_local_aprovado_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/gerados_local_aprovado_sanitizado",
+      "arquivos": 1,
+      "mb": 1.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "jsonlocal": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/jsonlocal",
+      "arquivos": 1,
+      "mb": 1.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "jsonlocal_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/jsonlocal_sanitizado",
+      "arquivos": 1,
+      "mb": 1.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "livros_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/livros_sanitizado",
+      "arquivos": 1,
+      "mb": 1.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "longos_aprovado_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/longos_aprovado_sanitizado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "massa_final_aprovado_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/massa_final_aprovado_sanitizado",
+      "arquivos": 1,
+      "mb": 1.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigel20260818_064347": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigel20260818_064347",
+      "arquivos": 7,
+      "mb": 4.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl100_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl100_sanitizado",
+      "arquivos": 5,
+      "mb": 12.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl101_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl101_sanitizado",
+      "arquivos": 5,
+      "mb": 12.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl102_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl102_sanitizado",
+      "arquivos": 5,
+      "mb": 11.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl103_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl103_sanitizado",
+      "arquivos": 5,
+      "mb": 12.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl104_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl104_sanitizado",
+      "arquivos": 5,
+      "mb": 11.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl105_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl105_sanitizado",
+      "arquivos": 5,
+      "mb": 12.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl106_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl106_sanitizado",
+      "arquivos": 5,
+      "mb": 12.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl107_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl107_sanitizado",
+      "arquivos": 5,
+      "mb": 12.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl108_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl108_sanitizado",
+      "arquivos": 5,
+      "mb": 12.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl109_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl109_sanitizado",
+      "arquivos": 5,
+      "mb": 12.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl10_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl10_sanitizado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl110_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl110_sanitizado",
+      "arquivos": 5,
+      "mb": 12.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl111_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl111_sanitizado",
+      "arquivos": 5,
+      "mb": 12.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl112_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl112_sanitizado",
+      "arquivos": 5,
+      "mb": 12.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl113_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl113_sanitizado",
+      "arquivos": 5,
+      "mb": 12.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl114_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl114_sanitizado",
+      "arquivos": 2,
+      "mb": 1.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl115_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl115_sanitizado",
+      "arquivos": 2,
+      "mb": 1.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl116_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl116_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl117_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl117_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl118_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl118_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl119_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl119_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl11_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl11_sanitizado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl120_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl120_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl121_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl121_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl122_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl122_sanitizado",
+      "arquivos": 5,
+      "mb": 7.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl123_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl123_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl124_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl124_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl125_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl125_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl126_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl126_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl127_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl127_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl128_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl128_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl129_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl129_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl12_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl12_sanitizado",
+      "arquivos": 5,
+      "mb": 5.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl130_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl130_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl131_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl131_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl132_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl132_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl133_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl133_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl134_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl134_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl135_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl135_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl136_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl136_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl137_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl137_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl138_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl138_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl139_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl139_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl13_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl13_sanitizado",
+      "arquivos": 5,
+      "mb": 5.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl140_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl140_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl141_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl141_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl142_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl142_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl143_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl143_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl144_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl144_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl145_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl145_sanitizado",
+      "arquivos": 3,
+      "mb": 3.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl146_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl146_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl147_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl147_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl148_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl148_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl149_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl149_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl14_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl14_sanitizado",
+      "arquivos": 5,
+      "mb": 5.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl150_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl150_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl151_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl151_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl152_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl152_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl153_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl153_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl154_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl154_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl155_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl155_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl156_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl156_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl157_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl157_sanitizado",
+      "arquivos": 5,
+      "mb": 7.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl158_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl158_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl159_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl159_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl15_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl15_sanitizado",
+      "arquivos": 5,
+      "mb": 5.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl160_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl160_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl161_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl161_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl162_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl162_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl163_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl163_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl164_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl164_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl165_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl165_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl166_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl166_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl167_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl167_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl168_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl168_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl169_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl169_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl16_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl16_sanitizado",
+      "arquivos": 5,
+      "mb": 5.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl170_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl170_sanitizado",
+      "arquivos": 5,
+      "mb": 7.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl171_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl171_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl172_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl172_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl173_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl173_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl174_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl174_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl175_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl175_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl176_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl176_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl177_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl177_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl178_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl178_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl179_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl179_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl17_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl17_sanitizado",
+      "arquivos": 5,
+      "mb": 5.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl180_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl180_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl181_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl181_sanitizado",
+      "arquivos": 5,
+      "mb": 7.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl182_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl182_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl183_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl183_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl184_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl184_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl185_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl185_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl186_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl186_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl187_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl187_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl188_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl188_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl189_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl189_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl18_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl18_sanitizado",
+      "arquivos": 5,
+      "mb": 5.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl190_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl190_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl191_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl191_sanitizado",
+      "arquivos": 5,
+      "mb": 7.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl192_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl192_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl193_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl193_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl194_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl194_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl195_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl195_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl196_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl196_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl197_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl197_sanitizado",
+      "arquivos": 5,
+      "mb": 7.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl198_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl198_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl199_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl199_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl19_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl19_sanitizado",
+      "arquivos": 5,
+      "mb": 5.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl1_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl1_sanitizado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl200_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl200_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl201_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl201_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl202_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl202_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl203_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl203_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl204_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl204_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl205_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl205_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl206_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl206_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl207_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl207_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl208_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl208_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl209_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl209_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl20_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl20_sanitizado",
+      "arquivos": 5,
+      "mb": 5.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl210_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl210_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl211_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl211_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl212_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl212_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl213_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl213_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl214_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl214_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl215_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl215_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl216_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl216_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl217_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl217_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl218_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl218_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl219_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl219_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl21_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl21_sanitizado",
+      "arquivos": 5,
+      "mb": 5.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl220_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl220_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl221_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl221_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl222_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl222_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl223_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl223_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl224_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl224_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl225_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl225_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl226_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl226_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl227_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl227_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl228_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl228_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl229_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl229_sanitizado",
+      "arquivos": 5,
+      "mb": 7.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl22_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl22_sanitizado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl230_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl230_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl231_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl231_sanitizado",
+      "arquivos": 5,
+      "mb": 7.2,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl232_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl232_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl233_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl233_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl234_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl234_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl235_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl235_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl236_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl236_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl237_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl237_sanitizado",
+      "arquivos": 5,
+      "mb": 7.4,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl238_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl238_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl239_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl239_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl23_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl23_sanitizado",
+      "arquivos": 1,
+      "mb": 1.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl240_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl240_sanitizado",
+      "arquivos": 5,
+      "mb": 7.3,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl241_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl241_sanitizado",
+      "arquivos": 5,
+      "mb": 7.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl242_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl242_sanitizado",
+      "arquivos": 5,
+      "mb": 7.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl243_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl243_sanitizado",
+      "arquivos": 5,
+      "mb": 7.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl244_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl244_sanitizado",
+      "arquivos": 5,
+      "mb": 7.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl245_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl245_sanitizado",
+      "arquivos": 3,
+      "mb": 4.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl246_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl246_sanitizado",
+      "arquivos": 5,
+      "mb": 7.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl247_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl247_sanitizado",
+      "arquivos": 5,
+      "mb": 7.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl248_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl248_sanitizado",
+      "arquivos": 5,
+      "mb": 7.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl249_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl249_sanitizado",
+      "arquivos": 5,
+      "mb": 7.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl24_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl24_sanitizado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl250_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl250_sanitizado",
+      "arquivos": 5,
+      "mb": 7.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl251_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl251_sanitizado",
+      "arquivos": 5,
+      "mb": 7.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl252_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl252_sanitizado",
+      "arquivos": 5,
+      "mb": 7.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl253_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl253_sanitizado",
+      "arquivos": 5,
+      "mb": 7.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl254_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl254_sanitizado",
+      "arquivos": 5,
+      "mb": 7.9,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl255_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl255_sanitizado",
+      "arquivos": 5,
+      "mb": 7.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl256_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl256_sanitizado",
+      "arquivos": 5,
+      "mb": 7.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl257_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl257_sanitizado",
+      "arquivos": 5,
+      "mb": 7.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl258_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl258_sanitizado",
+      "arquivos": 5,
+      "mb": 7.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl259_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl259_sanitizado",
+      "arquivos": 5,
+      "mb": 7.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl25_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl25_sanitizado",
+      "arquivos": 2,
+      "mb": 2.5,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl260_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl260_sanitizado",
+      "arquivos": 5,
+      "mb": 7.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl261_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl261_sanitizado",
+      "arquivos": 5,
+      "mb": 7.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl26_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl26_sanitizado",
+      "arquivos": 5,
+      "mb": 11.6,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl2_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl2_sanitizado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl43": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl43",
+      "arquivos": 48,
+      "mb": 121.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl78_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl78_sanitizado",
+      "arquivos": 1534,
+      "mb": 3812.7,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl_20260802_0136": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl_20260802_0136",
+      "arquivos": 941,
+      "mb": 3496.8,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rigeljsonl_20260802_0136_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rigeljsonl_20260802_0136_sanitizado",
+      "arquivos": 936,
+      "mb": 3479.1,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rss": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rss",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "rss_sanitizado": {
+      "tipo": "jsonl",
+      "caminho": "dados/processed/jsonl/rss_sanitizado",
+      "arquivos": 1,
+      "mb": 0.0,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "cnmoro": {
+      "tipo": "parquet",
+      "caminho": "dados\\processed\\parquet\\cnmoro",
+      "arquivos": 709,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    },
+    "scrap": {
+      "tipo": "parquet",
+      "caminho": "dados\\processed\\parquet\\scrap",
+      "arquivos": 26,
+      "vezes_treinada": 0,
+      "ultimo_treino": ""
+    }
+  }
+}

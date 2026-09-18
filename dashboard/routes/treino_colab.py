@@ -79,7 +79,8 @@ def _comando_treino(req: GerarRequest) -> str:
         return cmd
     # jsonl (SFT)
     cmd = (f'!cd {drive} && yes "n" | python treinar_com_jsonl.py '
-           f'--dados "{dados}" --max-arquivos {req.max_arquivos} --epochs {req.epochs}')
+           f'--dados "{dados}" --max-arquivos {req.max_arquivos} --epochs {req.epochs} '
+           f'--origem colab')
     if req.resume:
         cmd += " --resume"
     return cmd

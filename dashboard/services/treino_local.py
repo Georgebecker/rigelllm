@@ -14,6 +14,7 @@ Versão: 1.0.0 | Data: 02/08/2026
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
@@ -33,13 +34,22 @@ if str(PROJETO_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJETO_ROOT))
 
 # Datasets podem estar em gerados/jsonl (recém-explodidos) OU em
-# processed/jsonl (já validados/promovidos) — o treino e as bandeiras
-# funcionam nos dois lugares.
+# processed/jsonl (já validados/promovidos) OU em processed/scrap
+# (extraídos da WWW e processados) — o treino e as bandeiras funcionam
+# em todos os lugares.
 PASTA_JSONL = PROJETO_ROOT / "dados" / "gerados" / "jsonl"
 PASTA_PROCESSED = PROJETO_ROOT / "dados" / "processed"
 PASTA_PROCESSED_JSONL = PASTA_PROCESSED / "jsonl"
+PASTA_PROCESSED_SCRAP = PASTA_PROCESSED / "scrap"
 PASTA_MODELO = PROJETO_ROOT / "modelo"
 PASTA_JSONLOGS = PASTA_MODELO / "jsonlogs"
+
+# Bases consideradas no treino: (pasta, rótulo local)
+_BASES_TREINO = [
+    (PASTA_PROCESSED_JSONL, "processed"),
+    (PASTA_PROCESSED_SCRAP, "processed"),
+    (PASTA_JSONL, "gerados"),
+]
 
 # Marcador de pausa (criado pelo botão ⏸️ Pausar do dashboard) e config do
 # último lote (para o botão ▶️ Retomar reiniciar com --resume após pausa).
@@ -167,6 +177,10 @@ def _marcar_treinado(dataset: str, arquivo: str) -> int:
 # LISTAGEM (datasets e arquivos com bandeiras)
 # ============================================================================
 
+# Extensões de dados que o treino reconhece (nada pode ficar perdido).
+_EXTENSOES_TREINO = (".jsonl", ".parquet", ".txt")
+
+
 def _tem_jsonl(pasta: Path) -> bool:
     """True se existe ao menos 1 .jsonl (streaming, com limites — NUNCA
     materializa a lista inteira como `list(pasta.rglob(...))`)."""
@@ -175,6 +189,16 @@ def _tem_jsonl(pasta: Path) -> bool:
             return True
     except LimiteEstourado:
         return True  # tantos arquivos que com certeza há jsonl
+    return False
+
+
+def _tem_dados(pasta: Path, extensoes=_EXTENSOES_TREINO) -> bool:
+    """True se existe ao menos 1 arquivo de dados (jsonl/parquet/txt)."""
+    try:
+        for _c in walk_com_limites(pasta, extensoes=extensoes):
+            return True
+    except LimiteEstourado:
+        return True
     return False
 
 
@@ -192,19 +216,34 @@ def _arquivos_jsonl(pasta: Path) -> list[str]:
     return caminhos
 
 
+def _arquivos_dados(pasta: Path, extensoes=_EXTENSOES_TREINO) -> list[str]:
+    """Lista caminhos de dados (jsonl/parquet/txt) de um dataset com limites.
+    Garante que NENHUM material processado fica invisível ao treino."""
+    caminhos: list[str] = []
+    try:
+        for c in walk_com_limites(pasta, extensoes=extensoes):
+            caminhos.append(c)
+            if len(caminhos) >= SCAN_MAX_ARQUIVOS:
+                break
+    except LimiteEstourado:
+        pass
+    return caminhos
+
+
 def _pastas_de_datasets() -> list[tuple[str, Path, Path]]:
-    """Retorna [(nome_dataset, pasta, base)] escaneando gerados/jsonl e
-    processed/jsonl. Se o mesmo nome existir nos dois, vale o de processed
-    (já validado/promovido)."""
+    """Retorna [(nome_dataset, pasta, base)] escaneando as bases de treino
+    (processed/jsonl, processed/scrap, gerados/jsonl). Aceita jsonl, parquet
+    e txt — NENHUM material processado fica perdido. Se o mesmo nome existir
+    em várias, vale a primeira (processed tem preferência)."""
     locais: list[tuple[str, Path, Path]] = []
-    for base in (PASTA_PROCESSED_JSONL, PASTA_JSONL):  # processed primeiro (preferência)
+    for base, _local in _BASES_TREINO:  # processed primeiro (preferência)
         if not base.exists():
             continue
         for nome in sorted(os.listdir(base)):
             pasta = base / nome
             if not pasta.is_dir():
                 continue
-            if not _tem_jsonl(pasta):
+            if not _tem_dados(pasta):
                 continue
             if any(n == nome for n, _, _ in locais):
                 continue
@@ -217,10 +256,10 @@ def _pastas_de_datasets() -> list[tuple[str, Path, Path]]:
 # ============================================================================
 
 def _localizar_dataset_rapido(nome: str) -> tuple[Path | None, Path | None]:
-    """Localiza a pasta de um dataset olhando SÓ as duas bases (O(1), sem rglob).
-    Retorna (pasta, base).
+    """Localiza a pasta de um dataset olhando as bases de treino (O(1), sem
+    rglob). Retorna (pasta, base).
     """
-    for base in (PASTA_PROCESSED_JSONL, PASTA_JSONL):  # processed primeiro
+    for base, _local in _BASES_TREINO:  # processed primeiro (preferência)
         cand = base / nome
         if cand.is_dir():
             return cand, base
@@ -234,7 +273,7 @@ def _scan_estrutura_jsonl(report) -> list[dict]:
     nomes no cache (MAX_NOMES_CACHE) e aborta se a memória ficar baixa.
     """
     todos: list[dict] = []
-    bases = [(PASTA_PROCESSED_JSONL, "processed"), (PASTA_JSONL, "gerados")]
+    bases = _BASES_TREINO
     for base, local in bases:
         if not base.exists():
             continue
@@ -256,7 +295,7 @@ def _scan_estrutura_jsonl(report) -> list[dict]:
                        total_itens=total, encontrados=len(todos))
 
             try:
-                for caminho in walk_com_limites(item, extensoes=(".jsonl",),
+                for caminho in walk_com_limites(item, extensoes=_EXTENSOES_TREINO,
                                                 on_dir=_on_dir):
                     contador += 1
                     if len(nomes) < MAX_NOMES_CACHE:
@@ -309,6 +348,38 @@ def listar_datasets(usar_cache: bool = False) -> list:
             if pasta is None:
                 continue
             nomes = item.get("arquivos_nomes") or []
+            # 🧹 Guarda: cache pode estar DESATUALIZADO (arquivos apagados/
+            # movidos depois do scan). Nunca mostrar "0 arquivos" para pastas
+            # que na verdade têm arquivos — e nunca listar pasta realmente vazia.
+            try:
+                tem_dados = _tem_dados(pasta) if pasta.is_dir() else False
+            except Exception:
+                tem_dados = False
+            if not tem_dados:
+                continue  # pasta realmente vazia → não lista
+            if not nomes:
+                # Cache sem nomes (antigo/corrompido): conta de verdade, mas
+                # com teto (não materializa 12M de arquivos).
+                contador = 0
+                try:
+                    for _c in walk_com_limites(pasta, extensoes=_EXTENSOES_TREINO):
+                        contador += 1
+                        if contador > SCAN_MAX_ARQUIVOS:
+                            break
+                except Exception:
+                    contador = 0
+                if contador == 0:
+                    continue
+                cont = {"nenhuma": 0, "branca": 0, "amarela": 0, "vermelha": 0}
+                itens.append({
+                    "nome": nome,
+                    "arquivos": contador,
+                    "bandeiras": cont,
+                    "log": _caminho_log(nome).exists(),
+                    "local": item.get("local", "gerados"),
+                    "cache_sem_nomes": True,
+                })
+                continue
             cont = {"nenhuma": 0, "branca": 0, "amarela": 0, "vermelha": 0}
             for nome_arq in nomes:
                 cont[flag_arquivo(nome, nome_arq)] += 1
@@ -325,17 +396,18 @@ def listar_datasets(usar_cache: bool = False) -> list:
     # (com limites: nunca materializa tudo em memória)
     itens = []
     for nome, pasta, base in _pastas_de_datasets():
-        arquivos = _arquivos_jsonl(pasta)
+        arquivos = _arquivos_dados(pasta)
         cont = {"nenhuma": 0, "branca": 0, "amarela": 0, "vermelha": 0}
         for a in arquivos:
             flag = flag_arquivo(nome, Path(a).name)
             cont[flag] += 1
+        local = "processed" if base in (PASTA_PROCESSED_JSONL, PASTA_PROCESSED_SCRAP) else "gerados"
         itens.append({
             "nome": nome,
             "arquivos": len(arquivos),
             "bandeiras": cont,
             "log": _caminho_log(nome).exists(),
-            "local": "processed" if base == PASTA_PROCESSED_JSONL else "gerados",
+            "local": local,
         })
     return itens
 
@@ -401,26 +473,146 @@ def _validar_arquivo_jsonl(caminho: Path) -> tuple[bool, str]:
         return False, f"erro ao ler: {e}"
 
 
+# 🔎 ÍNDICE DE HASHES anti-overfitting (persistido): mapeia cada dataset
+# promovido → hashes de amostras. Assim a detecção de conteúdo repetido é
+# RÁPIDA (não relê os 437+ datasets de processed a cada promover).
+_INDICE_HASHES = PROJETO_ROOT / "estado" / "indice_hashes.json"
+_MAX_AMOSTRAS = 40
+_MAX_ARQUIVOS_HASH = 3
+
+
+def _hash_amostras(pasta: Path, max_amostras: int = _MAX_AMOSTRAS,
+                   max_arquivos: int = _MAX_ARQUIVOS_HASH) -> set:
+    """Hash de AMOSTRAS de exemplos de um dataset (a pergunta do 1º turno user,
+    ou o campo text/pergunta/input). Usado para DETECTAR CONTEÚDO REPETIDO:
+    datasets com nomes diferentes mas mesmo conteúdo (risco de overfitting)."""
+    hashes: set = set()
+    try:
+        arqs = _arquivos_jsonl(pasta)[:max_arquivos]
+        for arq in arqs:
+            try:
+                with open(arq, encoding="utf-8", errors="replace") as f:
+                    for _i, linha in enumerate(f):
+                        if len(hashes) >= max_amostras * len(arqs) or len(hashes) >= 200:
+                            break
+                        try:
+                            obj = json.loads(linha)
+                        except Exception:
+                            continue
+                        if not isinstance(obj, dict):
+                            continue
+                        msgs = obj.get("messages") or obj.get("conversations") or []
+                        pergunta = ""
+                        for m in msgs if isinstance(msgs, list) else []:
+                            if isinstance(m, dict) and m.get("role") == "user":
+                                pergunta = str(m.get("content", ""))
+                                break
+                        if not pergunta:
+                            pergunta = str(obj.get("text") or obj.get("pergunta")
+                                           or obj.get("input") or obj.get("instrucao") or "")
+                        if pergunta.strip():
+                            hashes.add(hashlib.md5(pergunta.strip()[:200].encode("utf-8")).hexdigest())
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return hashes
+
+
+def _carregar_indice_hashes() -> dict:
+    try:
+        if _INDICE_HASHES.exists():
+            dados = json.loads(_INDICE_HASHES.read_text(encoding="utf-8"))
+            if isinstance(dados, dict) and isinstance(dados.get("datasets"), dict):
+                return dados["datasets"]
+    except Exception:
+        pass
+    return {}
+
+
+def _salvar_indice_hashes(datasets: dict) -> None:
+    try:
+        _INDICE_HASHES.parent.mkdir(parents=True, exist_ok=True)
+        _INDICE_HASHES.write_text(
+            json.dumps({"datasets": datasets, "atualizado_em": datetime.now().isoformat()},
+                       ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+
+
+def indexar_hashes() -> dict:
+    """(Re)constrói o índice de hashes de TODOS os datasets promovidos
+    (processed/jsonl). Chamado uma vez ou quando o acervo mudar muito."""
+    datasets: dict = {}
+    for nome in sorted(os.listdir(PASTA_PROCESSED_JSONL)):
+        pasta = PASTA_PROCESSED_JSONL / nome
+        if not pasta.is_dir() or not _tem_dados(pasta):
+            continue
+        h = _hash_amostras(pasta)
+        if h:
+            datasets[nome] = sorted(h)
+    _salvar_indice_hashes(datasets)
+    return {"ok": True, "datasets_indexados": len(datasets), "arquivo": str(_INDICE_HASHES)}
+
+
+def detectar_duplicatas(dataset: str, pasta_origem: Path) -> list:
+    """Compara amostras do dataset com o ÍNDICE de hashes dos JÁ PROMOVIDOS.
+    Retorna [{dataset, sobreposicao_pct, amostras_iguais}] quando o conteúdo
+    é REPETIDO (mesmo material com nome diferente → risco de overfitting).
+    Rápido: usa o índice persistido, não relê os arquivos de processed."""
+    novos = _hash_amostras(pasta_origem)
+    if not novos:
+        return []
+    indice = _carregar_indice_hashes()
+    achados: list = []
+    for outro, hashes_outro in indice.items():
+        if outro == dataset:
+            continue
+        outros_h = set(hashes_outro)
+        if not outros_h:
+            continue
+        inter = len(novos & outros_h)
+        if inter <= 0:
+            continue
+        pct = inter / max(1, len(outros_h)) * 100
+        if pct >= 30:  # sobreposição alta → mesmo material com outro nome
+            achados.append({"dataset": outro,
+                            "sobreposicao": round(pct, 1),
+                            "amostras_iguais": inter})
+    return achados
+
+
 def promover_para_processed(dataset: str, remover_invalidos: bool = False) -> dict:
     """
     Valida os arquivos do dataset em gerados/jsonl e copia SOMENTE os válidos
     para dados/processed/jsonl/<dataset>/. Opcionalmente remove os inválidos
     da origem. As bandeiras (jsonlogs) continuam valendo.
+
+    🔎 ANTI-OVERFITTING: antes de concluir, compara amostras com os datasets
+    já promovidos e avisa se o CONTEÚDO é repetido (mesmo material com nome
+    diferente) — o usuário decide se quer mesmo promover.
     """
-    pasta_origem = None
-    for nome, pasta, base in _pastas_de_datasets():
-        if nome == dataset and base == PASTA_JSONL:
-            pasta_origem = pasta
-            break
-    if pasta_origem is None:
+    # Busca direto em gerados/jsonl/<dataset>: usar _pastas_de_datasets() aqui
+    # daria falso 'não encontrado' quando o dataset já está em processed (ele
+    # é omitido de gerados por dedup) — bug real visto na extração de livros.
+    pasta_origem = PASTA_JSONL / dataset
+    if not pasta_origem.is_dir() or not _tem_dados(pasta_origem):
         return {"ok": False,
                 "erro": f"Dataset '{dataset}' não encontrado em gerados/jsonl."}
 
     destino = PASTA_PROCESSED_JSONL / dataset
     if destino.exists():
-        return {"ok": False,
-                "erro": f"Já existe '{dataset}' em dados/processed/jsonl/. "
-                         "Remova primeiro para reprocessar."}
+        # 🧹 Pasta VAZIA (resquício de promoção anterior que não copiou nada)
+        # não deve bloquear — apaga e reprocessa.
+        try:
+            if not any(destino.iterdir()):
+                shutil.rmtree(str(destino))
+        except Exception:
+            pass
+    # Se o destino já tem arquivos, faz MERGE (atualiza/adiciona) em vez de
+    # bloquear: ex.: livro novo extraído é somado ao acervo já promovido.
+    destino.mkdir(parents=True, exist_ok=True)
+    ja_no_destino = {f.name for f in destino.iterdir()} if destino.exists() else set()
 
     arquivos = [Path(a) for a in _arquivos_jsonl(pasta_origem)]
     validos: list[Path] = []
@@ -436,12 +628,14 @@ def promover_para_processed(dataset: str, remover_invalidos: bool = False) -> di
         return {"ok": False, "erro": "Nenhum arquivo válido para promover.",
                 "validos": 0, "invalidos": len(invalidos)}
 
-    os.makedirs(destino, exist_ok=True)
     copiados = 0
+    novos = 0
     for a in validos:
         try:
             shutil.copy2(str(a), str(destino / a.name))
             copiados += 1
+            if a.name not in ja_no_destino:
+                novos += 1
         except Exception as e:
             invalidos.append((a, f"erro ao copiar: {e}"))
 
@@ -454,14 +648,49 @@ def promover_para_processed(dataset: str, remover_invalidos: bool = False) -> di
             except Exception:
                 pass
 
+    # 💉 CARTEIRA DE QUALIDADE: marca que o material foi promovido (validado).
+    try:
+        from dashboard.services.qualidade import marcar as _marcar_qualidade
+        _marcar_qualidade(dataset, "promovido", validos=copiados,
+                          invalidos=len(invalidos))
+    except Exception:
+        pass
+
+    # 🔎 ANTI-OVERFITTING: conteúdo repetido com outro nome?
+    duplicatas = detectar_duplicatas(dataset, pasta_origem)
+    if duplicatas:
+        nomes = ", ".join(d["dataset"] for d in duplicatas)
+        try:
+            from dashboard.services.qualidade import marcar as _marcar_q2
+            _marcar_q2(dataset, "duplicado_de", datasets=nomes)
+        except Exception:
+            pass
+    # Atualiza o ÍNDICE de hashes com este dataset (futuras comparações rápidas)
+    try:
+        indice = _carregar_indice_hashes()
+        h = _hash_amostras(pasta_origem)
+        if h:
+            indice[dataset] = sorted(h)
+            _salvar_indice_hashes(indice)
+    except Exception:
+        pass
+
+    msg = (f"'{dataset}' promovido: {copiados} arquivos válidos em "
+           f"dados/processed/jsonl/{dataset}/ "
+           f"({novos} novos, {len(ja_no_destino)} já existiam).")
+    if duplicatas:
+        msg += (" ⚠️ ATENÇÃO: conteúdo repetido com "
+                + ", ".join(f"'{d['dataset']}' (~{d['sobreposicao']}%)" for d in duplicatas)
+                + " — treinar os dois juntos pode enviesar o modelo (overfitting).")
     return {
         "ok": True,
-        "mensagem": (f"'{dataset}' promovido: {copiados} arquivos válidos em "
-                      f"dados/processed/jsonl/{dataset}/."),
+        "mensagem": msg,
         "validos": copiados,
+        "novos": novos,
         "invalidos": len(invalidos),
         "removidos": removidos,
         "destino": str(destino),
+        "duplicatas": duplicatas,
     }
 
 

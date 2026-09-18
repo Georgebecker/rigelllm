@@ -2,80 +2,148 @@
 {% block title %}Executor — Gestor de Atividades{% endblock %}
 {% block content %}
 <div x-data="executorState()" x-cloak>
-  <h2 class="text-2xl md:text-4xl font-bold mb-1">⚙️ Executor — Gestor de Atividades</h2>
-  <p class="text-zinc-500 text-sm mb-4">O dashboard <strong class="text-emerald-400">dá as ordens</strong>; o backend executa em subprocesso, <strong class="text-amber-400">respeitando o guardião de hardware</strong> (memória/disco/CPU).</p>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">⚙️ Central de tarefas</h2>
+  <p class="text-zinc-500 text-sm mb-4">Aqui você <strong class="text-emerald-400">pede</strong> e o sistema <strong class="text-emerald-400">faz</strong>: limpa textos, separa os bons e prepara tudo para o treino — sempre cuidando para não sobrecarregar o computador.</p>
 
-  <!-- Contador de atividades paralelas rodando -->
+  <!-- 🔔 PENDÊNCIAS — o "retumbante": o que ainda falta fazer no sistema -->
+  <div x-show="pendencias.length" x-transition class="mb-5 space-y-2" title="Pendências do sistema — o que falta fazer">
+    <template x-for="p in pendencias" :key="p.id">
+      <div class="rounded-2xl border p-3 flex flex-col md:flex-row md:items-center gap-2"
+           :class="p.prioridade === 'ALTA' ? 'bg-red-950/40 border-red-500/60' : (p.prioridade === 'MEDIA' ? 'bg-amber-950/30 border-amber-500/50' : 'bg-zinc-900 border-zinc-700')">
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-sm" :class="p.prioridade === 'ALTA' ? 'text-red-400' : (p.prioridade === 'MEDIA' ? 'text-amber-300' : 'text-zinc-300')" x-text="p.titulo"></p>
+          <p class="text-xs text-zinc-400 mt-0.5" x-text="p.detalhe"></p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <!-- Botão EXECUTAR (roda o comando) ou IR (navega para a página certa) -->
+          <button @click="p.acao_tipo === 'executar' ? executarPendencia(p) : navegarPendencia(p)"
+                  :disabled="iniciando"
+                  :title="p.acao_tipo === 'executar' ? ('Executa agora: ' + (p.acao_label||'')) : ('Vai para: ' + (p.acao_url||''))"
+                  class="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all disabled:opacity-50"
+                  :class="p.prioridade === 'ALTA' ? 'bg-red-500/30 hover:bg-red-500/50 text-red-200' : (p.prioridade === 'MEDIA' ? 'bg-amber-500/30 hover:bg-amber-500/50 text-amber-200' : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200')">
+            <i class="fa-solid" :class="p.acao_tipo === 'executar' ? 'fa-play' : 'fa-arrow-right'"></i>
+            <span x-text="p.acao_label"></span>
+          </button>
+          <span class="text-[10px] px-2 py-1 rounded-full shrink-0 font-semibold"
+                :class="p.prioridade === 'ALTA' ? 'bg-red-500/20 text-red-300' : (p.prioridade === 'MEDIA' ? 'bg-amber-500/20 text-amber-300' : 'bg-zinc-700 text-zinc-400')"
+                x-text="p.prioridade"></span>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- Contador de tarefas rodando -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
     <div class="bg-zinc-900 p-4 rounded-2xl border border-emerald-600/30">
-      <p class="text-zinc-500 text-xs">⚡ Atividades PARALELAS rodando</p>
+      <p class="text-zinc-500 text-xs">⚡ Tarefas acontecendo agora</p>
       <p class="text-3xl font-bold mt-1 text-emerald-400" x-text="totalRodando"></p>
       <p class="text-[10px] text-zinc-600" x-text="'máx. ' + (gestor?.max_concorrencia || 4) + ' ao mesmo tempo'"></p>
     </div>
     <div class="bg-zinc-900 p-4 rounded-2xl">
-      <p class="text-zinc-500 text-xs">📋 Atividades registradas</p>
+      <p class="text-zinc-500 text-xs">📋 Tarefas já registradas</p>
       <p class="text-3xl font-bold mt-1" x-text="gestor?.total || 0"></p>
     </div>
     <div class="bg-zinc-900 p-4 rounded-2xl border border-amber-600/20">
-      <p class="text-zinc-500 text-xs">🛡️ Guardião de hardware</p>
-      <p class="text-sm font-bold mt-2 text-amber-300">Consulta ANTES de cada comando</p>
-      <p class="text-[10px] text-zinc-600 mt-1">memória livre · disco livre · uso de CPU</p>
+      <p class="text-zinc-500 text-xs">🛡️ Proteção do computador</p>
+      <p class="text-sm font-bold mt-2 text-amber-300">Verifica antes de cada tarefa</p>
+      <p class="text-[10px] text-zinc-600 mt-1">memória livre · espaço no disco · uso do processador</p>
     </div>
   </div>
 
   <!-- Nova atividade -->
   <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
-    <h3 class="text-base font-semibold mb-3">🚀 Iniciar atividade no backend</h3>
-    <div class="grid md:grid-cols-2 gap-2 mb-3">
-      <select x-model="comando" @change="comandoMudou()" class="bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
-        <option value="">— escolha o comando —</option>
-        <option value="sanitizar">🧼 Sanitizar PT-BR (gera rigelsanitizadoNN.jsonl)</option>
-        <option value="limpeza_leve">🧹 Limpeza leve v2 (SFT+Pretrain, .parquet)</option>
-        <option value="verificar_encoding">🔎 Verificar encoding/mojibake</option>
-        <option value="diagnostico_chars">📊 Diagnóstico de caracteres (ABNT2)</option>
-      </select>
+    <h3 class="text-base font-semibold mb-3">🚀 O que você quer fazer com os textos?</h3>
+    <div class="grid md:grid-cols-2 gap-2 mb-2">
+      <div>
+        <select x-model="comando" @change="comandoMudou()"
+                title="Escolha aqui a tarefa que o sistema deve fazer com os textos."
+                class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none">
+          <option value="">— escolha a tarefa —</option>
+          <option value="verificar_encoding">🔍 Checar se os textos estão com acentos corretos (não altera)</option>
+          <option value="diagnostico_chars">📊 Ver quais letras estranhas precisam ser removidas (não altera)</option>
+          <option value="sanitizar">🧼 Limpar textos e deixar em português correto</option>
+          <option value="limpeza_leve">🧹 Limpeza completa: remover repetidos e textos ruins</option>
+          <option value="converter_parquet">📦 Converter os textos para outro formato (sem limpar)</option>
+        </select>
+        <!-- Descrição do comando selecionado (o que faz — em linguagem leiga) -->
+        <p x-show="comandoInfo" class="text-[10px] text-zinc-400 mt-1 px-1 leading-relaxed">
+          <span x-text="(comandoInfo || {}).desc"></span>
+        </p>
+      </div>
       <!-- DROPDOWN de origens (o usuário NÃO digita caminho — celular/TV) -->
-      <select x-model="origem" :disabled="!comando || carregandoOrigens"
-              class="bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none disabled:opacity-40">
-        <template x-if="comando === 'sanitizar'">
-          <option value="">— escolha a PASTA de origem —</option>
-        </template>
-        <template x-if="comando !== 'sanitizar'">
-          <option value="">— escolha o ARQUIVO .jsonl —</option>
-        </template>
-        <!-- 📦 TODAS: pipeline roda a atividade em todas as origens pendentes -->
-        <option value="todos" :disabled="!origens.length">📦 TODAS as origens pendentes</option>
-        <template x-if="!carregandoOrigens && !origens.length">
-          <option value="" disabled>Nenhuma origem com .jsonl encontrada em dados/</option>
-        </template>
-        <template x-for="o in origens" :key="o.caminho">
-          <option :value="o.caminho" :disabled="o.sanitizado"
-                  x-text="(o.sanitizado ? '✅ ' : (o.parcial ? '🔄 ' : '📁 ')) + o.nome + ' (' + (o.arquivos||0) + ' arq)' + (o.sanitizado ? ' — JÁ FEITO' : (o.parcial ? ' — PARCIAL' : ''))"></option>
-        </template>
-      </select>
+      <div>
+        <select x-model="origem" :disabled="!comando || carregandoOrigens || multiPasta"
+                :title="multiPasta ? 'Desative várias pastas para escolher uma' : 'Escolha aqui a pasta ou arquivo que deve ser processado'"
+                class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border border-zinc-700 outline-none disabled:opacity-40">
+          <option value="">— escolha a pasta ou arquivo —</option>
+          <option value="todos" :disabled="!origens.length">📦 TODOS os que estão pendentes</option>
+          <template x-if="!carregandoOrigens && !origensFiltradas.length">
+            <option value="" disabled>Nenhuma pasta compatível com esta tarefa</option>
+          </template>
+          <template x-for="o in origensFiltradas" :key="o.caminho">
+            <option :value="o.caminho" :disabled="o.sanitizado"
+                    x-text="(o.sanitizado ? '✅ ' : (o.parcial ? '🔄 ' : '📁 ')) + o.nome + ' (' + (o.arquivos||0) + ' itens)' + (o.sanitizado ? ' — JÁ FEITO' : (o.parcial ? ' — PARCIAL' : ''))"></option>
+          </template>
+        </select>
+        <!-- VÁRIAS PASTAS (multi-pasta → roda em série pelo pipeline) -->
+        <label class="flex items-center gap-1.5 text-[10px] text-zinc-400 cursor-pointer mt-1 px-1"
+               title="Escolher várias pastas de uma vez — o sistema processa uma por vez, em ordem">
+          <input type="checkbox" x-model="multiPasta" class="accent-sky-500">
+          🔁 Escolher várias pastas
+        </label>
+        <select x-show="multiPasta" x-cloak x-model="origensSel" multiple size="5"
+                :disabled="!comando || carregandoOrigens"
+                title="Toque ou segure Ctrl para escolher várias pastas — processadas uma por vez, em ordem"
+                class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-xs border border-zinc-700 outline-none mt-1">
+          <template x-for="o in origensFiltradas" :key="o.caminho">
+            <option :value="o.caminho" x-text="o.nome + ' (' + (o.arquivos||0) + ' itens)'"></option>
+          </template>
+        </select>
+      </div>
     </div>
     <div class="flex flex-wrap gap-2 items-center">
       <p class="text-[10px] text-zinc-500 w-full md:w-auto" x-show="origens.length">
-        <span x-text="(origemInfo?.sanitizado ? '✅ ' : (origemInfo?.parcial ? '🔄 ' : '📁 ')) + (origemInfo?.nome || '')"></span>
+        <span x-text="(origemInfo?.sanitizado ? '✅ ' : (origemInfo?.parcial ? '🔄 ' : (multiPasta ? '🔁 ' : '📁 '))) + (origemInfo?.nome || '')"></span>
         <span x-show="origemInfo?.sanitizado" class="text-emerald-400"> — já foi sanitizado, não precisa repetir.</span>
         <span x-show="origemInfo?.parcial" class="text-amber-300" x-text="' — parcial (' + (origemInfo?.arquivos_processados||0) + '/' + (origemInfo?.total_arquivos||'?') + ' arquivos).'"></span>
       </p>
-      <button @click="iniciarAtividade()" :disabled="iniciando || !comando || !origem"
+      <button @click="testarAntes()" :disabled="iniciando || !comando || !origemFinal"
+              title="Faz uma checagem rápida para garantir que os textos estão com letras e acentos corretos — não altera nada."
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span class="ml-1">Checar antes (não altera)</span>
+      </button>
+      <button @click="iniciarAtividade()" :disabled="iniciando || !comando || !origemFinal"
               class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40">
         <i class="fa-solid" :class="iniciando ? 'fa-spinner fa-spin' : 'fa-play'"></i>
-        <span class="ml-1" x-text="iniciando ? 'Iniciando...' : 'Executar no backend'"></span>
+        <span class="ml-1" x-text="iniciando ? 'Iniciando...' : '▶ Executar esta tarefa'"></span>
       </button>
       <button @click="executarTodasAtividades()" :disabled="iniciando"
-              title="Roda TODAS as atividades (sanitizar → limpeza → verificar → diagnóstico) em TODAS as origens pendentes, uma por vez, sem travar"
+              title="Faz tudo de uma vez: limpa os textos, separa os bons e confere o resultado — uma etapa de cada vez, sem travar."
               class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40">
         <i class="fa-solid" :class="iniciando ? 'fa-spinner fa-spin' : 'fa-bolt'"></i>
-        <span class="ml-1" x-text="iniciando ? 'Iniciando...' : '🚀 Executar todas as atividades'"></span>
+        <span class="ml-1" x-text="iniciando ? 'Iniciando...' : '🚀 Fazer tudo (passo a passo)'"></span>
       </button>
-      <button @click="pararTodas()" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-4 py-2 rounded-xl text-xs font-medium">
-        <i class="fa-solid fa-stop mr-1"></i>Parar todas
+      <button @click="pararTodas()" class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-4 py-2 rounded-xl text-xs font-medium"
+              title="Interrompe todas as tarefas em andamento.">
+        <i class="fa-solid fa-stop mr-1"></i>Parar tudo
       </button>
-      <button @click="carregar()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-xl text-xs font-medium">
-        <i class="fa-solid fa-rotate mr-1"></i>Atualizar
+      <button @click="abrirEspaco(true)" title="Mostra o que pode ser limpo para liberar espaço no disco — sem apagar nada, só uma prévia."
+              class="bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 px-4 py-2 rounded-xl text-xs font-medium">
+        <i class="fa-solid fa-magnifying-glass mr-1"></i>Ver o que limpar
+      </button>
+      <button @click="abrirEspaco(false)" title="Limpa arquivos que já foram aproveitados e libera espaço no disco."
+              class="bg-red-600/20 hover:bg-red-600/30 text-red-300 px-4 py-2 rounded-xl text-xs font-medium">
+        <i class="fa-solid fa-trash-can mr-1"></i>Liberar espaço
+      </button>
+      <button @click="limparHistorico()" title="Remove as tarefas antigas já finalizadas da lista (as que estão rodando ficam)."
+              class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-xl text-xs font-medium">
+        <i class="fa-solid fa-broom mr-1"></i>Limpar lista antiga
+      </button>
+      <button @click="atualizar()" :disabled="atualizando" title="Atualiza a lista de atividades e o mural agora"
+              class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-50">
+        <i class="fa-solid fa-rotate mr-1" :class="atualizando ? 'fa-spin' : ''"></i>
+        <span x-text="atualizando ? 'Atualizando...' : 'Atualizar'"></span>
       </button>
       <span class="text-xs text-zinc-500" x-text="ultimaMsg"></span>
     </div>
@@ -116,57 +184,94 @@
 
   <!-- Lista de atividades -->
   <div class="bg-zinc-900 rounded-2xl p-4 md:p-5">
-    <h3 class="text-base font-semibold mb-3">📋 Atividades do backend</h3>
+    <h3 class="text-base font-semibold mb-3">📋 Tarefas em andamento e resultados</h3>
     <template x-if="!gestor?.atividades?.length">
       <p class="text-sm text-zinc-500">Nenhuma atividade ainda. Escolha um comando acima para começar.</p>
     </template>
 
     <div class="space-y-3">
       <template x-for="a in gestor?.atividades || []" :key="a.id">
-        <div class="border border-zinc-800 rounded-xl p-3" :class="{'border-emerald-600/40': a.status==='rodando' || a.status==='rodando_externo'}">
+        <div class="border rounded-xl p-3 transition-all"
+             :class="a.status==='rodando' || a.status==='rodando_externo' ? 'border-emerald-600/50 bg-emerald-950/10' : (a.status==='aguardando' ? 'border-amber-600/50 bg-amber-950/10' : (a.status==='erro' || a.status==='morto' ? 'border-red-600/50 bg-red-950/10' : 'border-zinc-800'))">
           <div class="flex flex-wrap items-center gap-2">
-            <span class="text-xs px-2 py-0.5 rounded-full font-medium"
-                  :class="statusCor(a.status)">
-              <span x-text="a.status"></span>
+            <!-- Bolinha de status: pisca (verde) quando EM ANDAMENTO -->
+            <span class="w-2.5 h-2.5 rounded-full shrink-0 transition-all duration-700"
+                  :class="(a.status==='rodando' || a.status==='rodando_externo') ? (heartbeat ? 'bg-emerald-400' : 'bg-emerald-900') : statusDot(a.status)"
+                  :title="statusTexto(a.status)"></span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" :class="statusCor(a.status)">
+              <span x-text="statusTexto(a.status)"></span>
             </span>
             <b class="text-sm text-zinc-100" x-text="a.nome"></b>
             <span class="text-[10px] text-zinc-600" x-text="'PID ' + (a.pid || '—')"></span>
             <span class="text-[10px] text-zinc-600 ml-auto" x-text="a.inicio ? a.inicio.slice(11,19) : ''"></span>
-            <button x-show="a.status==='rodando' || a.status==='rodando_externo'" @click="pararAtividade(a.id)"
+            <button x-show="a.status==='aguardando'" @click="continuarAtividade(a.id)"
+                    title="Tenta continuar esta tarefa novamente"
+                    class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-2 py-1 rounded-lg text-[10px]">
+              <i class="fa-solid fa-play mr-0.5"></i>Continuar
+            </button>
+            <button x-show="a.status==='morto' || a.status==='interrompido' || a.status==='erro'" @click="reiniciarAtividade(a.id)"
+                    title="Tenta fazer esta tarefa de novo"
+                    class="bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 px-2 py-1 rounded-lg text-[10px]">
+              <i class="fa-solid fa-rotate-right mr-0.5"></i>Tentar de novo
+            </button>
+            <button x-show="a.status==='rodando' || a.status==='rodando_externo' || a.status==='aguardando'" @click="pararAtividade(a.id)"
+                    title="Interrompe esta tarefa"
                     class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-2 py-1 rounded-lg text-[10px]">
               <i class="fa-solid fa-stop mr-0.5"></i>Parar
             </button>
           </div>
-          <p class="text-[10px] text-zinc-600 mt-1 font-mono break-all" x-text="a.comando"></p>
-          <!-- Barra de percentual REAL (lida do progresso persistido) -->
-          <template x-if="a.progresso && a.progresso.pct !== undefined">
+          <!-- Detalhes técnicos (comando cru) — escondido por padrão, o que importa é o resultado -->
+          <details class="mt-1 group">
+            <summary class="text-[10px] text-zinc-600 cursor-pointer select-none hover:text-zinc-400"
+                     title="Mostrar/esconder o comando técnico executado">
+              ⚙️ <span x-text="a.comando ? 'ver comando técnico' : 'sem comando'"></span>
+            </summary>
+            <p class="text-[10px] text-zinc-600 mt-1 font-mono break-all" x-text="a.comando"></p>
+          </details>
+          <!-- Barra de percentual REAL (estável: fica SEMPRE presente para
+               atividades rodando — pct cai para 0 quando indefinido, para o
+               card não piscar/encolher quando o progresso alterna) -->
+          <template x-if="(a.progresso && a.progresso.pct !== undefined) || a.status==='rodando' || a.status==='rodando_externo'">
             <div class="mt-2">
-              <div class="flex justify-between text-[10px] mb-1">
-                <span class="text-teal-300" x-text="'⏳ ' + a.progresso.pct + '%'"></span>
-                <span class="text-zinc-500">
-                  <span x-text="a.progresso.lidas||0"></span> lidas ·
-                  <span x-text="a.progresso.ok||0"></span> ok ·
-                  <span x-text="a.progresso.descartados||0"></span> descartados
+              <div class="flex justify-between items-center gap-2 text-[10px] mb-1">
+                <span class="text-teal-300 font-semibold shrink-0 inline-block w-16 text-left" x-text="'⏳ ' + pctSeguro(a.progresso && a.progresso.pct !== undefined ? a.progresso.pct : 0) + '%'"></span>
+                <span class="text-zinc-500 shrink-0 whitespace-nowrap overflow-hidden text-right">
+                  <span x-text="a.progresso?.lidas||0"></span> lidas ·
+                  <span x-text="a.progresso?.ok||0"></span> ok ·
+                  <span x-text="a.progresso?.descartados||0"></span> descartados
                 </span>
               </div>
               <div class="bg-zinc-800 rounded-full h-2 overflow-hidden">
                 <div class="bg-teal-500 h-full rounded-full transition-all duration-700"
-                     :style="'width:' + Math.min(100, a.progresso.pct) + '%'"></div>
+                     :style="'width:' + pctSeguro(a.progresso && a.progresso.pct !== undefined ? a.progresso.pct : 0) + '%'"></div>
               </div>
-              <p class="text-[10px] text-zinc-500 mt-1" x-text="'arquivo: ' + (a.progresso.arquivo_atual||'')"></p>
+              <p class="text-[10px] text-zinc-500 mt-1 truncate" x-text="'arquivo: ' + (a.progresso?.arquivo_atual||'')"></p>
             </div>
           </template>
-          <p class="text-[10px] text-amber-300 mt-1" x-show="a.erro" x-text="'erro: ' + a.erro"></p>
+          <p class="text-[10px] text-red-300 mt-1" x-show="a.erro" x-text="'⚠️ Deu um problema nesta tarefa: ' + a.erro"></p>
           <p class="text-[10px] text-emerald-300 mt-1" x-show="a.resultado && a.status==='concluido'">
-            <span x-text="'resultado: ' + JSON.stringify(a.resultado).slice(0,200)"></span>
+            <span x-text="'✅ ' + JSON.stringify(a.resultado).slice(0,200)"></span>
           </p>
-          <!-- Log ao vivo desta atividade (SSE) -->
+          <!-- PRÓXIMO PASSO (botão que JÁ EXECUTA o próximo comando sugerido) -->
+          <div x-show="a.status==='concluido' && proximoPasso(a)" class="mt-2 flex flex-wrap items-center gap-2 bg-zinc-900/70 rounded-lg p-2 border border-emerald-700/30">
+            <span class="text-[10px] text-zinc-400">➡️ Sugestão do sistema:</span>
+            <button @click="executarProximo(a)" :disabled="iniciando"
+                    title="O sistema sugere o próximo passo e executa para você"
+                    class="bg-emerald-600/40 hover:bg-emerald-600/60 text-emerald-200 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all disabled:opacity-50">
+              <i class="fa-solid fa-forward mr-1"></i><span x-text="(proximoPasso(a) || {}).label || ''"></span>
+            </button>
+          </div>
+          <!-- Log ao vivo desta atividade (SSE) / resultado persistido (disco) -->
           <template x-if="a.status==='rodando' || a.status==='rodando_externo' || a.status==='concluido' || a.status==='erro'">
             <div class="mt-2 bg-black/40 rounded-lg p-2 max-h-40 overflow-auto scrollbar-thin font-mono text-[10px] text-zinc-400 break-words">
               <template x-for="(linha, i) in (logs[a.id] || [])" :key="i">
-                <div x-text="linha" class="whitespace-pre-wrap break-words"></div>
+                <div x-text="linha" class="whitespace-pre-wrap break-words"
+                     :class="linha.includes('✅') ? 'text-emerald-300' : (linha.includes('❌') ? 'text-red-300' : (linha.includes('⚠️') ? 'text-amber-300' : ''))"></div>
               </template>
-              <div x-show="!(logs[a.id]||[]).length" class="text-zinc-600">(sem saída ainda)</div>
+              <div x-show="a.status==='rodando' && !(logs[a.id]||[]).length" class="text-zinc-600">(sem saída ainda — aguardando…)</div>
+              <div x-show="(a.status==='concluido' || a.status==='erro' || a.status==='morto') && !(logs[a.id]||[]).length" class="text-zinc-600">
+                (esta tarefa não deixou registros visíveis)
+              </div>
             </div>
           </template>
         </div>
@@ -178,13 +283,39 @@
 <script>
 function executorState() {
   return {
-    gestor: null, comando: '', origem: '', iniciando: false, ultimaMsg: '',
+    gestor: null, comando: '', origem: '', iniciando: false, atualizando: false, ultimaMsg: '',
+    pendencias: [],        // 🔔 pendências do sistema (o "retumbante")
+    heartbeat: true,       // bolinha de 'em andamento' pisca (alterna)
     origens: [],           // origens disponíveis p/ o dropdown
     carregandoOrigens: false,
     mural: [],             // mural de resultados do pipeline
     logs: {},              // id -> [linhas]
     _es: null,             // EventSource global (resumo)
     _esPorId: {},          // id -> EventSource (log individual)
+    multiPasta: false,     // selecionar várias pastas
+    origensSel: [],        // origens selecionadas no modo multi
+    COMANDOS_INFO: {
+      verificar_encoding: { desc: 'Confere se os textos estão com letras e acentos corretos. NÃO altera nada — só mostra um relatório.', formatos: ['txt','json','jsonl','parquet'], saida: 'Relatório' },
+      diagnostico_chars: { desc: 'Mostra quais letras estranhas (fora do português) existem nos textos, para a limpeza saber o que remover. NÃO altera nada.', formatos: ['txt','json','jsonl','parquet'], saida: 'Relatório' },
+      sanitizar: { desc: 'Limpa os textos: remove letras estranhas, corrige acentos e deixa tudo em português correto. Gera um arquivo novo limpo.', formatos: ['jsonl'], saida: 'JSONL' },
+      limpeza_leve: { desc: 'Limpeza completa: remove textos repetidos, fora do português ou de baixa qualidade. Guarda os melhores.', formatos: ['txt','json','jsonl','parquet'], saida: 'PARQUET' },
+      converter_parquet: { desc: 'Converte os textos para o formato usado no treino, sem nenhuma limpeza.', formatos: ['jsonl'], saida: 'PARQUET' },
+    },
+
+    get comandoInfo() {
+      return this.COMANDOS_INFO[this.comando] || null;
+    },
+
+    get origensFiltradas() {
+      const fmt = this.comandoInfo ? (this.comandoInfo.formatos || []) : [];
+      if (!fmt.length) return this.origens;
+      return this.origens.filter(o => (o.formatos || []).some(f => fmt.includes(f)));
+    },
+
+    get origemFinal() {
+      if (this.multiPasta) return (this.origensSel || []).join(';');
+      return this.origem;
+    },
 
     get totalRodando() {
       return this.gestor?.rodando || 0;
@@ -192,6 +323,10 @@ function executorState() {
 
     // Info da origem selecionada (para exibir flag ✅/🔄 ao lado)
     get origemInfo() {
+      if (this.multiPasta) {
+        const n = (this.origensSel || []).length;
+        return n ? { nome: n + ' pasta(s) selecionada(s)', sanitizado: false, parcial: false } : null;
+      }
       return this.origens.find(o => o.caminho === this.origem) || null;
     },
 
@@ -213,6 +348,7 @@ function executorState() {
     // Quando muda o comando, recarrega (sanitizar=pastas, outros=arquivos)
     comandoMudou() {
       this.origem = '';
+      this.origensSel = [];
       this.carregarOrigens();
     },
 
@@ -221,18 +357,120 @@ function executorState() {
         'rodando': 'bg-emerald-600/20 text-emerald-400',
         'rodando_externo': 'bg-emerald-600/20 text-emerald-400',
         'concluido': 'bg-sky-600/20 text-sky-300',
-        'erro': 'bg-red-600/20 text-red-400',
-        'parado': 'bg-amber-600/20 text-amber-300',
-        'interrompido': 'bg-red-600/20 text-red-400',
+        'erro': 'bg-red-600/25 text-red-300',
+        'morto': 'bg-zinc-700/40 text-zinc-400',
+        'aguardando': 'bg-amber-600/20 text-amber-300',
+        'parado': 'bg-zinc-700/40 text-zinc-400',
+        'interrompido': 'bg-zinc-700/40 text-zinc-400',
       };
       return map[s] || 'bg-zinc-700 text-zinc-300';
+    },
+
+    // 🏷️ Status em português claro para o usuário
+    statusTexto(s) {
+      const map = {
+        'rodando': 'Em andamento',
+        'rodando_externo': 'Em andamento',
+        'concluido': 'Concluído com sucesso',
+        'erro': 'Deu um problema',
+        'morto': 'Parado',
+        'aguardando': 'Aguardando decisão',
+        'parado': 'Interrompido',
+        'interrompido': 'Interrompido',
+      };
+      return map[s] || s;
+    },
+
+    // 🎯 Cor da bolinha de status (quando NÃO está em andamento)
+    statusDot(s) {
+      const map = {
+        'concluido': 'bg-sky-400',
+        'erro': 'bg-red-500',
+        'morto': 'bg-zinc-600',
+        'aguardando': 'bg-amber-400',
+        'parado': 'bg-zinc-500',
+        'interrompido': 'bg-zinc-500',
+      };
+      return map[s] || 'bg-zinc-600';
+    },
+
+    // 🔒 Progresso limitado a 100% (nunca mostra 120%)
+    pctSeguro(p) {
+      const n = Number(p);
+      if (isNaN(n)) return 0;
+      return Math.max(0, Math.min(100, Math.round(n)));
+    },
+
+    // ➡️ Sugere o PRÓXIMO comando do pipeline (com botão que executa)
+    proximoPasso(a) {
+      const n = (a.nome || '').toLowerCase();
+      if (n.includes('verificar_encoding') || n.includes('diagnostico')) {
+        return { comando: 'sanitizar', origem: 'todos', label: '🧼 Sanitizar PT-BR' };
+      }
+      if (n.includes('sanitizar')) {
+        return { comando: 'limpeza_leve', origem: 'todos', label: '🧹 Limpeza leve (parquet)' };
+      }
+      if (n.includes('limpeza_leve') || n.includes('converter_parquet')) {
+        return { comando: 'verificar_encoding', origem: 'todos', label: '🔍 Verificar resultado' };
+      }
+      return null;
+    },
+
+    // ▶️ EXECUTA uma pendência (comando via executor) — botão dos RedAlerts
+    async executarPendencia(p) {
+      if (this.iniciando) return;
+      this.iniciando = true;
+      try {
+        const r = await fetch('/api/executor/iniciar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ comando: p.acao_comando || '', origem: p.acao_origem || '', nome: p.acao_label || 'pendência' })
+        });
+        const d = await r.json();
+        this.ultimaMsg = d.ok ? ('▶ ' + (p.acao_label||'') + ' iniciado!') : ('❌ ' + (d.erro || 'falhou'));
+        this.carregar();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+      finally { this.iniciando = false; }
+    },
+
+    // → Navega para a página da pendência (botão "Ir para")
+    navegarPendencia(p) {
+      if (p.acao_url) window.location = p.acao_url;
+    },
+
+    // ▶️ Executa o próximo comando sugerido (é o Executor!)
+    async executarProximo(a) {
+      const p = this.proximoPasso(a);
+      if (!p || this.iniciando) return;
+      this.iniciando = true;
+      try {
+        const r = await fetch('/api/executor/iniciar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ comando: p.comando, origem: p.origem, nome: p.comando + ' (próximo passo)' })
+        });
+        const d = await r.json();
+        this.ultimaMsg = d.ok ? ('▶ ' + p.label + ' iniciado!') : ('❌ ' + (d.erro || 'falhou'));
+        this.carregar();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+      finally { this.iniciando = false; }
+    },
+
+    async carregarPendencias() {
+      try {
+        const r = await fetch('/api/pendencias');
+        const d = await r.json();
+        this.pendencias = (d.pendencias || []).filter(p => !p.feito);
+      } catch(e) { /* silêncio */ }
     },
 
     init() {
       this.carregar();
       this.carregarOrigens();
       this.carregarMural();
+      this.carregarPendencias();
       setInterval(() => { this.carregar(); this.carregarMural(); }, 3000);
+      setInterval(() => { this.carregarPendencias(); }, 15000);
+      // bolinha de 'em andamento' pisca (como o painel)
+      setInterval(() => { this.heartbeat = !this.heartbeat; }, 800);
       // SSE global: atualiza o resumo (todas as atividades) em tempo real
       try {
         this._es = new EventSource('/api/executor/stream');
@@ -243,6 +481,18 @@ function executorState() {
           } catch(e) {}
         };
       } catch(e) { console.warn('SSE global:', e); }
+    },
+
+    // 🔄 Atualizar com feedback visual (gira + confirma + atualiza o mural)
+    async atualizar() {
+      if (this.atualizando) return;
+      this.atualizando = true;
+      try {
+        await this.carregar();
+        await this.carregarMural();
+        this.ultimaMsg = '🔄 Atualizado ' + new Date().toLocaleTimeString();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+      finally { this.atualizando = false; }
     },
 
     async carregar() {
@@ -259,8 +509,24 @@ function executorState() {
             try { this._esPorId[a.id].close(); } catch(e) {}
             delete this._esPorId[a.id];
           }
+          // Atividade CONCLUÍDA/ERRO sem log na tela → carrega o buffer do
+          // disco (mostra o RESULTADO real, não "(sem saída ainda)")
+          if (a.status === 'concluido' || a.status === 'erro' || a.status === 'morto') {
+            if (!(this.logs[a.id] || []).length) this.carregarLogDisco(a.id);
+          }
         });
       } catch(e) { console.warn('status:', e); }
+    },
+
+    // 📄 Carrega a saída persistida do disco (atividade já terminou)
+    async carregarLogDisco(id) {
+      try {
+        const r = await fetch('/api/executor/buffer?aid=' + encodeURIComponent(id));
+        const d = await r.json();
+        if (d.ok && d.linhas && d.linhas.length) {
+          this.logs[id] = d.linhas.slice(-300);
+        }
+      } catch(e) { /* silêncio */ }
     },
 
     abrirLog(id) {
@@ -285,13 +551,36 @@ function executorState() {
       } catch(e) { console.warn('SSE log:', e); }
     },
 
+    // 🔍 Testar ANTES (não altera nada): roda a verificação de encoding na
+    // origem selecionada p/ o usuário conferir o resultado antes de executar.
+    async testarAntes() {
+      if (!this.comando || this.iniciando) return;
+      const origemFinal = this.origemFinal;
+      if (!origemFinal) return;
+      this.iniciando = true; this.ultimaMsg = '';
+      try {
+        const r = await fetch('/api/executor/iniciar', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            comando: 'verificar_encoding', origem: origemFinal,
+            nome: '🔍 Teste (verificar) antes de: ' + this.comando
+          })
+        });
+        const d = await r.json();
+        this.ultimaMsg = d.ok ? ('✅ ' + d.mensagem) : ('❌ ' + (d.erro || 'erro'));
+        if (d.ok && d.id) { this.logs[d.id] = []; this.abrirLog(d.id); }
+        this.carregar();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+      finally { this.iniciando = false; }
+    },
+
     async iniciarAtividade() {
       if (!this.comando || this.iniciando) return;
       this.iniciando = true; this.ultimaMsg = '';
       try {
         const r = await fetch('/api/executor/iniciar', {
           method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({comando: this.comando, origem: this.origem,
+          body: JSON.stringify({comando: this.comando, origem: this.origemFinal,
                                 nome: this.comando})
         });
         const d = await r.json();
@@ -314,6 +603,33 @@ function executorState() {
       } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
     },
 
+    // ▶️ Continuar após cair o máximo de vezes (pergunta do painel)
+    async continuarAtividade(id) {
+      try {
+        const r = await fetch('/api/executor/continuar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({aid: id})
+        });
+        const d = await r.json();
+        this.ultimaMsg = d.ok ? d.mensagem : ('❌ ' + (d.erro||''));
+        this.carregar();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+    },
+
+    // 🔄 Reiniciar atividade morta/interrompida (mesmo comando, registrado pelo sistema)
+    async reiniciarAtividade(id) {
+      try {
+        const r = await fetch('/api/executor/reiniciar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({aid: id})
+        });
+        const d = await r.json();
+        this.ultimaMsg = d.ok ? ('🔄 ' + d.mensagem) : ('❌ ' + (d.erro||''));
+        if (d.ok && d.id) { this.logs[d.id] = []; this.abrirLog(d.id); }
+        this.carregar();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+    },
+
     async pararTodas() {
       try {
         const r = await fetch('/api/executor/parar', {
@@ -322,6 +638,32 @@ function executorState() {
         });
         const d = await r.json();
         this.ultimaMsg = d.ok ? '⏹️ Parada solicitada para todas.' : ('❌ ' + (d.erro||''));
+        this.carregar();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+    },
+
+    // 🗑️ Abre espaço no HD (simular ou executar) via atividade do executor
+    async abrirEspaco(simular) {
+      try {
+        const r = await fetch('/api/executor/espaco', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({simular: !!simular})
+        });
+        const d = await r.json();
+        this.ultimaMsg = d.ok ? ('🗑️ ' + d.mensagem) : ('❌ ' + (d.erro || 'erro'));
+        if (d.ok && d.id) { this.logs[d.id] = []; this.abrirLog(d.id); }
+        this.carregar();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+    },
+
+    // 🧹 Limpa o histórico de atividades antigas (mantém as rodando)
+    async limparHistorico() {
+      try {
+        const r = await fetch('/api/executor/limpar-historico', {
+          method: 'POST', headers: {'Content-Type': 'application/json'}
+        });
+        const d = await r.json();
+        this.ultimaMsg = d.ok ? '🧹 ' + d.mensagem : ('❌ ' + (d.erro||''));
         this.carregar();
       } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
     },

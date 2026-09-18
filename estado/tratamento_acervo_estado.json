@@ -1,0 +1,51 @@
+{
+  "rodando": false,
+  "etapa": "concluido",
+  "percentual": 100,
+  "origem": "D:\\Projetos\\rigelllm\\dados\\gerados\\jsonl\\dominguesm_brwac",
+  "destino": "D:\\Projetos\\rigelllm\\dados\\tratados\\dominguesm_brwac_tratado",
+  "mensagem": "Promoção concluída: 1 arquivo(s) copiados para processed/jsonl.",
+  "erro": null,
+  "linhas": 3530796,
+  "aprovados": 3530786,
+  "descartados": 10,
+  "corrigidos": 468411,
+  "arquivos": 1,
+  "arquivo_indice": 1,
+  "log": [
+    "[05:58:22] Tratamento pausado; os arquivos concluídos permanecem salvos.",
+    "[07:12:10] Arquivo 1/1: dataset.jsonl (3530796 linhas)",
+    "[07:12:10] Vacinas recebidas: sanitizado e encoding verificado.",
+    "[07:12:10] Tratamento concluído em dados/tratados.",
+    "[11:34:11] Revisão de qualidade aprovada; vacina ajuizado recebida.",
+    "[17:06:02] Promoção concluída: 1 arquivo(s) copiados para processed/jsonl."
+  ],
+  "inicio": null,
+  "fim": "2026-08-21T07:12:10.833018",
+  "simular": false,
+  "carteira": {
+    "pasta": "dominguesm_brwac_tratado",
+    "etapas": {
+      "ajuizado": "2026-08-21T11:34:11",
+      "promovido": "2026-08-21T17:06:02",
+      "sanitizado": "2026-08-21T07:12:10",
+      "verificado_encoding": "2026-08-21T07:12:10"
+    },
+    "pronto_treino": true,
+    "situacao": "pronta",
+    "label": "✅ Pronto para treino",
+    "faltam": [],
+    "criado_em": "2026-08-21T07:12:10.824368"
+  },
+  "revisao": {
+    "origem": "D:\\Projetos\\rigelllm\\dados\\tratados\\dominguesm_brwac_tratado",
+    "arquivos": 1,
+    "linhas": 3530786,
+    "validos": 3530786,
+    "invalidos": 0,
+    "sem_formato": 0,
+    "passou": true,
+    "atualizado": "2026-08-21T11:34:11.805857"
+  },
+  "promovido": true
+}

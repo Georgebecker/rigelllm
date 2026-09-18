@@ -12,6 +12,14 @@ if not "%1"=="" set "PORTA=%1"
 set "URL=http://127.0.0.1:%PORTA%"
 set "HEALTH=%URL%/openapi.json"
 
+:: IP da rede local (cabo/wifi) para abrir o navegador - se detectado,
+:: abre no IP da rede (ex.: 192.168.3.150) em vez de 127.0.0.1 (acessivel
+:: por celular/TV na mesma rede). O healthcheck continua em 127.0.0.1.
+set "URL_PUBLICA=%URL%"
+for /f "usebackq delims=" %%i in (`powershell -NoProfile -Command "(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254*' -and $_.PrefixOrigin -ne 'WellKnown' } | Select-Object -First 1).IPAddress"`) do (
+    if not "%%i"=="" set "URL_PUBLICA=http://%%i:%PORTA%"
+)
+
 :: Ativar virtualenv se existir
 if exist .venv\Scripts\activate.bat (
     call .venv\Scripts\activate.bat
@@ -21,9 +29,12 @@ echo ============================================================
 echo  RigelSLM Dashboard v2.3.0 - Launcher Inteligente
 echo ============================================================
 echo  URL : %URL%
+echo  URL publica (rede): %URL_PUBLICA%
 echo  Modo: auto-recuperacao + limpeza de porta + reload-dir
 echo  (--reload-dir dashboard: nao vigia dados/ com milhoes de arqs)
 echo  (navegador abre 1x por sessao; monitor unico)
+echo  (timeout 30s: processamento pesado NAO derruba o servidor)
+echo  (REGRA DE OURO: se cair, levantar - auto-recuperacao + limpeza de orfaos)
 echo.
 
 set "NAVEGADOR_ABERTO=0"
@@ -53,23 +64,14 @@ if not errorlevel 1 (
 )
 
 :: ============================================================================
-::  2) LIMPEZA TOTAL da porta (qualquer estado) + uvicorns orfaos do projeto
+::  2) LIMPEZA da porta + uvicorns orfaos do projeto.
+::  IMPORTANTE (regra 13/08): NAO usa /T (arvore). O taskkill /T mataria
+::  TAMBEM os filhos do EXECUTOR (ex.: limpeza do dolphin) que estao sendo
+::  gerenciados pelo dashboard. Aqui matamos SOMENTE o que escuta a porta e
+::  os processos do proprio uvicorn - os subprocessos do executor (limpeza,
+::  treino, etc.) seguem vivos e sao reancorados apos o reload.
 :: ============================================================================
-echo  [..] Limpando porta %PORTA% e processos orfaos...
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr /c:":%PORTA% "') do (
-    taskkill /F /T /PID %%a >nul 2>&1
-)
-for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'python.exe' -and $_.CommandLine -like '*dashboard.main*' } | ForEach-Object { $_.ProcessId }"`) do (
-    taskkill /F /T /PID %%p >nul 2>&1
-)
-REM Tambem mata os workers orfaos do --reload (multiprocessing.spawn): eles
-REM herdam o socket da porta e seguram o LISTEN mesmo com o pai morto,
-REM travando o reinicio (taskkill no PID morto falha). Sem parenteses no PS.
-for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'python.exe' -and $_.CommandLine -like '*spawn_main*' } | ForEach-Object { $_.ProcessId }"`) do (
-    taskkill /F /T /PID %%p >nul 2>&1
-)
-timeout /t 2 /nobreak >nul
-echo  [OK] Porta %PORTA% limpa.
+call :limpar_porta
 
 :: ============================================================================
 ::  3) INICIAR o servidor em janela propria (com --reload)
@@ -104,17 +106,19 @@ goto WaitHealthy
 
 :: ============================================================================
 ::  4) MONITOR: auto-recuperacao (reinicia sozinho se cair)
+::  Timeout 30s: processamento pesado (langdetect/limpeza/treino) pode deixar
+::  o servidor lento por alguns segundos - isso NAO e queda. So reinicia
+::  se ficar 30s sem responder (e ainda assim preserva os filhos do executor).
 :: ============================================================================
 :Monitor
-echo  [i] Monitorando o servidor (reinicia sozinho se cair)...
+echo  [i] Monitorando o servidor (reinicia sozinho se cair - timeout 30s)...
 echo  (Feche esta janela para parar o monitoramento.)
 :MonitorLoop
-timeout /t 5 /nobreak >nul
+timeout /t 10 /nobreak >nul
 call :check_server
 if "!SERVER_OK!"=="1" goto MonitorLoop
-echo [%time%] [!] Servidor caiu! Limpando e reiniciando...
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr /c:":%PORTA% "') do taskkill /F /T /PID %%a >nul 2>&1
-timeout /t 3 /nobreak >nul
+echo [%time%] [!] Servidor nao respondeu em 30s! Auto-recuperando (regra de ouro)...
+call :limpar_porta
 goto Start
 
 :: ============================================================================
@@ -123,7 +127,7 @@ goto Start
 :: ============================================================================
 :abrir_navegador
 if "!NAVEGADOR_ABERTO!"=="1" exit /b 0
-start "" "%URL%"
+start "" "%URL_PUBLICA%"
 set "NAVEGADOR_ABERTO=1"
 exit /b 0
 
@@ -132,7 +136,48 @@ exit /b 0
 :: ============================================================================
 :check_server
 set "SERVER_OK=0"
-for /f "delims=" %%c in ('curl.exe -s -o NUL -w "%%{http_code}" --max-time 5 "%HEALTH%" 2^>nul') do set "CODE=%%c"
+for /f "delims=" %%c in ('curl.exe -s -o NUL -w "%%{http_code}" --max-time 30 "%HEALTH%" 2^>nul') do set "CODE=%%c"
 if "!CODE!"=="200" set "SERVER_OK=1"
 set "CODE="
 exit /b
+
+:: ============================================================================
+::  FUNCAO: limpeza ROBUSTA da porta (regra de ouro 14/08/2026).
+::  Alem de matar os processos, ESPERA a porta LIBERAR de verdade (bind test).
+::  Workers orfaos do uvicorn --reload (multiprocessing.spawn_main) herdam o
+::  socket LISTEN da porta e o seguram mesmo com o pai morto: qualquer
+;;  reinicio sem isso vira sobe-morre em loop. Aqui: mata -> espera bind livre
+;;  -> se ainda presa, limpeza extra via PowerShell e diagnostico do guardiao.
+;; ============================================================================
+:limpar_porta
+echo  [..] Limpando porta %PORTA% (sem matar filhos do executor)...
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr /c:":%PORTA% "') do (
+    taskkill /F /PID %%a >nul 2>&1
+)
+for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'python.exe' -and $_.CommandLine -like '*dashboard.main*' } | ForEach-Object { $_.ProcessId }"`) do (
+    taskkill /F /PID %%p >nul 2>&1
+)
+REM Workers orfaos do --reload (multiprocessing.spawn) herdam o socket da porta
+REM e seguram o LISTEN mesmo com o pai morto -> travam o reinicio. Matar.
+for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'python.exe' -and $_.CommandLine -like '*spawn_main*' } | ForEach-Object { $_.ProcessId }"`) do (
+    taskkill /F /PID %%p >nul 2>&1
+)
+REM Espera a porta LIBERAR de verdade (bind test) - ate 30s.
+set /a TENT=0
+:limpar_espera
+if !TENT! GEQ 6 goto limpar_verdict
+powershell -NoProfile -Command "try { $s=New-Object Net.Sockets.TcpListener([Net.IPAddress]::Any,%PORTA%); $s.Start(); $s.Stop(); exit 0 } catch { exit 1 }" >nul 2>&1
+if !errorlevel! EQU 0 goto limpar_ok
+set /a TENT+=1
+timeout /t 5 /nobreak >nul
+goto limpar_espera
+:limpar_verdict
+echo  [!] Porta %PORTA% ainda presa apos limpeza (socket orfao). Limpeza extra...
+powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'python.exe' -and ($_.CommandLine -match 'spawn_main|dashboard\.main|uvicorn') } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
+timeout /t 5 /nobreak >nul
+powershell -NoProfile -Command "try { $s=New-Object Net.Sockets.TcpListener([Net.IPAddress]::Any,%PORTA%); $s.Start(); $s.Stop(); exit 0 } catch { exit 1 }" >nul 2>&1
+if !errorlevel! EQU 0 goto limpar_ok
+echo  [!!!] Porta %PORTA% continua presa. Consulte logs/saude.log (guardiao). [!!!]
+:limpar_ok
+echo  [OK] Porta %PORTA% limpa (filhos do executor preservados).
+exit /b 0

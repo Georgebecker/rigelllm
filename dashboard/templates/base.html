@@ -126,6 +126,20 @@
     body.theme-light .nav-link { color: var(--text-secondary) !important; }
     body.theme-light .nav-link:hover { background-color: var(--bg-card2) !important; color: var(--text-primary) !important; }
 
+    /* === 🔵 Indicador de ATIVIDADE ativa no menu (bolinha pisca verde) ===
+       Igual à bolinha de Ollama:Online/Busca:Online. Mostra ao lado da aba
+       onde há processo rodando (executor/backend). Somente DESKTOP. */
+    @keyframes navAtvBlink {
+      0%, 100% { opacity: 1; box-shadow: 0 0 6px 1px currentColor; }
+      50% { opacity: 0.2; box-shadow: 0 0 1px 0 transparent; }
+    }
+    .nav-atv {
+      display: inline-block;
+      width: 0.5rem; height: 0.5rem;
+      border-radius: 9999px;
+      animation: navAtvBlink 1.1s ease-in-out infinite;
+    }
+
     /* === Seletor de modelos / selects (leitura garantida nos 2 temas) === */
     body:not(.theme-light) select,
     body:not(.theme-light) select[class*="bg-zinc"] {
@@ -307,10 +321,16 @@
     body.theme-light .sidebar .theme-toggle-btn,
     body.theme-light .sidebar button { border-color: rgba(0,255,65,0.3) !important; }
     @media (max-width: 768px) {
-      .sidebar { width:100% !important; height:auto !important; flex-direction:row !important; overflow-x:auto !important; }
-      .sidebar nav { display:flex !important; gap:0.25rem !important; padding:0.5rem !important; }
+      /* LINHA 1 = logo + 💚 Apoie · LINHA 2 = menu horizontal · LINHA 3 = conteúdo */
+      .sidebar { width:100% !important; height:auto !important; flex-direction:column !important; overflow-x:hidden !important; }
+      .sidebar .brand-bar { flex-direction:row !important; width:100% !important; }
+      .sidebar nav { display:flex !important; flex-direction:row !important; gap:0.25rem !important; padding:0.5rem !important; overflow-x:auto !important; width:100% !important; }
       .sidebar nav a { white-space:nowrap !important; padding:0.5rem 0.75rem !important; font-size:0.75rem !important; min-height:2.5rem !important; }
       .sidebar nav a span { display:inline !important; } /* mostra o nome do item no mobile também */
+      /* 🔴 Regra MAIS específica que a de cima: a bolinha de atividade NÃO
+         aparece no mobile (só desktop) — senão o `span{display:inline!important}`
+         acima deixava TODAS as bolinhas visíveis/piscando no menu mobile. */
+      .sidebar nav a .nav-atv { display:none !important; }
       .main-content { padding:1rem !important; }
     }
   </style>
@@ -320,63 +340,103 @@
 
   <!-- MENU LATERAL -->
   <div class="sidebar w-full md:w-72 border-b md:border-b-0 md:border-r flex flex-col shrink-0">
-    <div class="brand-bar p-4 md:p-6 border-b flex items-center gap-3">
-      <img src="/images/android-chrome-192x192.png" alt="R" class="w-10 h-10 rounded-xl">
-      <div class="min-w-0">
-        <h1 class="brand-title text-xl md:text-2xl font-bold tracking-tight truncate">RigelSLM</h1>
-        <p class="text-xs text-emerald-400/70">Dashboard v1.0.0</p>
+    <div class="brand-bar p-3 md:p-6 border-b flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <img src="/images/android-chrome-192x192.png" alt="R" class="w-10 h-10 rounded-xl shrink-0">
+        <div class="min-w-0">
+          <h1 class="brand-title text-xl md:text-2xl font-bold tracking-tight truncate">RigelSLM</h1>
+          <p class="text-xs text-emerald-400/70">Dashboard v1.0.0</p>
+        </div>
+      </div>
+      <!-- 💚 Apoie o RigelSLM — compacto no MOBILE (topo, lado direito do logo) -->
+      <div class="md:hidden flex items-center gap-1.5 shrink-0">
+        <span title="💚 Apoie o RigelSLM" class="text-sm">💚</span>
+        <button @click="copiarPix()" :title="pixCopiado ? 'PIX copiado!' : 'Copiar chave PIX (Apoie o RigelSLM)'"
+                class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 text-[10px] px-2 py-1.5 rounded-lg flex items-center gap-1 shrink-0">
+          <i class="fa-regular" :class="pixCopiado ? 'fa-check' : 'fa-copy'"></i>
+          <span class="font-semibold">PIX</span>
+        </button>
+        <a href="https://buymeacoffee.com/georgehbecker" target="_blank" rel="noopener" title="Apoie no Buy Me a Coffee"
+           class="bg-yellow-500/15 hover:bg-yellow-500/25 border border-yellow-500/30 text-yellow-300 text-[10px] px-2 py-1.5 rounded-lg flex items-center gap-1 shrink-0">
+          <img src="/images/bmc_qr.png" alt="BMC" class="w-3.5 h-3.5 rounded">
+          BMC
+        </a>
       </div>
     </div>
 
     <nav class="flex md:flex-col flex-1 p-2 md:p-4 gap-1 overflow-auto scrollbar-thin">
+      <!-- 🏠 Central: página única do pipeline (sempre visível) -->
       <a href="/" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-house w-4 md:w-5 text-center"></i><span class="hidden md:inline">Dashboard</span>
+        <i class="fa-solid fa-house w-4 md:w-5 text-center"></i><span class="hidden md:inline">Central</span>
       </a>
-      <a href="/treinamento" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-graduation-cap w-4 md:w-5 text-center"></i><span class="hidden md:inline">Treinamento</span>
-      </a>
+      <!-- 💬 Chat: uso diário (sempre visível) -->
       <a href="/chat" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
         <i class="fa-solid fa-comments w-4 md:w-5 text-center"></i><span class="hidden md:inline">Chat</span>
       </a>
-      <a href="/rss" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-rss w-4 md:w-5 text-center"></i><span class="hidden md:inline">RSS & Web</span>
-      </a>
-      <a href="/converter" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-file-export w-4 md:w-5 text-center"></i><span class="hidden md:inline">Converter GGUF</span>
-      </a>
-      <a href="/gerar_dados" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-wand-magic-sparkles w-4 md:w-5 text-center"></i><span class="hidden md:inline">Gerar Dados</span>
-      </a>
-      <a href="/gerar_local" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-microchip w-4 md:w-5 text-center"></i><span class="hidden md:inline">Gerar Local</span>
-      </a>
-      <a href="/datasets" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-database w-4 md:w-5 text-center"></i><span class="hidden md:inline">Datasets HF</span>
-      </a>
-      <a href="/scrap" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-earth-americas w-4 md:w-5 text-center"></i><span class="hidden md:inline">Scrap</span>
-      </a>
-      <a href="/tratamento" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-broom w-4 md:w-5 text-center"></i><span class="hidden md:inline">Tratamento</span>
-      </a>
-      <a href="/treino_local" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-dumbbell w-4 md:w-5 text-center"></i><span class="hidden md:inline">Treino Local</span>
-      </a>
-      <a href="/treino_colab" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-brands fa-google w-4 md:w-5 text-center"></i><span class="hidden md:inline">Google Colab</span>
-      </a>
-      <a href="/debate" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-microphone-lines w-4 md:w-5 text-center"></i><span class="hidden md:inline">Debate/Podcast</span>
-      </a>
-      <a href="/executor" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-robot w-4 md:w-5 text-center"></i><span class="hidden md:inline">Executor</span>
-      </a>
-      <a href="/debate_local" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-microchip w-4 md:w-5 text-center"></i><span class="hidden md:inline">Debate Local</span>
-      </a>
-      <a href="/logs" class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 nav-link">
-        <i class="fa-solid fa-book w-4 md:w-5 text-center"></i><span class="hidden md:inline">Logs</span>
-      </a>
+      <!-- ➕ Mais opções: o resto fica agrupado (menu enxuto, sem bagunça) -->
+      <details class="md:w-full group shrink-0">
+        <summary class="whitespace-nowrap md:w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-xl md:rounded-2xl flex items-center gap-2 md:gap-3 text-xs md:text-sm transition-all shrink-0 cursor-pointer list-none"
+                 title="Mais opções — ferramentas extras do sistema">
+          <i class="fa-solid fa-ellipsis w-4 md:w-5 text-center"></i><span class="hidden md:inline">Mais opções</span>
+          <i class="fa-solid fa-chevron-down ml-auto text-[10px] transition-transform group-open:rotate-180 hidden md:inline"></i>
+        </summary>
+        <div class="flex md:flex-col gap-1 md:pl-3 md:mt-1">
+          <a href="/visao_geral" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-gauge w-4 text-center"></i><span>Visão detalhada</span>
+          </a>
+          <a href="/treinamento" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-graduation-cap w-4 text-center"></i><span>Treinamento</span>
+          </a>
+          <a href="/rss" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-rss w-4 text-center"></i><span>Notícias (RSS)</span>
+          </a>
+          <a href="/converter" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-file-export w-4 text-center"></i><span>Exportar (GGUF)</span>
+          </a>
+          <a href="/gerar_dados" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-wand-magic-sparkles w-4 text-center"></i><span>Gerar Dados</span>
+          </a>
+          <a href="/gerar_local" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-microchip w-4 text-center"></i><span>Gerar Local</span>
+          </a>
+          <a href="/datasets" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-database w-4 text-center"></i><span>Datasets</span>
+          </a>
+          <a href="/scrap" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-earth-americas w-4 text-center"></i><span>Extrair dados da WWW</span>
+          </a>
+          <a href="/tratamento" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-broom w-4 text-center"></i><span>Tratamento</span>
+          </a>
+          <a href="/pdfs" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-file-pdf w-4 text-center"></i><span>Livros / PDFs</span>
+          </a>
+          <a href="/carteira" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-folder-open w-4 text-center"></i><span>Pastas prontas</span>
+          </a>
+          <a href="/revisar" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-magnifying-glass w-4 text-center"></i><span>Revisar textos</span>
+          </a>
+          <a href="/treino_local" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-dumbbell w-4 text-center"></i><span>Treino Local</span>
+          </a>
+          <a href="/treino_colab" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-brands fa-google w-4 text-center"></i><span>Google Colab</span>
+          </a>
+          <a href="/debate" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-microphone-lines w-4 text-center"></i><span>Debate / Podcast</span>
+          </a>
+          <a href="/executor" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-robot w-4 text-center"></i><span>Ver tarefas</span>
+          </a>
+          <a href="/debate_local" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-microchip w-4 text-center"></i><span>Debate Local</span>
+          </a>
+          <a href="/logs" class="whitespace-nowrap text-left px-3 py-2 rounded-xl flex items-center gap-2 text-xs transition-all shrink-0 nav-link">
+            <i class="fa-solid fa-book w-4 text-center"></i><span>Registros</span>
+          </a>
+        </div>
+      </details>
     </nav>
 
     <!-- Rodapé do menu -->
@@ -385,6 +445,7 @@
         <div class="w-2 h-2 rounded-full transition-all duration-700" :class="[_heartbeatAlive ? 'opacity-100' : 'opacity-30', baseOllamaOnline ? 'bg-green-500' : 'bg-red-500']"></div>
         <span class="text-zinc-500">Ollama:</span>
         <span x-text="baseOllamaOnline ? 'Online' : 'Offline'" :class="baseOllamaOnline ? 'text-green-400' : 'text-red-400'"></span>
+        <span class="text-zinc-600 text-[10px]" x-text="'· ' + ultimaVerif" title="Última verificação do sistema (diagnóstico)"></span>
       </div>
       <div class="flex items-center gap-1 flex-wrap">
         <div class="w-2 h-2 rounded-full transition-all duration-700" :class="[_heartbeatAlive ? 'opacity-100' : 'opacity-30', baseSearchOnline ? 'bg-sky-500' : 'bg-zinc-600']"></div>
@@ -395,6 +456,20 @@
       <div class="flex justify-between text-zinc-600">
         <span class="truncate">CPU <span x-text="(baseCpu||0)+'%'" class="text-zinc-400"></span></span>
         <span class="truncate ml-2">RAM <span x-text="(baseRam||0)+'%'" class="text-zinc-400"></span></span>
+      </div>
+      <!-- ⏰ Relógio do servidor: tempo passando = sistema ATIVO (watchdog real) -->
+      <div class="flex items-center gap-1 flex-wrap" title="Relógio do servidor — se parar de avançar, o sistema travou">
+        <span class="w-2 h-2 rounded-full transition-all duration-700" :class="_heartbeatAlive ? 'bg-emerald-500' : 'bg-red-500'"></span>
+        <span class="text-zinc-500">⏰</span>
+        <span class="font-mono text-xs text-zinc-200" x-text="baseServerTime"></span>
+        <span class="text-zinc-600 text-[10px]" x-text="'up ' + baseUptime"></span>
+      </div>
+      <!-- 🔵 Atividades ativas no backend (executor) — bolinha pisca quando houver -->
+      <div class="flex items-center gap-1 flex-wrap" x-show="(baseAtvTotal||0) > 0" title="Processos ativos no backend (executor)">
+        <span class="nav-atv bg-emerald-400 text-emerald-400"></span>
+        <span class="text-zinc-500">Atividades:</span>
+        <span class="text-emerald-400 font-semibold" x-text="baseAtvTotal"></span>
+        <span class="text-zinc-600 truncate max-w-[140px]" x-text="baseAtvResumo"></span>
       </div>
       <div class="text-zinc-600 truncate" title="Acesso remoto">
         🌐 <span class="text-zinc-500">http://</span><span class="text-zinc-400" x-text="window.location.hostname+':8000'"></span>
@@ -426,13 +501,9 @@
         </a>
       </div>
 
-      <!-- 🤝 Marca do agente (pedido do usuário) -->
+      <!-- 🤝 Marca do agente (pedido do usuário) — baleia do DeepSeek -->
       <div class="mt-3 pt-3 border-t border-zinc-800 flex items-center justify-center gap-1.5 text-[9px] text-zinc-600" title="Co Editado com agente Deepseek Flash">
-        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="12" cy="12" r="10" stroke="url(#g1)" stroke-width="2" fill="none"/>
-          <path d="M7 12l3 3 7-7" stroke="url(#g1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <defs><linearGradient id="g1" x1="0" y1="0" x2="24" y2="24"><stop stop-color="#38bdf8"/><stop offset="1" stop-color="#34d399"/></linearGradient></defs>
-        </svg>
+        <img src="/images/icons8-deepseek-48.svg" alt="DeepSeek" class="w-3.5 h-3.5">
         Co Editado com agente Deepseek Flash
       </div>
     </div>
@@ -455,7 +526,14 @@
       baseSearchOnline: false,
       baseCpu: 0,
       baseRam: 0,
+      baseServerTime: '--:--:--',  // ⏰ relógio do servidor (heartbeat)
+      baseUptime: '0m',            // uptime do servidor
+      baseAtvTotal: 0,        // ▓ quantas atividades ativas no executor
+      baseAtvResumo: '',      // resumo (nomes) das atividades ativas
       _ollamaOfflineCount: 0,
+      _ollamaFalhas: 0,        // falhas consecutivas de status (tolerância p/ não dar falso Offline)
+      _buscaFalhas: 0,
+      ultimaVerif: '—',        // última verificação (diagnóstico estilo hospital)
       _pollController: null,
       _heartbeatAlive: false,
       isLightTheme: (localStorage.getItem('theme') ??
@@ -477,6 +555,10 @@
         }
         this.pollStatus();
         setInterval(() => this.pollStatus(), 10000);
+        // ▓ Indicador de atividade ativa no menu (desktop): poll do executor
+        this._injetarIndicadoresAtividade();
+        this.pollAtividades();
+        setInterval(() => this.pollAtividades(), 8000);
         // Heartbeat visual a cada 2s
         setInterval(() => { this._heartbeatAlive = !this._heartbeatAlive; }, 2000);
         // Destaca link ativo + tooltip com o nome de cada item
@@ -490,6 +572,94 @@
             a.classList.add('text-zinc-400', 'hover:bg-zinc-800', 'hover:text-zinc-200');
           }
         });
+      },
+      // ▓ Injeta um <span> indicador (desktop) em cada item do menu lateral.
+      // Escondido no mobile (hidden md:inline) — regra: só desktop.
+      _injetarIndicadoresAtividade() {
+        document.querySelectorAll('.nav-link').forEach(a => {
+          if (a.querySelector('.nav-atv')) return; // já injetado
+          const s = document.createElement('span');
+          s.className = 'nav-atv inline-block ml-auto bg-emerald-400 text-emerald-400';
+          s.style.display = 'none'; // começa oculto; pollAtividades liga quando houver atividade
+          a.appendChild(s);
+        });
+      },
+      // ▓ Consulta o executor e acende o indicador na aba onde há processo ativo.
+      // Ex.: atividade de treino acende "Treino Local"; limpeza/sanitização
+      // acende "Tratamento"; geração Ollama acende "Gerar Dados", etc.
+      async pollAtividades() {
+        try {
+          const r = await this.fetchWithTimeout('/api/executor/status', {}, 4000);
+          if (!r.ok) return;
+          const d = await r.json();
+          const ativas = (d.atividades || []).filter(a =>
+            a.status === 'rodando' || a.status === 'rodando_externo');
+          const aguardando = (d.atividades || []).filter(a =>
+            a.status === 'aguardando');
+          const total = ativas.length + aguardando.length;
+          this.baseAtvTotal = total;
+          this.baseAtvResumo = ativas.concat(aguardando)
+            .map(a => a.nome || a.id).slice(0, 3).join(', ');
+
+          // Mapa: href do menu → palavras-chave do comando/nome da atividade.
+          // ⚠️ Cada atividade acende SÓ a aba MAIS relevante (a 1ª que casar,
+          // na ordem do mapa) + o Executor (gestor geral). Antes, o "parquet"
+          // no caminho da origem (dados\gerados\parquet\...) acendia
+          // Treinamento/Treino Local por engano → bolinha em 4 abas p/ 1 atv.
+          const mapa = {
+            '/tratamento':  ['sanitiz', 'limpeza', 'verificar', 'diagnostico', 'pipeline'],
+            '/converter':   ['converter', 'gguf'],
+            '/scrap':       ['scrap'],
+            '/pdfs':        ['pdf', 'livros'],
+            '/carteira':    ['carteira', 'prontas', 'drive', 'pastas prontas'],
+            '/revisar':     ['revisar', 'revisão', 'suspeitos', 'aprovar', 'descartar'],
+            '/datasets':    ['download', 'downdata', 'ultra', 'datasets'],
+            '/gerar_dados': ['gerar_dados', 'gerar_massa', 'dialogos2', 'explos'],
+            '/gerar_local': ['gerar_local'],
+            '/debate':      ['debate', 'podcast', 'dialogos'],
+            '/debate_local':['debate_local'],
+            '/rss':         ['rss'],
+            '/treino_local':['treino', 'treinar'],
+            '/treinamento': ['treino', 'treinar'],
+            '/treino_colab':['colab'],
+            '/logs':        ['log'],
+          };
+          const comandoAtivo = ativas.concat(aguardando).map(a =>
+            ((a.comando || '') + ' ' + (a.nome || '')).toLowerCase());
+          const temAguardando = aguardando.length > 0;
+
+          // Quais abas acendem: para cada atividade, a 1ª aba do mapa que casa
+          // (ordem de prioridade). /executor sempre acende (gestor geral).
+          const abasAcesas = new Set(comandoAtivo.length ? ['/executor'] : []);
+          comandoAtivo.forEach(c => {
+            for (const [href, chaves] of Object.entries(mapa)) {
+              if (chaves.some(k => c.includes(k))) {
+                abasAcesas.add(href);
+                break; // só a MAIS relevante por atividade
+              }
+            }
+          });
+
+          document.querySelectorAll('.nav-link').forEach(a => {
+            const href = a.getAttribute('href') || '';
+            const acende = abasAcesas.has(href);
+            const s = a.querySelector('.nav-atv');
+            if (s) {
+              s.style.display = acende ? '' : 'none';
+              if (acende) {
+                // 🟢 rodando (verde) | 🟠 aguardando decisão (âmbar)
+                s.classList.toggle('bg-amber-400', temAguardando && !ativas.length);
+                s.classList.toggle('bg-emerald-400', ativas.length > 0);
+                s.title = (temAguardando && !ativas.length
+                  ? '🟠 Aguardando sua decisão: ' : '⚙️ Atividade(s): ')
+                  + this.baseAtvResumo;
+                a.title = (a.textContent || '').trim() +
+                  (temAguardando && !ativas.length
+                    ? ' — 🟠 aguardando: ' : ' — ⚙️ ') + this.baseAtvResumo;
+              }
+            }
+          });
+        } catch(e) { /* silêncio - não poluir console */ }
       },
       async fetchWithTimeout(url, options = {}, timeout = 5000) {
         const controller = new AbortController();
@@ -508,28 +678,41 @@
         if (this._pollController) this._pollController.abort();
         this._pollController = new AbortController();
 
-        // Status do sistema (CPU/RAM)
+        // Status do sistema (CPU/RAM) — timeout maior p/ celular/servidor ocupado
         try {
-          const r = await this.fetchWithTimeout('/api/status', {}, 3000);
+          const r = await this.fetchWithTimeout('/api/status', {}, 8000);
           if (r.ok) {
             const d = await r.json();
             this.baseCpu = d.cpu || 0;
             this.baseRam = d.memory || 0;
           }
-        } catch(e) { /* silêncio - não poluir console */ }
+        } catch(e) { /* mantém último valor (não zera no timeout) */ }
 
-        // Status do Ollama com auto-recuperação
+        // ⏰ Heartbeat/relógio do servidor (prova de vida: tempo passando = ativo)
         try {
-          const r = await this.fetchWithTimeout('/api/ollama/status', {}, 3000);
+          const r = await this.fetchWithTimeout('/api/heartbeat', {}, 8000);
+          if (r.ok) {
+            const d = await r.json();
+            if (d.server_time) this.baseServerTime = d.server_time.slice(11, 19);
+            const up = d.uptime_seg || 0;
+            this.baseUptime = (up >= 3600 ? Math.floor(up / 3600) + 'h ' : '') + Math.floor((up % 3600) / 60) + 'm';
+          }
+        } catch(e) { /* silêncio */ }
+
+        // Status do Ollama com auto-recuperação + tolerância (só Offline após 2 falhas)
+        try {
+          const r = await this.fetchWithTimeout('/api/ollama/status', {}, 8000);
           if (r.ok) {
             const d = await r.json();
             if (d.running) {
               this.baseOllamaOnline = true;
+              this._ollamaFalhas = 0;
               this._ollamaOfflineCount = 0;
             } else {
-              this.baseOllamaOnline = false;
+              this._ollamaFalhas++;
               this._ollamaOfflineCount++;
-              console.warn(`[BASE] Ollama offline (${this._ollamaOfflineCount}x consecutivas)`);
+              if (this._ollamaFalhas >= 2) this.baseOllamaOnline = false;
+              console.warn(`[BASE] Ollama sem resposta (${this._ollamaOfflineCount}x)`);
               if (this._ollamaOfflineCount >= 3) {
                 console.log("[BASE] ⚠️ Tentando reiniciar Ollama automaticamente...");
                 try {
@@ -543,16 +726,20 @@
               }
             }
           }
-        } catch(e) { /* silêncio */ }
+        } catch(e) { /* timeout: não pisca Offline à toa */ }
 
-        // Status da busca
+        // Status da busca (tolerância: só Offline após 2 falhas)
         try {
-          const r = await this.fetchWithTimeout('/api/chat/search-status', {}, 3000);
+          const r = await this.fetchWithTimeout('/api/chat/search-status', {}, 8000);
           if (r.ok) {
             const d = await r.json();
-            this.baseSearchOnline = !!d.online;
+            if (d.online) { this.baseSearchOnline = true; this._buscaFalhas = 0; }
+            else { this._buscaFalhas++; if (this._buscaFalhas >= 2) this.baseSearchOnline = false; }
           }
         } catch(e) { /* silêncio */ }
+
+        // 🏥 Diagnóstico: quando foi a última verificação (estilo hospital)
+        this.ultimaVerif = new Date().toLocaleTimeString('pt-BR');
       },
       toggleTheme() {
         this.isLightTheme = !this.isLightTheme;

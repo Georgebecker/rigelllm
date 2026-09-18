@@ -1,42 +1,31 @@
 {
   "rodando": false,
   "etapa": "concluido",
-  "mensagem": "✅ 3/4 pasta(s) tratadas e promovidas.",
+  "mensagem": "✅ Concluído 'BrunoN-Dev_ultra-alpaca-ptbr' — saída em dados/processed/jsonl/BrunoN-Dev_ultra-alpaca-ptbr_sanitizado/",
   "percentual": 100,
   "fila": [
-    "alanwgt_fipex-veiculos-brasil",
-    "BrunoN-Dev_ultra-alpaca-ptbr",
-    "Montival_fipex-veiculos-brasil",
-    "scrap"
+    "BrunoN-Dev_ultra-alpaca-ptbr"
   ],
-  "atual": "scrap",
+  "atual": "BrunoN-Dev_ultra-alpaca-ptbr",
   "concluidos": [
     {
       "ok": true,
-      "tratamento": "limpeza_leve",
-      "detalhe": "limpeza leve OK: 5 artefato(s) em processed/ (ex.: rigel_sft.parquet)",
-      "nome": "alanwgt_fipex-veiculos-brasil"
-    },
-    {
-      "ok": true,
-      "tratamento": "sanitizar",
-      "detalhe": "sanitizado: 0 exemplos, 1 arquivo(s) -> processed/jsonl/BrunoN-Dev_ultra-alpaca-ptbr/",
-      "nome": "BrunoN-Dev_ultra-alpaca-ptbr"
-    },
-    {
-      "ok": true,
-      "tratamento": "sanitizar",
-      "detalhe": "sanitizado: 0 exemplos, 1 arquivo(s) -> processed/jsonl/Montival_fipex-veiculos-brasil/",
-      "nome": "Montival_fipex-veiculos-brasil"
-    },
-    {
-      "ok": false,
-      "tratamento": "nenhum",
-      "detalhe": "sem tratamento para formato vazio",
-      "nome": "scrap"
+      "nome": "BrunoN-Dev_ultra-alpaca-ptbr",
+      "detalhe": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\BrunoN-Dev_ultra-alpaca-ptbr_sanitizado"
     }
   ],
-  "inicio": "2026-08-07T01:11:46.670044",
-  "fim": "2026-08-07T01:16:23.085590",
-  "erro": null
+  "log": [
+    "[05:59:00] Arquivos de origem: 1",
+    "[06:00:18]   100,000 lidas | válidas: 99,912 | descartadas: 88 | 77s",
+    "[06:01:37]   200,000 lidas | válidas: 199,790 | descartadas: 210 | 157s",
+    "[06:02:51]   300,000 lidas | válidas: 299,621 | descartadas: 379 | 231s",
+    "[06:04:06]   400,000 lidas | válidas: 399,443 | descartadas: 557 | 306s",
+    "[06:04:59] ============================================================",
+    "[06:04:59] CONCLUÍDO: 469,456 lidas | 468,754 convertidas | 702 descartadas",
+    "[06:04:59] Saída: 235 arquivo(s) em D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\BrunoN-Dev_ultra-alpaca-ptbr_sanitizado"
+  ],
+  "inicio": "2026-08-21T05:59:00.227750",
+  "fim": "2026-08-21T06:04:59.874782",
+  "erro": "O processo de extração foi encerrado. Nada foi perdido — use o botão Continuar.",
+  "pid": null
 }

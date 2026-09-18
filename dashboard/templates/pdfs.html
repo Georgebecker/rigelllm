@@ -1,0 +1,431 @@
+{% extends "base.html" %}
+{% block title %}PDFs / Livros{% endblock %}
+{% block content %}
+<div x-data="pdfsState()" x-cloak>
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6 md:mb-8 flex-wrap gap-3">
+    <div class="min-w-0">
+      <h2 class="text-2xl md:text-3xl font-bold">📄 PDFs / Livros</h2>
+      <p class="text-zinc-500 mt-1 text-sm">Livros baixados pelo scraper + arquivos enviados manualmente (PT-BR)</p>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <input type="file" id="input-pdf" accept=".pdf,application/pdf" class="hidden"
+             x-ref="inputPdf" @change="selecionarArquivo($event)">
+      <button @click="$refs.inputPdf.click()" :disabled="enviando"
+              title="Escolher um PDF no computador e enviar para a pasta de livros (dados/raw/livros/importados)"
+              class="flex items-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+        <i class="fa-solid fa-upload" :class="{'fa-spin': enviando}"></i>
+        <span x-text="enviando ? 'Enviando...' : 'Enviar PDF'"></span>
+      </button>
+      <button @click="carregar()" title="Atualizar a lista de arquivos" aria-label="Atualizar lista"
+              class="text-zinc-500 hover:text-emerald-400 text-xl transition-transform active:scale-90">
+        <i class="fa-solid fa-rotate" :class="{'fa-spin': enviando}"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mensagens -->
+  <div x-show="mensagem" class="mb-4 bg-emerald-950/40 border border-emerald-600/30 text-emerald-300 rounded-xl px-4 py-3 text-sm" x-text="mensagem"></div>
+  <div x-show="erro" class="mb-4 bg-red-950/40 border border-red-600/30 text-red-300 rounded-xl px-4 py-3 text-sm" x-text="erro"></div>
+
+  <!-- Loading inicial -->
+  <div x-show="!carregou" class="flex items-center justify-center py-20">
+    <div class="text-center">
+      <i class="fa-solid fa-spinner fa-spin text-4xl text-emerald-400 mb-4"></i>
+      <p class="text-zinc-500">Carregando arquivos...</p>
+    </div>
+  </div>
+
+  <div x-show="carregou" class="space-y-6">
+    <!-- Pasta de destino -->
+    <div class="bg-zinc-900 rounded-2xl p-4 md:p-6">
+      <h3 class="text-sm font-semibold mb-2">📁 Pasta de PDFs</h3>
+      <p class="text-xs text-zinc-500">Todos os arquivos (scraper + uploads) ficam aqui:</p>
+      <p class="text-xs font-mono text-emerald-400 mt-1 bg-black/30 rounded-lg px-3 py-2 break-all" x-text="pasta"></p>
+      <p class="text-[10px] text-zinc-600 mt-2">💡 Uploads manuais vão para <span class="text-zinc-400">dados/raw/livros/importados/</span></p>
+    </div>
+
+    <!-- 🚀 SCRAPER DE LIVROS (automático) -->
+    <div class="bg-zinc-900 rounded-2xl p-4 md:p-6">
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div class="min-w-0">
+          <h3 class="text-sm font-semibold">🚀 Scraper de livros</h3>
+          <p class="text-[10px] text-zinc-600 mt-0.5">Baixa PDFs/livros dos sites das listas (<code class="text-zinc-500">sites_pdfs.txt</code> + <code class="text-zinc-500">sites_abertos.txt</code>) — roda no Executor com barra de progresso real.</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button @click="pararScrap()" x-show="scrapRodando"
+                  title="⏹️ Parar o scraper agora (mata o processo — o que já baixou fica salvo)"
+                  class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3 py-2 rounded-xl text-xs font-semibold transition-colors">
+            <i class="fa-solid fa-stop"></i>
+            <span class="ml-1">Parar</span>
+          </button>
+          <button @click="rodarScrap()" :disabled="scrapRodando"
+                  :title="scrapRodando ? 'Scraper já está rodando' : 'Rodar o scraper de livros (pede confirmação antes de iniciar)'"
+                  class="flex items-center gap-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            <i class="fa-solid" :class="scrapRodando ? 'fa-spinner fa-spin' : 'fa-play'"></i>
+            <span x-text="scrapRodando ? 'Rodando...' : 'Rodar scraper'"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Configuração -->
+      <div class="flex flex-wrap items-end gap-3">
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-[10px] text-zinc-500 mb-1">Site</label>
+          <select x-model="scrapSiteSel" title="Site para varrer — 'Todos' usa as listas completas (sites_pdfs.txt + sites_abertos.txt)"
+                  class="w-full bg-zinc-800 text-zinc-100 border border-zinc-700 rounded-lg px-2 py-1.5 text-xs outline-none">
+            <option value="">🔄 Todos os sites (listas completas)</option>
+            <template x-if="scrapSites.pdfs.length">
+              <optgroup label="📚 Sites de PDF/livros">
+                <template x-for="s in scrapSites.pdfs" :key="s">
+                  <option :value="s" x-text="s"></option>
+                </template>
+              </optgroup>
+            </template>
+            <template x-if="scrapSites.abertos.length">
+              <optgroup label="🌐 Sites abertos (artigos)">
+                <template x-for="s in scrapSites.abertos" :key="s">
+                  <option :value="s" x-text="s"></option>
+                </template>
+              </optgroup>
+            </template>
+          </select>
+        </div>
+        <div class="w-24">
+          <label class="block text-[10px] text-zinc-500 mb-1">Limite</label>
+          <input type="number" min="1" max="2000" x-model.number="scrapLimite"
+                 title="Máximo de arquivos a baixar por site (0 = sem limite)"
+                 class="w-full bg-zinc-800 text-zinc-100 border border-zinc-700 rounded-lg px-2 py-1.5 text-xs outline-none">
+        </div>
+        <label class="flex items-center gap-1.5 text-[10px] text-zinc-400 cursor-pointer pb-1.5"
+               title="Só testa a estrutura dos sites (não baixa nada)">
+          <input type="checkbox" x-model="scrapVerificar" class="accent-sky-500">
+          🔎 Verificar (não baixa)
+        </label>
+        <div class="w-32">
+          <label class="block text-[10px] text-zinc-500 mb-1">Profundidade</label>
+          <select x-model.number="scrapProfundidade" title="1 = só a home · 2 = home + páginas linkadas (compêndios tipo wikidot)"
+                  class="w-full bg-zinc-800 text-zinc-100 border border-zinc-700 rounded-lg px-2 py-1.5 text-xs outline-none">
+            <option :value="1">1 (rápido)</option>
+            <option :value="2">2 (compêndios)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Barra de progresso real -->
+      <div x-show="scrapRodando || scrapPct>0" class="mt-4">
+        <div class="flex items-center justify-between text-[11px] text-zinc-400 mb-1">
+          <span x-show="scrapRodando" class="text-emerald-400 truncate" x-text="'⏳ Site '+(scrapSiteI||0)+'/'+(scrapSiteTotal||0)+' — '+(scrapSiteAtual||'')"></span>
+          <span x-show="!scrapRodando && scrapMsg" class="truncate" x-text="scrapMsg"></span>
+          <span class="font-mono shrink-0 ml-2" x-text="scrapPct+'%'"></span>
+        </div>
+        <div class="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
+          <div class="h-full rounded-full bg-emerald-500 transition-all duration-500" :style="'width:'+(scrapPct||0)+'%'"></div>
+        </div>
+        <p class="text-[10px] text-zinc-500 mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+          <span x-show="scrapAtual" class="truncate max-w-[55%]" x-text="'📄 '+scrapAtual"></span>
+          <span class="text-emerald-400" x-text="'✅ '+scrapOk"></span>
+          <span class="text-amber-400" x-text="'⚠️ '+scrapErro"></span>
+          <span class="text-zinc-400" x-text="'⏭️ '+scrapPulados"></span>
+          <span class="text-sky-400" x-text="'♻️ '+scrapDups"></span>
+          <span x-text="'⏱ '+formatarDecorrido(scrapDecorrido)"></span>
+        </p>
+      </div>
+
+      <!-- Relatório por site (último scrap) -->
+      <div x-show="scrapRelatorio.sites && scrapRelatorio.sites.length" class="mt-4">
+        <p class="text-[10px] text-zinc-500 mb-1 font-semibold">📊 Relatório do último scrap</p>
+        <div class="bg-black/30 rounded-xl overflow-x-auto">
+          <table class="w-full text-[10px] text-zinc-400">
+            <thead class="text-zinc-600">
+              <tr class="text-left border-b border-zinc-800">
+                <th class="px-2 py-1.5">Site</th>
+                <th class="px-2 py-1.5 text-right">✅ ok</th>
+                <th class="px-2 py-1.5 text-right">⚠️ erro</th>
+                <th class="px-2 py-1.5 text-right">⏭️ pulado</th>
+                <th class="px-2 py-1.5 text-right">♻️ dup</th>
+                <th class="px-2 py-1.5 text-right">🔗 links</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="s in scrapRelatorio.sites" :key="s.site">
+                <tr class="border-b border-zinc-800/50">
+                  <td class="px-2 py-1.5 truncate max-w-[220px]" x-text="s.site"></td>
+                  <td class="px-2 py-1.5 text-right text-emerald-400" x-text="s.ok||0"></td>
+                  <td class="px-2 py-1.5 text-right text-amber-400" x-text="s.erro||0"></td>
+                  <td class="px-2 py-1.5 text-right" x-text="s.pulados||0"></td>
+                  <td class="px-2 py-1.5 text-right text-sky-400" x-text="s.dups||0"></td>
+                  <td class="px-2 py-1.5 text-right" x-text="s.links||0"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p x-show="scrapMsgErro" class="text-[11px] mt-2 px-2 py-1.5 rounded-lg bg-red-600/10 text-red-300" x-text="scrapMsgErro"></p>
+    </div>
+
+    <!-- Listagem -->
+    <div class="bg-zinc-900 rounded-2xl p-4 md:p-6">
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <h3 class="text-sm font-semibold">📚 Arquivos <span class="text-[10px] text-zinc-600 font-normal" x-text="'(' + arquivos.length + ')'"></span></h3>
+      </div>
+
+      <div x-show="arquivos.length === 0">
+        <p class="text-zinc-600 text-sm">Nenhum arquivo ainda. Use o botão <b>Enviar PDF</b> acima ou o <b>🚀 Rodar scraper</b> para baixar automaticamente dos sites das listas.</p>
+      </div>
+
+      <div class="space-y-2">
+        <template x-for="a in arquivos" :key="a.caminho">
+          <div class="flex items-center justify-between gap-3 bg-black/30 rounded-xl px-3 py-2 text-xs">
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-zinc-300 font-medium">
+                <span x-show="a.pasta !== '.'" class="text-zinc-600" x-text="a.pasta + '/'"></span>
+                <span x-text="a.nome"></span>
+              </p>
+              <p class="text-zinc-600" x-text="a.tamanho_mb + ' MB · ' + a.data"></p>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <a :href="'/api/pdfs/arquivo/' + encodeURIComponent(a.caminho)" target="_blank"
+                 title="Abrir / baixar o arquivo"
+                 class="text-emerald-400 hover:text-emerald-300 text-base px-2 py-1"><i class="fa-solid fa-download"></i></a>
+              <button x-show="a.nome.toLowerCase().endsWith('.pdf')" @click="extrair(a.caminho)"
+                      :disabled="extraindo !== null"
+                      :title="extraindo === a.caminho ? 'Extraindo e limpando...' : '✨ Extrair e limpar este PDF (gera TXT + JSONL de treino)'"
+                      class="text-amber-400 hover:text-amber-300 text-base px-2 py-1 disabled:opacity-40">
+                <i class="fa-solid fa-wand-magic-sparkles" :class="{'fa-spin': extraindo === a.caminho}"></i>
+              </button>
+              <button @click="apagar(a.caminho)" title="Apagar este arquivo"
+                      class="text-red-500 hover:text-red-400 text-base px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function pdfsState() {
+  return {
+    arquivos: [], pasta: '', carregou: false, mensagem: '', erro: '', enviando: false,
+    extraindo: null,          // caminho do PDF sendo extraído/limpo (✨)
+    // 🚀 Scraper de livros
+    scrapSites: { pdfs: [], abertos: [] },
+    scrapSiteSel: '', scrapLimite: 10, scrapVerificar: false, scrapProfundidade: 1,
+    scrapRodando: false, scrapPct: 0, scrapSiteAtual: '', scrapAtual: '',
+    scrapOk: 0, scrapErro: 0, scrapPulados: 0, scrapDups: 0, scrapDecorrido: 0,
+    scrapSiteI: 0, scrapSiteTotal: 0, scrapMsg: '', scrapMsgErro: '', scrapAid: '',
+    scrapRelatorio: { sites: [], totais: {} },
+    _scrapTimer: null,
+    init() {
+      console.log("[PDFS] Página carregada");
+      this.carregar();
+      this.carregarSites();
+      this.carregarScrapProgresso();
+      this.carregarScrapRelatorio();
+      if (!this._scrapTimer) {
+        this._scrapTimer = setInterval(() => {
+          this.carregarScrapProgresso();
+          this._checarExecutorScrap();
+        }, 3000);
+      }
+    },
+    formatarDecorrido(s) {
+      s = s || 0;
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), seg = s % 60;
+      return (h ? h + 'h ' : '') + (m ? m + 'm ' : '') + seg + 's';
+    },
+    async carregarSites() {
+      try {
+        const r = await fetch('/api/pdfs/sites');
+        if (r.ok) {
+          const d = await r.json();
+          this.scrapSites = { pdfs: d.pdfs || [], abertos: d.abertos || [] };
+        }
+      } catch(e) { console.warn('[PDFS] sites:', e); }
+    },
+    async carregarScrapProgresso() {
+      try {
+        const r = await fetch('/api/pdfs/scrap-progresso');
+        if (r.ok) {
+          const d = await r.json();
+          if (d.fase === 'concluido') {
+            this.scrapPct = 100;
+            if (this.scrapRodando) {
+              this.scrapRodando = false;
+              this.scrapMsg = '✅ Scrap concluído! Acervo atualizado.';
+              this.carregarScrapRelatorio();
+              this.carregar();
+            } else {
+              this.scrapMsg = '✅ Scrap concluído (último).';
+            }
+            return;
+          }
+          if (d.fase === 'ocioso' && !this.scrapRodando) return;
+          this.scrapPct = d.pct || 0;
+          this.scrapSiteI = d.site_i || 0;
+          this.scrapSiteTotal = d.site_total || 0;
+          this.scrapSiteAtual = d.site || '';
+          this.scrapAtual = d.atual || '';
+          this.scrapOk = d.ok || 0; this.scrapErro = d.erro || 0;
+          this.scrapPulados = d.pulados || 0; this.scrapDups = d.dups || 0;
+          this.scrapDecorrido = d.decorrido_s || 0;
+        }
+      } catch(e) {}
+    },
+    async carregarScrapRelatorio() {
+      try {
+        const r = await fetch('/api/pdfs/scrap-relatorio');
+        if (r.ok) {
+          const d = await r.json();
+          this.scrapRelatorio = { sites: d.sites || [], totais: d.totais || {} };
+        }
+      } catch(e) {}
+    },
+    async _checarExecutorScrap() {
+      if (!this.scrapAid || !this.scrapRodando) return;
+      try {
+        const r = await fetch('/api/executor/status?aid=' + this.scrapAid);
+        if (r.ok) {
+          const d = await r.json();
+          const st = d.status || '';
+          if (st === 'erro' || st === 'morto' || st === 'interrompido') {
+            this.scrapRodando = false;
+            this.scrapMsg = '❌ Scraper parado (' + st + '). Veja o log no Executor.';
+            this.carregarScrapRelatorio();
+          }
+        }
+      } catch(e) {}
+    },
+    async rodarScrap() {
+      if (this.scrapRodando) return;
+      const tudo = !this.scrapSiteSel;
+      const limiteTxt = this.scrapLimite ? ('limite ' + this.scrapLimite + ' por site') : 'sem limite';
+      const aviso = tudo
+        ? '⚠️ CONFIRMAÇÃO RIGOROSA: vai varrer TODAS as listas (' +
+          (this.scrapSites.pdfs.length + this.scrapSites.abertos.length) + ' sites).\n' +
+          'Pode demorar muito e baixar muitos arquivos.\n\nDeseja continuar?'
+        : 'Vai rodar o scraper em: ' + this.scrapSiteSel + '\n(' + limiteTxt + ')\n\nDeseja continuar?';
+      if (!confirm(aviso)) return;
+      this.scrapRodando = true; this.scrapMsg = ''; this.scrapMsgErro = ''; this.scrapPct = 0;
+      const args = [];
+      if (this.scrapLimite) args.push('--limite', String(this.scrapLimite));
+      if (this.scrapVerificar) args.push('--verificar');
+      if (this.scrapProfundidade === 2) args.push('--profundidade', '2');
+      try {
+        const r = await fetch('/api/executor/iniciar', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            comando: 'scrap_livros',
+            origem: this.scrapSiteSel,
+            args,
+            nome: tudo ? '🚀 Scrap de livros (todos)' : ('🚀 Scrap: ' + this.scrapSiteSel)
+          })
+        });
+        const d = await r.json();
+        if (!d.ok) { this.scrapRodando = false; this.scrapMsgErro = '❌ ' + (d.erro || 'erro ao iniciar'); return; }
+        this.scrapAid = d.id || '';
+        this.scrapMsg = '🚀 Scraper rodando no Executor...';
+      } catch(e) {
+        this.scrapRodando = false;
+        this.scrapMsgErro = '❌ ' + e.message;
+      }
+    },
+    async pararScrap() {
+      if (!this.scrapRodando) return;
+      if (!confirm('⏹️ Parar o scraper agora?\n(O que já foi baixado fica salvo.)')) return;
+      try {
+        const r = await fetch('/api/executor/parar', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ aid: this.scrapAid })
+        });
+        const d = await r.json();
+        this.scrapRodando = false;
+        this.scrapMsg = d.ok ? '⏹️ Scraper parado (o que já baixou está salvo).' : ('⚠️ ' + (d.erro || ''));
+        this.carregarScrapRelatorio();
+      } catch(e) { this.scrapMsgErro = '❌ ' + e.message; }
+    },
+    async carregar() {
+      try {
+        const r = await fetch('/api/pdfs');
+        if (r.ok) {
+          const d = await r.json();
+          this.arquivos = d.pdfs || [];
+          this.pasta = d.pasta || '';
+          this.carregou = true;
+        }
+      } catch(e) { this.erro = 'Erro ao carregar arquivos: ' + e; }
+    },
+    selecionarArquivo(evento) {
+      const file = evento.target.files[0];
+      if (!file) return;
+      this.enviar(file);
+      evento.target.value = ''; // permite reenviar o mesmo arquivo depois
+    },
+    async enviar(file) {
+      this.enviando = true; this.mensagem = ''; this.erro = '';
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        const r = await fetch('/api/pdfs/upload', { method: 'POST', body: fd });
+        const d = await r.json();
+        if (r.ok) {
+          this.mensagem = d.mensagem || '✅ PDF enviado!';
+          await this.carregar();
+        } else {
+          this.erro = d.detail || 'Falha no upload.';
+        }
+      } catch(e) { this.erro = 'Erro no upload: ' + e; }
+      finally { this.enviando = false; }
+    },
+    async extrair(caminho) {
+      if (this.extraindo) return;
+      this.extraindo = caminho;
+      this.mensagem = ''; this.erro = '';
+      try {
+        const r = await fetch('/api/pdfs/extrair', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ caminho })
+        });
+        const d = await r.json();
+        if (d.ok) {
+          let msg = '✨ ' + (d.extrair || 'Extraído');
+          if (d.converter) msg += ' | ' + d.converter;
+          if (d.jsonl) msg += ' → ' + d.jsonl;
+          if (d.promovido?.ok) {
+            msg += '\n✅ PRONTO PARA TREINO: ' + (d.promovido.mensagem || 'promovido para dados/processed/');
+          }
+          if (d.aviso) msg += '\n⚠️ ' + d.aviso;
+          this.mensagem = msg;
+          await this.carregar();
+        } else {
+          this.erro = '❌ ' + (d.erro || 'Falha ao extrair.');
+        }
+      } catch(e) { this.erro = '❌ Erro ao extrair: ' + e; }
+      finally { this.extraindo = null; }
+    },
+    async apagar(caminho) {
+      if (!confirm('Apagar este arquivo?\n' + caminho)) return;
+      this.mensagem = ''; this.erro = '';
+      try {
+        const r = await fetch('/api/pdfs/remover', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ caminho })
+        });
+        const d = await r.json();
+        if (r.ok) {
+          this.mensagem = d.mensagem || '🗑️ Apagado.';
+          await this.carregar();
+        } else {
+          this.erro = d.detail || 'Erro ao apagar.';
+        }
+      } catch(e) { this.erro = 'Erro ao apagar: ' + e; }
+    }
+  };
+}
+</script>
+{% endblock %}

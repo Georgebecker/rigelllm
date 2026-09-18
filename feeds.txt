@@ -1,26 +1,40 @@
 # ============================================================================
-# FEEDS RSS – Adicione ou remova quantos quiser (um por linha)
-# Linhas começando com # são ignoradas
+# FEEDS RSS – LISTA CONSOLIDADA (35 fontes em português do Brasil)
+# Inclui seus feeds originais + novas fontes progressistas, acadêmicas e de nicho.
 # ============================================================================
 
-# ----------------------------------------------------------------------------
-# ICL Notícias (funcionou com fallback – scraping falhou, mas RSS via curl)
-# ----------------------------------------------------------------------------
+# ============================================================================
+# SEUS FEEDS ORIGINAIS (JÁ FUNCIONAM)
+# ============================================================================
+
+# ICL Notícias
 https://iclnoticias.com.br/feed/
 
-# ----------------------------------------------------------------------------
-# Agência Pública (funcionou – scraping OK)
-# ----------------------------------------------------------------------------
+# Agência Pública
 https://apublica.org/feed/
 
-# ----------------------------------------------------------------------------
-# Nexo Jornal (funcionou – RSS lido, scraping não testado)
-# ----------------------------------------------------------------------------
-https://www.nexojornal.com.br/rss.xml
+# BBC News Brasil
+https://www.bbc.com/portuguese/index.xml
 
-# ----------------------------------------------------------------------------
-# Agência Brasil – vários feeds (funcionaram com fallback)
-# ----------------------------------------------------------------------------
+# Brasil de Fato
+https://www.brasildefato.com.br/feed/
+
+# Opera Mundi
+https://operamundi.uol.com.br/feed/
+
+# Outras Palavras
+https://outraspalavras.net/feed/
+
+# Revista Fórum
+https://revistaforum.com.br/feed/
+
+# CartaCapital
+https://www.cartacapital.com.br/feed/
+
+# ============================================================================
+# AGÊNCIA BRASIL (EBC) – NOTÍCIAS GERAIS E POR TEMA
+# ============================================================================
+
 https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/feed.xml
 https://agenciabrasil.ebc.com.br/rss/direitos-humanos/feed.xml
 https://agenciabrasil.ebc.com.br/rss/economia/feed.xml
@@ -30,17 +44,11 @@ https://agenciabrasil.ebc.com.br/rss/internacional/feed.xml
 https://agenciabrasil.ebc.com.br/rss/justica/feed.xml
 https://agenciabrasil.ebc.com.br/rss/politica/feed.xml
 https://agenciabrasil.ebc.com.br/rss/saude/feed.xml
-https://agenciabrasil.ebc.com.br/rss/ultimasnoticias/parceiros/feed.xml
-# ----------------------------------------------------------------------------
-https://g1.globo.com/dynamo/brasil/rss2.xml
-# ----------------------------------------------------------------------------
-https://noticias.saudepublica.bvs.br/feed/
-https://agenciasebrae.com.br/feed/
-https://jornal.usp.br/feed/
-https://www.gov.br/pt-br/campanhas/brasil-na-cop/materias/box-fato-ou-fake/rss.xml
-https://www.gov.br/pt-br/campanhas/brasil-na-cop/materias/box-dados-e-fatos/rss.xml
-https://www.gov.br/pt-br/campanhas/brasil-na-cop/materias/box-voce-sabia/rss.xml
-https://agenciagov.ebc.com.br/rss.xml
+
+# ============================================================================
+# RÁDIO AGÊNCIA NACIONAL (EBC)
+# ============================================================================
+
 https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/ultimasnoticias/feed.xml
 https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/cultura/feed.xml
 https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/direitos-humanos/feed.xml
@@ -49,36 +57,50 @@ https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/justica/feed.xml
 https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/meio-ambiente/feed.xml
 https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/politica/feed.xml
 https://agenciabrasil.ebc.com.br/radioagencia-nacional/rss/seguranca/feed.xml
-https://jornal.usp.br/feed/
-# ----------------------------------------------------------------------------
-# BBC News Brasil (funcionou – RSS lido)
-# ----------------------------------------------------------------------------
-https://www.bbc.com/portuguese/index.xml
-# ----------------------------------------------------------------------------
-# Brasil de Fato (funcionou – RSS lido)
-# ----------------------------------------------------------------------------
-https://www.brasildefato.com.br/feed/
-# ----------------------------------------------------------------------------
-# Opera Mundi (funcionou – RSS lido)
-# ----------------------------------------------------------------------------
-https://operamundi.uol.com.br/feed/
-# ----------------------------------------------------------------------------
-# Outras Palavras (funcionou – RSS lido)
-# ----------------------------------------------------------------------------
-https://outraspalavras.net/feed/
 
-# ----------------------------------------------------------------------------
-# Revista Fórum (funcionou – RSS lido)
-# ----------------------------------------------------------------------------
-https://revistaforum.com.br/feed/
+# ============================================================================
+# NOVAS FONTES – PORTAIS, INSTITUIÇÕES E NICHOS
+# ============================================================================
 
-# ----------------------------------------------------------------------------
-# CartaCapital (funcionou – RSS lido)
-# ----------------------------------------------------------------------------
-https://www.cartacapital.com.br/feed/
+# G1 – Categorias Específicas
+https://g1.globo.com/dynamo/tecnologia/rss2.xml
+https://g1.globo.com/dynamo/ciencia-e-saude/rss2.xml
+https://g1.globo.com/dynamo/educacao/rss2.xml
 
-# ----------------------------------------------------------------------------
-# DICA: Você pode adicionar mais feeds no futuro!
-# Basta colocar a URL do RSS em uma nova linha.
-# Exemplo: https://www.exemplo.com.br/feed/
-# ----------------------------------------------------------------------------
+# Portal Gov.br – Feeds por Tema (Ciência, Cultura, Educação, etc.)[reference:4]
+https://www.gov.br/pt-br/rss/ciencia-e-tecnologia
+https://www.gov.br/pt-br/rss/cultura
+https://www.gov.br/pt-br/rss/educacao
+https://www.gov.br/pt-br/rss/economia-e-financas
+
+# Outros Portais e Institucionais
+https://noticias.saudepublica.bvs.br/feed/          # Saúde Pública (BVS)
+https://agenciasebrae.com.br/feed/                 # Agência Sebrae
+https://jornal.usp.br/feed/                        # Jornal da USP
+https://agenciagov.ebc.com.br/rss.xml              # Agência Gov
+https://www1.folha.uol.com.br/feed/                # Folha de S.Paulo (Feed Geral)[reference:5][reference:6]
+https://piaui.folha.uol.com.br/feed                # Revista Piauí[reference:7]
+https://diplomatique.org.br/feed/                  # Le Monde Diplomatique Brasil[reference:8]
+
+# Ciência e Divulgação Científica
+https://saense.com.br/feed/                         # Saense – Divulgação Científica[reference:9]
+https://blogdoibre.fgv.br/rss.xml                   # Blog do IBRE/FGV (Economia)
+https://agencia.fapesp.br/feed/                     # Agência FAPESP
+
+# Jornalismo Independente e Regional
+https://reporterbrasil.org.br/categorias/noticias/feed/  # Repórter Brasil[reference:11][reference:12]
+https://jornaldebrasilia.com.br/feed/                     # Jornal de Brasília[reference:13]
+https://braziljournal.com/rss                             # Brazil Journal (Economia e Mercados)[reference:14]
+https://rioonwatch.org/?feed=rss2                         # RioOnWatch (Comunidades e Favelas)[reference:15]
+
+# Aviação e Arquitetura
+https://aeromagazine.uol.com.br/feed/rss           # AERO Magazine (Aviação)
+https://www.archdaily.com.br/feed                  # ArchDaily Brasil (Arquitetura)
+
+# Moda e Lifestyle
+https://noubikko.net/rss/category/moda-lifestyle   # Noubi Says (Moda)
+
+# ============================================================================
+
+
+https://www.aosfatos.org/noticias/feed/

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Carteira de pastas prontas{% endblock %}
+{% block content %}
+<div x-data="carteiraState()" x-cloak>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">📂 Pastas prontas para o treino</h2>
+  <p class="text-zinc-500 text-sm mb-4">
+    Onde os textos já tratados estão guardados — <strong class="text-emerald-400">prontos</strong> podem ir para o Google Drive.
+    Clique em <b>📂 Abrir pasta</b> para ver a pasta no gerenciador de arquivos e copiar para o Drive.
+  </p>
+
+  <!-- Resumo -->
+  <div class="flex flex-wrap gap-2 mb-4 text-xs">
+    <span class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300" x-text="'✅ ' + (total.prontas||0) + ' prontas'"></span>
+    <span class="px-3 py-1 rounded-full bg-amber-500/15 text-amber-300" x-text="'🔄 ' + (total.parciais||0) + ' parciais'"></span>
+    <span class="px-3 py-1 rounded-full bg-red-500/15 text-red-300" x-text="'🥩 ' + (total.cruas||0) + ' cruas'"></span>
+  </div>
+
+  <!-- Filtro -->
+  <div class="flex flex-wrap items-center gap-2 mb-4">
+    <button @click="filtro='todas'" :class="filtro==='todas' ? 'bg-emerald-600/30 text-emerald-200' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'"
+            class="px-3 py-1.5 rounded-xl text-xs font-medium" title="Mostrar todas as pastas">Todas</button>
+    <button @click="filtro='pronta'" :class="filtro==='pronta' ? 'bg-emerald-600/30 text-emerald-200' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'"
+            class="px-3 py-1.5 rounded-xl text-xs font-medium" title="Só as que estão prontas para treino">✅ Prontas</button>
+    <button @click="filtro='parcial'" :class="filtro==='parcial' ? 'bg-amber-600/30 text-amber-200' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'"
+            class="px-3 py-1.5 rounded-xl text-xs font-medium" title="As que ainda falta alguma etapa">🔄 Parciais</button>
+    <button @click="filtro='crua'" :class="filtro==='crua' ? 'bg-red-600/30 text-red-200' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'"
+            class="px-3 py-1.5 rounded-xl text-xs font-medium" title="As que entraram sem tratamento">🥩 Cruas</button>
+  </div>
+
+  <!-- Lista -->
+  <div x-show="itens.length" class="space-y-2">
+    <template x-for="q in itens" :key="q.pasta">
+      <div class="bg-zinc-900 rounded-2xl p-4 border"
+           :class="q.situacao==='pronta' ? 'border-emerald-600/40' : (q.situacao==='crua' ? 'border-red-600/40' : 'border-amber-600/40')">
+        <div class="flex items-start justify-between gap-3 flex-wrap">
+          <div class="min-w-0">
+            <p class="font-bold text-sm" :class="q.situacao==='pronta' ? 'text-emerald-300' : (q.situacao==='crua' ? 'text-red-300' : 'text-amber-300')" x-text="q.pasta"></p>
+            <p class="text-[10px] text-zinc-500 mt-0.5 truncate" x-text="q.caminho || 'caminho não encontrado'"></p>
+            <p class="flex items-center gap-1.5 mt-1.5 flex-wrap">
+              <template x-for="e in etapasUI" :key="e.chave">
+                <span class="text-[10px] inline-flex items-center gap-0.5"
+                      :title="etapaOk(q, e.chave) ? ('✅ Já feita: ' + e.nome) : ('⏳ Falta: ' + e.nome)"
+                      :class="etapaOk(q, e.chave) ? 'text-emerald-400' : 'text-zinc-600'">
+                  <span x-text="etapaOk(q, e.chave) ? '✅' : '⏳'"></span><span x-text="e.icone"></span>
+                </span>
+              </template>
+              <span class="text-[10px] text-zinc-600" x-text="'· ' + (q.arquivos||0) + ' arquivo(s)'"></span>
+            </p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button @click="copiar(q)" :title="'Copiar o caminho da pasta: ' + (q.caminho||'')"
+                    class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-xl text-[10px] font-medium">
+              <i class="fa-solid fa-copy mr-1"></i>Copiar caminho
+            </button>
+            <button @click="abrirPasta(q)" :disabled="abrindo===q.pasta"
+                    :title="q.caminho ? 'Abre a pasta no Explorer para copiar para o Google Drive' : 'Pasta não encontrada'"
+                    :class="q.caminho ? 'bg-sky-600/25 hover:bg-sky-600/40 text-sky-200' : 'bg-zinc-800 text-zinc-600'"
+                    class="px-3 py-1.5 rounded-xl text-[10px] font-bold disabled:opacity-50">
+              <i class="fa-solid" :class="abrindo===q.pasta ? 'fa-spinner fa-spin' : 'fa-folder-open'"></i>
+              <span class="ml-1" x-text="abrindo===q.pasta ? 'Abrindo...' : '📂 Abrir pasta'"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- Vazio -->
+  <div x-show="!itens.length" class="bg-zinc-900 rounded-2xl p-8 text-center text-zinc-500 text-sm">
+    Nenhuma pasta neste filtro.
+  </div>
+
+  <!-- Toast -->
+  <div x-show="toast" class="fixed bottom-6 right-6 z-50 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm shadow-xl">
+    <span x-text="toast"></span>
+  </div>
+</div>
+
+<script>
+console.log("[CARTEIRA] Página carregada");
+function carteiraState() {
+  return {
+    itens: [], total: {}, filtro: 'todas', abrindo: null, toast: '', toastTimer: null,
+    etapasUI: [
+      { chave: 'sanitizado', icone: '🧼', nome: 'Limpeza PT-BR' },
+      { chave: 'verificado_encoding', icone: '🔤', nome: 'Encoding verificado' },
+      { chave: 'ajuizado', icone: '⚖️', nome: 'Revisão de qualidade' },
+      { chave: 'promovido', icone: '🚀', nome: 'Promovido p/ treino' },
+    ],
+
+    init() {
+      console.log("[CARTEIRA] Inicializando...");
+      this.carregar();
+    },
+
+    mostrarToast(msg) {
+      this.toast = msg;
+      clearTimeout(this.toastTimer);
+      this.toastTimer = setTimeout(()=>this.toast='', 5000);
+    },
+
+    async carregar() {
+      try {
+        const r = await (await fetch('/api/qualidade')).json();
+        const d = r.ok ? r : null;
+        if (!d) { this.mostrarToast('❌ ' + (r.erro||'erro')); return; }
+        this.total = { prontas: d.prontas||0, parciais: d.parciais||0, cruas: d.cruas||0 };
+        this.todos = d.itens || [];
+        this.aplicar();
+      } catch(e) { console.warn("[CARTEIRA] carregar:", e); }
+    },
+
+    aplicar() {
+      const todos = this.todos || [];
+      if (this.filtro === 'todas') this.itens = todos;
+      else this.itens = todos.filter(i => i.situacao === this.filtro);
+    },
+
+    etapaOk(q, chave) { return !!((q && q.etapas) ? q.etapas[chave] : false); },
+
+    copiar(q) {
+      if (!q.caminho) { this.mostrarToast('⚠️ Sem caminho para copiar.'); return; }
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(q.caminho).then(()=>this.mostrarToast('📋 Caminho copiado: ' + q.caminho))
+          .catch(()=>this.mostrarToast('📋 ' + q.caminho));
+      } else {
+        this.mostrarToast('📋 ' + q.caminho);
+      }
+    },
+
+    async abrirPasta(q) {
+      if (!q.caminho) { this.mostrarToast('⚠️ Pasta não encontrada no disco.'); return; }
+      this.abrindo = q.pasta;
+      try {
+        const r = await fetch('/api/carteira/abrir', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ caminho: q.caminho })
+        });
+        const d = await r.json();
+        this.mostrarToast(d.ok ? ('📂 ' + d.mensagem) : ('❌ ' + (d.erro||'erro')));
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.abrindo = null; }
+    }
+  };
+}
+</script>
+{% endblock %}

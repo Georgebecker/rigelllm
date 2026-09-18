@@ -1,8 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ============================================================================
-# RIGELSLM - TREINO CONTÍNUO E INTELIGENTE (v1.0.0) - COM REGISTRO DE PASTAS
-# Data: 31/07/2026 | Arquivos de treino: 1.089
+# RIGELSLM - TREINO CONTÍNUO E INTELIGENTE (v1.2.0) - COM REGISTRO DE PASTAS
+# Data: 18/08/2026
+# ============================================================================
+# CARACTERÍSTICAS v1.2.0 (18/08/2026):
+# - CORREÇÃO CRÍTICA: args.usar_registro não existia → crashava no FIM do treino
+#   (perdia o modelo final). Registro agora é atualizado pelo próprio treinoparquet.
+# - CORREÇÃO: DataLoader com num_workers>1 duplicava os dados (IterableDataset).
+#   Agora cada worker processa um pedaço diferente (sharding).
+# - CORREÇÃO: contagem de arquivos usava registro desatualizado ("34" quando já
+#   eram 79). Agora conta no sistema real (recursivo).
+# - CORREÇÃO: divisão treino/validação usava os arquivos MAIORES p/ validação
+#   (contrário do comentário). Agora usa os menores; guard p/ conjuntos minúsculos.
+# - QUALIDADE (regra de ouro anti-lixo): dedup de chunks + filtro anti-repetição.
+# - SEGURANÇA: checkpoint salvo com retry (Drive instável não derruba o treino).
+# - NOVOS: --seed, --checkpoint, --modelo, --melhor-modelo, --tokenizer.
+# - AVISO de memorização (val ~0 com treino alto = decorou, não aprendeu).
 # ============================================================================
 # CARACTERÍSTICAS ATUALIZADAS:
 # - Menu interativo para escolher subpasta (sempre exibido)
@@ -13,6 +27,8 @@
 # - Checkpoint único (checkpoint.pt) para economia de espaço
 # - NOVO: Uso de registro persistente para evitar escaneamento recursivo
 # - NOVO: Contador de vezes que cada pasta foi treinada
+# - MODIFICADO: _resolver_pastas_treino agora usa registro persistente para evitar re-escaneamento.
+# - NOVO: flag --atualizar-registro para forçar re-escaneamento.
 # ============================================================================
 
 import os
@@ -34,7 +50,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim import AdamW
-from torch.optim.lr_scheduler import ReduceLROnPlateau, LambdaLR
 from torch.utils.data import IterableDataset, DataLoader
 from torch.amp import GradScaler, autocast
 
@@ -115,6 +130,11 @@ CHECKPOINT_INTERVAL = 50
 MAX_NAN_RETRIES = 3
 VAL_BATCHES_LIMIT = 200
 
+# Limpeza simples anti-lixo (regra de ouro): material muito curto rende chunk
+# quase só padding → lixo de treino. Ajustável sem quebrar nada.
+MIN_DIALOGO_CHARS = 30   # pergunta + resposta (juntas) em caracteres
+MIN_TEXTO_CHARS = 50     # texto contínuo em caracteres
+
 PASTA_BASE = "dados"
 PASTA_PROCESSED = os.path.join(PASTA_BASE, "processed")
 PASTA_GERADOS = os.path.join(PASTA_BASE, "gerados")
@@ -122,29 +142,23 @@ PASTA_CURTOS = os.path.join(PASTA_GERADOS, "curtos")
 PASTA_LONGOS = os.path.join(PASTA_GERADOS, "longos")
 PASTA_RESUMIDOS = os.path.join(PASTA_GERADOS, "resumidos")
 
-PASTAS_ULTRACHAT = ["ultrachat1", "ultrachat2"]
-
 # ============================================================================
 # ⚙️ TREINOPARQUET — esta CÓPIA treina SOMENTE arquivos .parquet
-#    (dados já sanitizados: limpo_alpaca, limpo_canarim, limpo_wikipedia,
-#    limpo_madras1_v2). As pastas devem estar DENTRO da pasta de --dados.
+#    (dados já sanitizados). As pastas devem estar DENTRO da pasta de --dados.
+#
+#    🔧 SIMPLES (19/08 — regra do usuário): dado --dados, o treinador ESCANEIA
+#    e usa TODAS as pastas e subpastas que contêm .parquet. Sem registro,
+#    sem self-update, sem --atualizar-registro.
 # ============================================================================
-PASTAS_TREINO = [
-    "limpo_alpaca",
-    "limpo_canarim",
-    "limpo_wikipedia",
-    "limpo_madras1_v2",
-]
+    
 
-def _resolver_pastas_treino(base: str) -> List[str]:
-    """Retorna as pastas de PASTAS_TREINO que existem dentro de 'base'.
-    Se NENHUMA existir, retorna [base] (usa a pasta inteira como fallback)."""
-    achadas = []
-    for nome in PASTAS_TREINO:
-        p = os.path.join(base, nome)
-        if os.path.isdir(p):
-            achadas.append(p)
-    return achadas if achadas else [base]
+# Estrutura por tipo (padrão 18/08): parquet vive em dados/processed/parquet/
+PASTA_PARQUET = os.path.join(PASTA_PROCESSED, "parquet")
+
+
+def _base_parquet_efetiva() -> str:
+    """Base onde as pastas .parquet vivem: processed/parquet se existir, senão processed."""
+    return PASTA_PARQUET if os.path.isdir(PASTA_PARQUET) else PASTA_PROCESSED
 
 TOKENIZER_PATH = "tokenizer/tokenizer.json"
 MODEL_PATH = "modelo/modelo.pt"
@@ -155,8 +169,9 @@ METRICAS_PATH = "logs/metricas.json"
 ESTADO_PATH = "modelo/estado_treino.json"
 DECISOES_LOG = "logs/decisoes.log"
 
-## NOVO: Caminho do registro de pastas
-REGISTRO_PATH = "registro_pastas.json"
+## NOVO: Caminho do registro de pastas (dedicado ao treinoparquet — NÃO usar o
+## registro_pastas.json do organizar_pastas para não corromper o schema dele).
+REGISTRO_PATH = "registro_pastas_treino.json"
 
 PAD_TOKEN = "[PAD]"
 UNK_TOKEN = "[UNK]"
@@ -632,13 +647,21 @@ def _processar_parquet(caminho: str):
     """Lê um arquivo .parquet e gera itens de treino:
     - coluna 'messages' (SFT) -> pares pergunta/resposta (diálogo)
     - coluna 'text' (pretrain) -> texto contínuo
+    Também aceita 'conversation'/'conversations'/'chat' e formato de mensagens
+    ANINHADO (lista contendo uma única conversa: [[turno, turno, ...]]).
+    Se a linha tem mensagens inválidas, cai para 'text' (fallback).
     """
     import pyarrow.parquet as pq
     pf = pq.ParquetFile(caminho)
     for batch in pf.iter_batches(batch_size=512):
         for row in batch.to_pylist():
-            if "messages" in row and isinstance(row.get("messages"), list):
-                msgs = row["messages"]
+            msgs = row.get("messages")
+            if msgs is None:
+                msgs = row.get("conversation") or row.get("conversations") or row.get("chat")
+            rendeu_dialogo = False
+            if isinstance(msgs, list):
+                if msgs and isinstance(msgs[0], list):
+                    msgs = msgs[0]   # formato aninhado: [[turno, turno, ...]]
                 for i in range(len(msgs) - 1):
                     a = msgs[i]
                     b = msgs[i + 1]
@@ -648,9 +671,13 @@ def _processar_parquet(caminho: str):
                         pergunta = str(a.get("content", "") or "").strip()
                         resposta = str(b.get("content", "") or "").strip()
                         if pergunta and resposta:
+                            rendeu_dialogo = True
                             yield {"pergunta": pergunta, "resposta": resposta, "tipo": "dialogo"}
-            elif "text" in row and row.get("text"):
-                texto = normalizar_texto(str(row["text"]))
+            if rendeu_dialogo:
+                continue
+            texto = row.get("text")
+            if texto:
+                texto = normalizar_texto(str(texto))
                 if texto:
                     yield {"texto": texto, "tipo": "texto"}
 
@@ -678,16 +705,75 @@ def listar_arquivos_recurssivo(pasta: str) -> List[str]:
     return arquivos
 
 def _listar_apenas_pastas_treino(base: str, pastas_resolvidas: List[str]) -> List[str]:
-    """Lista .parquet apenas dentro das pastas de treino resolvidas (limpo_*).
-    Evita varrer a árvore INTEIRA de dados/processed (289+ pastas), que congela
-    no Google Drive montado do Colab. Se caiu no fallback (nenhuma pasta limpo_*
-    achada), varre a base inteira mesmo (comportamento antigo)."""
+    """Lista .parquet apenas dentro das pastas de treino resolvidas.
+    Se pastas_resolvidas == [base], varre toda a base (fallback)."""
     if pastas_resolvidas == [base]:
         return listar_arquivos_recurssivo(base)
     arquivos = []
     for p in pastas_resolvidas:
         arquivos.extend(listar_arquivos_recurssivo(p))
     return arquivos
+
+def _pastas_com_parquet(base: str) -> List[str]:
+    """Varre 'base' e retorna as pastas (nível top) que contêm .parquet em
+    qualquer subnível. Nunca levanta erro."""
+    achadas: List[str] = []
+    if not os.path.isdir(base):
+        return achadas
+    try:
+        itens = sorted(os.listdir(base))
+    except Exception:
+        return achadas
+    for item in itens:
+        caminho = os.path.join(base, item)
+        if not os.path.isdir(caminho):
+            continue
+        tem = False
+        try:
+            for raiz, _, arquivos in os.walk(caminho):
+                if any(a.lower().endswith('.parquet') for a in arquivos):
+                    tem = True
+                    break
+        except Exception:
+            continue
+        if tem:
+            achadas.append(caminho)
+    return achadas
+
+
+def _contar_parquet(pasta: str) -> int:
+    """Conta .parquet (recursivo) dentro de uma pasta."""
+    total = 0
+    try:
+        for raiz, _, arquivos in os.walk(pasta):
+            total += sum(1 for a in arquivos if a.lower().endswith('.parquet'))
+    except Exception:
+        pass
+    return total
+
+
+def _resolver_pastas_simples(base: str) -> List[str]:
+    """Encontra TODAS as pastas (e subpastas) com .parquet dentro de 'base'.
+
+    SIMPLES (19/08 — regra do usuário): sem registro, sem self-update, sem
+    --atualizar-registro. Se 'base' tiver .parquet soltos (sem subpasta),
+    retorna a própria base.
+    """
+    base = base or "."
+    if not os.path.isdir(base):
+        return []
+    achadas: List[str] = []
+    try:
+        for raiz, _, arquivos in os.walk(base):
+            if any(a.lower().endswith('.parquet') for a in arquivos):
+                achadas.append(raiz)
+    except Exception:
+        pass
+    # Sem subpasta com parquet, mas a própria base tem → usa a base
+    if not achadas and _contar_parquet(base) > 0:
+        achadas = [base]
+    return sorted(set(achadas))
+
 
 def criar_tokenizer() -> bool:
     log("🔧 Criando tokenizer (BPE) a partir das pastas de dados...")
@@ -845,6 +931,32 @@ class RigelSLM(nn.Module):
 # 6. DATASET STREAMING
 # ============================================================================
 
+def _chunk_repetitivo(chunk: List[int], pad_id: int = 0, repet_min: int = 8) -> bool:
+    """🚫 Anti-lixo (regra de ouro): detecta chunk 'doente' — um mesmo token
+    repetido muitas vezes seguidas (ex.: 300 tokens iguais), típico de dado
+    truncado/repetitivo. Retorna True se o chunk deve ser descartado.
+    Padding no FIM é legítimo (texto curto completado); padding no COMEÇO ou
+    intercalado no conteúdo indica dado quebrado."""
+    if not chunk:
+        return True
+    n = len(chunk)
+    sem_pad = [t for t in chunk if t != pad_id]
+    if not sem_pad:
+        return True                      # só padding = sem conteúdo
+    # Conteúdo deve estar no COMEÇO (padding é anexado no fim). Se o começo
+    # não bate com o conteúdo, há padding intercalado = dado quebrado.
+    if chunk[:len(sem_pad)] != sem_pad:
+        return True
+    # Repetição anormal do mesmo token consecutivo
+    maior = atual = 1
+    for i in range(1, n):
+        if chunk[i] == chunk[i - 1] and chunk[i] != pad_id:
+            atual += 1
+            maior = max(maior, atual)
+        else:
+            atual = 1
+    return maior >= repet_min
+
 class StreamingTextDataset(IterableDataset):
     def __init__(self, pasta_dados: str, tokenizer: Tokenizer, seq_len: int = SEQ_LEN,
                  validar_dialogos: bool = True, shuffle: bool = True, max_arquivos: Optional[int] = None):
@@ -861,13 +973,16 @@ class StreamingTextDataset(IterableDataset):
             return self._arquivos
         arquivos = []
         extensoes = ('.parquet',)  # SÓ .parquet nesta cópia (treinoparquet)
-        if not os.path.exists(self.pasta_dados):
-            return arquivos
-        for base in _resolver_pastas_treino(self.pasta_dados):
-            for raiz, _, files in os.walk(base):
-                for f in files:
-                    if f.lower().endswith(extensoes):
-                        arquivos.append(os.path.join(raiz, f))
+        # 🔀 Aceita VÁRIAS pastas (vírgula/;) — como o dashboard envia
+        pastas = [p.strip() for p in re.split(r"[;,]", self.pasta_dados or "") if p.strip()]
+        for pasta in pastas:
+            if not os.path.exists(pasta):
+                continue
+            for base in _resolver_pastas_simples(pasta):
+                for raiz, _, files in os.walk(base):
+                    for f in files:
+                        if f.lower().endswith(extensoes):
+                            arquivos.append(os.path.join(raiz, f))
         if self.shuffle:
             random.shuffle(arquivos)
         if self.max_arquivos is not None and len(arquivos) > self.max_arquivos:
@@ -880,7 +995,22 @@ class StreamingTextDataset(IterableDataset):
         eos_id = self.tokenizer.token_to_id(EOS_TOKEN)
         sep_id = self.tokenizer.token_to_id(SEP_TOKEN)
 
-        for caminho in self._listar_arquivos():
+        arquivos = self._listar_arquivos()
+
+        # Sharding: com num_workers > 1 (IterableDataset), CADA worker deve
+        # processar um PEDAÇO diferente — senão os dados são duplicados N vezes
+        # por época (bug v1.1.0).
+        info = torch.utils.data.get_worker_info()
+        if info is not None and info.num_workers > 1:
+            arquivos = arquivos[info.id::info.num_workers]
+
+        # Dedup leve (regra de ouro anti-lixo): ignora chunks idênticos já vistos
+        # (mesmo arquivo duplicado em pastas diferentes). Conjunto LIMITADO p/ não
+        # estourar RAM em datasets grandes.
+        vistos = set()
+        MAX_DEDUP = 100_000
+
+        for caminho in arquivos:
             try:
                 if caminho.lower().endswith('.parquet'):
                     itens = _processar_parquet(caminho)
@@ -892,12 +1022,16 @@ class StreamingTextDataset(IterableDataset):
                     if item["tipo"] == "dialogo":
                         pergunta = item.get("pergunta", "")
                         resposta = item.get("resposta", "")
+                        # Limpeza simples (regra anti-lixo): diálogo muito curto
+                        # rende chunk quase só padding → lixo de treino.
                         if not pergunta or not resposta:
+                            continue
+                        if len(pergunta) + len(resposta) < MIN_DIALOGO_CHARS:
                             continue
                         texto_formatado = f"{pergunta} {SEP_TOKEN} {resposta}"
                     else:
                         texto = item.get("texto", "")
-                        if not texto or len(texto.split()) < 5:
+                        if not texto or len(texto) < MIN_TEXTO_CHARS or len(texto.split()) < 5:
                             continue
                         texto_formatado = texto
 
@@ -910,6 +1044,15 @@ class StreamingTextDataset(IterableDataset):
                         chunk = seq[i:i+self.seq_len]
                         if len(chunk) < self.seq_len:
                             chunk = chunk + [0] * (self.seq_len - len(chunk))
+                        # Filtro anti-repetição (dado truncado/repetitivo)
+                        if _chunk_repetitivo(chunk):
+                            continue
+                        # Dedup: ignora chunk idêntico já visto nesta época
+                        h = hash(tuple(chunk))
+                        if h in vistos:
+                            continue
+                        if len(vistos) < MAX_DEDUP:
+                            vistos.add(h)
                         yield torch.tensor(chunk, dtype=torch.long)
             except Exception as e:
                 log(f"⚠️ Erro ao processar {caminho}: {e}", "WARNING", console=False)
@@ -919,11 +1062,35 @@ class StreamingTextDataset(IterableDataset):
 # 7. FUNÇÃO PRINCIPAL
 # ============================================================================
 
+def _diagnostico_batch(loader, tokenizer):
+    """Pega UM batch do loader e imprime se os dados estão saudáveis: tamanho,
+    % de padding (0% = saudável; alto = dado curto demais) e uma amostra
+    decodificada. Uma única leitura — custo desprezível vs. o treino."""
+    try:
+        batch = next(iter(loader)).to(DISPOSITIVO)
+        total = batch.numel()
+        pads = int((batch == 0).sum().item())
+        unicos = batch.unique().numel()
+        log(f"🔍 Diagnóstico do batch: formato {tuple(batch.shape)} | "
+            f"{total} tokens | padding {(100.0 * pads / total):.1f}% | "
+            f"{unicos} tokens únicos")
+        amostra = batch[0].tolist()[:25]
+        try:
+            dec = tokenizer.decode(amostra)[:150]
+        except Exception:
+            dec = str(amostra)
+        log(f"🔍 Amostra (25 tokens): {dec}")
+    except Exception as e:
+        log(f"⚠️ Não foi possível diagnosticar o batch (dados vazios?): {e}", "WARNING")
+
+
 def obter_pastas_dados(incluir_ultrachat: bool = False) -> List[str]:
     return [PASTA_DADOS]
 
 def main():
     global BATCH_SIZE, SEQ_LEN, CHECKPOINT_INTERVAL, GRADIENT_ACCUMULATION, PATIENCE, PASTA_DADOS, EPOCHS, MAX_ARQUIVOS
+    global LEARNING_RATE
+    global CHECKPOINT_PATH, MODEL_PATH, MELHOR_MODELO_PATH, TOKENIZER_PATH
 
     # ── Guardião de cabeçalhos (oculto + criptografado): execução implícita ──
     try:
@@ -935,7 +1102,7 @@ def main():
         pass
 
     parser = argparse.ArgumentParser(description="Treino do RigelSLM com aprendizado contínuo")
-    parser.add_argument("--dados", type=str, default=PASTA_PROCESSED,
+    parser.add_argument("--dados", type=str, default=_base_parquet_efetiva(),
                         help="Pasta com dados (padrão: dados/processed)")
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     parser.add_argument("--seq-len", type=int, default=SEQ_LEN)
@@ -943,7 +1110,6 @@ def main():
     parser.add_argument("--resume", action="store_true", help="Força continuação do checkpoint")
     parser.add_argument("--max-arquivos", type=int, default=None, help="Limite de arquivos (se não definido, pergunta interativamente)")
     parser.add_argument("--val-batches", type=int, default=VAL_BATCHES_LIMIT)
-    parser.add_argument("--incluir-ultrachat", action="store_true")
     parser.add_argument("--test", type=str, default=None, help="Modo teste")
     parser.add_argument("--num-workers", type=int, default=None)
     parser.add_argument("--threads", type=int, default=None,
@@ -953,24 +1119,56 @@ def main():
     parser.add_argument("--early-stop-patience", type=int, default=PATIENCE)
     parser.add_argument("--no-interactive", action="store_true", help="Pula menu interativo")
     parser.add_argument("--epochs", type=int, default=None, help="Número total de épocas (sobrescreve EPOCHS)")
-    ## NOVO: opção para usar registro
-    parser.add_argument("--usar-registro", action="store_true",
-                        help="Usa registro persistente (registro_pastas.json) para listar pastas, evitando escaneamento recursivo")
-    parser.add_argument("--registro", type=str, default=REGISTRO_PATH,
-                        help="Caminho do arquivo de registro (padrão: registro_pastas.json)")
+    parser.add_argument("--seed", type=int, default=None,
+                        help="Semente aleatória (reproduzibilidade). Default: aleatório")
+    parser.add_argument("--checkpoint", type=str, default=None,
+                        help="Caminho do checkpoint (padrão: modelo/checkpoint.pt)")
+    parser.add_argument("--modelo", type=str, default=None,
+                        help="Caminho do modelo final (padrão: modelo/modelo.pt)")
+    parser.add_argument("--melhor-modelo", type=str, default=None,
+                        help="Caminho do melhor modelo (padrão: modelo/modelo_melhor.pt)")
+    parser.add_argument("--tokenizer", type=str, default=None,
+                        help="Caminho do tokenizer (padrão: tokenizer/tokenizer.json)")
+    parser.add_argument("--learning-rate", "--lr", type=float, default=None,
+                        help="Taxa de aprendizado (padrão: 3e-4). Ex.: 2e-5, 1e-5")
 
     args = parser.parse_args()
+
+    # --- TAXA DE APRENDIZADO (sobrescreve LEARNING_RATE fixo) ---
+    if args.learning_rate is not None:
+        if not (0.0 < args.learning_rate <= 1.0):
+            parser.error("--learning-rate deve estar entre 0.0 e 1.0")
+        LEARNING_RATE = args.learning_rate
+        log(f"Learning rate ajustado para {LEARNING_RATE}")
+
+    # --- CAMINHOS PERSONALIZÁVEIS (útil no Colab / testes seguros) ---
+    if args.checkpoint:
+        CHECKPOINT_PATH = args.checkpoint
+    if args.modelo:
+        MODEL_PATH = args.modelo
+    if args.melhor_modelo:
+        MELHOR_MODELO_PATH = args.melhor_modelo
+    if args.tokenizer:
+        TOKENIZER_PATH = args.tokenizer
+
+    # --- SEMENTE (reproduzibilidade) ---
+    if args.seed is not None:
+        random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(args.seed)
+        log(f"🎲 Semente fixada: {args.seed}")
 
     # ------------------------------------------------------------------
     # ⚠️ AVISO: QUAL TREINADOR USA O QUÊ?
     # ------------------------------------------------------------------
     print("=" * 70)
     print("⚠️  AVISO IMPORTANTE - QUAL TREINADOR USA O QUÊ?")
-    print("   • treino.py / treinov2.py  → dados .txt (pergunta/resposta, texto)")
+    print("   • treinoparquet.py (este)  → dados .parquet: colunas 'messages'")
+    print("                                (pergunta/resposta SFT) e 'text' (texto)")
     print("   • treinar_com_jsonl.py     → dados JSONL SFT (messages) em dados/gerados/jsonl/")
-    print("   Este treinador (treino.py) NÃO entende o formato 'messages' dos")
-    print("   datasets explodidos pelo dashboard. Para eles, use:")
-    print("   python treinar_com_jsonl.py --dados dados/gerados/jsonl")
+    print("   • treino.py / treinov2.py  → dados .txt (pergunta/resposta, texto)")
+    print("   Este treinador usa SOMENTE .parquet (já sanitizados) de dados/processed.")
     print("=" * 70)
 
     # Se o usuário passou --epochs, atualiza EPOCHS
@@ -979,8 +1177,7 @@ def main():
 
     # --- SELEÇÃO INTERATIVA DE PASTA (sempre, a menos que --no-interactive) ---
     if not args.no_interactive:
-        ## MODIFICADO: passar usar_registro=args.usar_registro
-        pasta_escolhida = selecionar_pasta_interativamente(PASTA_PROCESSED, args.dados, usar_registro=args.usar_registro)
+        pasta_escolhida = selecionar_pasta_interativamente(PASTA_PROCESSED, args.dados, usar_registro=True)
         if pasta_escolhida is not None:
             args.dados = pasta_escolhida
             log(f"📁 Pasta selecionada: {args.dados}")
@@ -991,40 +1188,53 @@ def main():
 
     PASTA_DADOS = args.dados
 
-    # --- RESUMO DAS PASTAS DE TREINO (somente .parquet) ---
-    pastas_resolvidas = _resolver_pastas_treino(PASTA_DADOS)
+    # 🔀 --dados pode conter VÁRIAS pastas (vírgula/;), como o dashboard envia.
+    # Resolve cada uma para a pasta parquet efetiva (dados/processed/parquet/X).
+    bruto = (args.dados or "").strip()
+    itens = [p.strip() for p in re.split(r"[;,]", bruto) if p.strip()]
+    bases = ["dados/processed/parquet", "dados/processed"]
+    pastas_efetivas: List[str] = []
+    for item in itens:
+        if os.path.isdir(item):
+            pastas_efetivas.append(item)
+            continue
+        achou = False
+        for base in bases:
+            cand = os.path.join(base, item)
+            if os.path.isdir(cand):
+                pastas_efetivas.append(cand)
+                achou = True
+                break
+        if not achou:
+            log(f"⚠️ Pasta não encontrada e IGNORADA: {item}", "WARNING")
+    if not pastas_efetivas:
+        log(f"❌ Nenhuma pasta válida em '{args.dados}'. Verifique o caminho.", "ERROR")
+        sys.exit(1)
+    PASTA_DADOS = pastas_efetivas[0]  # base p/ logs
+
+    # --- RESOLVE PASTAS DE TREINO (scan simples: todas as subpastas com .parquet) ---
+    pastas_resolvidas: List[str] = []
+    for p in pastas_efetivas:
+        for sub in _resolver_pastas_simples(p):
+            if sub not in pastas_resolvidas:
+                pastas_resolvidas.append(sub)
+
     if len(pastas_resolvidas) == 1 and pastas_resolvidas[0] == PASTA_DADOS:
-        log(f"⚠️ Nenhuma das {len(PASTAS_TREINO)} pastas da lista foi achada dentro de {PASTA_DADOS}. Usando a pasta inteira (só .parquet).", "WARNING")
+        log(f"⚠️ Nenhuma subpasta com .parquet foi encontrada dentro de {PASTA_DADOS}. Usando a pasta inteira (só .parquet).", "WARNING")
     else:
-        log(f"📂 Pastas de treino encontradas: {len(pastas_resolvidas)} de {len(PASTAS_TREINO)}", "INFO")
+        log(f"📂 Pastas de treino encontradas: {len(pastas_resolvidas)}", "INFO")
         for p in pastas_resolvidas:
             log(f"   • {p}", "INFO")
 
-    # --- CONTAGEM TOTAL DE ARQUIVOS NA PASTA ESCOLHIDA ---
-    if args.usar_registro:
-        ## NOVO: obtém contagem do registro
-        if os.path.exists(args.registro):
-            with open(args.registro, 'r', encoding='utf-8') as f:
-                registro = json.load(f)
-            nome_pasta = os.path.basename(PASTA_DADOS)
-            total_disponivel = registro.get("pastas", {}).get(nome_pasta, {}).get("arquivos", 0)
-            log(f"📊 Do registro: {total_disponivel} arquivos na pasta '{nome_pasta}'")
-        else:
-            log(f"⚠️ Registro {args.registro} não encontrado. Escaneando sistema...")
-            # ⚡ Varre SÓ as pastas limpo_* resolvidas (não a base inteira —
-            # os.walk de dados/processed inteiro congela no Google Drive).
-            todos_arquivos = _listar_apenas_pastas_treino(PASTA_DADOS, pastas_resolvidas)
-            total_disponivel = len(todos_arquivos)
-    else:
-        # ⚡ O mesmo: varre apenas as pastas limpo_* resolvidas.
-        todos_arquivos = _listar_apenas_pastas_treino(PASTA_DADOS, pastas_resolvidas)
-        total_disponivel = len(todos_arquivos)
-
+    # --- CONTAGEM TOTAL DE ARQUIVOS (real e recursiva) ---
+    # Conta no sistema real (não confia no registro desatualizado — o registro
+    # pode dizer "34" quando já existem 79 arquivos no disco).
+    total_disponivel = sum(_contar_parquet(p) for p in pastas_resolvidas)
     if total_disponivel == 0:
         log(f"❌ Nenhum arquivo suportado em {PASTA_DADOS}. Verifique o caminho.", "ERROR")
         sys.exit(1)
 
-    log(f"📊 Total de arquivos suportados na pasta: {total_disponivel}")
+    log(f"📊 Total de arquivos .parquet disponíveis: {total_disponivel}")
 
     # --- PERGUNTA QUANTOS ARQUIVOS USAR (se --max-arquivos não foi especificado e não é modo teste) ---
     if args.max_arquivos is None and not args.no_interactive and args.test is None:
@@ -1033,7 +1243,11 @@ def main():
     else:
         # Se foi fornecido via argumento ou modo não-interativo/teste, usa o valor
         MAX_ARQUIVOS = args.max_arquivos if args.max_arquivos is not None else total_disponivel
-        log(f"📌 Limite de arquivos definido: {MAX_ARQUIVOS} (total disponível: {total_disponivel})")
+        if args.max_arquivos is not None and args.max_arquivos > total_disponivel:
+            log(f"⚠️ Limite pedido ({args.max_arquivos}) é maior que o disponível "
+                f"({total_disponivel}). Usando TODOS os arquivos.", "WARNING")
+            MAX_ARQUIVOS = total_disponivel
+        log(f"📌 Arquivos para treino: {MAX_ARQUIVOS} (total disponível: {total_disponivel})")
 
     # --- MODO TESTE (se ativado) ---
     if args.test:
@@ -1092,7 +1306,6 @@ def main():
     SEQ_LEN = args.seq_len
     VALIDAR = not args.no_validar
     RESUME = args.resume
-    INCLUIR_ULTRACHAT = args.incluir_ultrachat
     PATIENCE = args.early_stop_patience
     PRECISION = args.precision
     CHECKPOINT_INTERVAL = args.save_every
@@ -1150,7 +1363,7 @@ def main():
 
     # --- LOG INICIAL ---
     log("="*80)
-    log("🚀 RIGELSLM v1.0.0 – TREINO CONTÍNUO E INTELIGENTE")
+    log("🚀 RIGELSLM v1.1.0 – TREINO CONTÍNUO E INTELIGENTE")
     log(f"📅 {datetime.now()}")
     log(f"💻 Dispositivo: {DISPOSITIVO}")
     log(f"📁 Dados: {PASTA_DADOS}")
@@ -1159,18 +1372,16 @@ def main():
     log(f"💾 Save every: {CHECKPOINT_INTERVAL}")
     log(f"🎯 Precisão: {PRECISION}")
     log(f"📂 Arquivos para treino: {MAX_ARQUIVOS} de {total_disponivel} disponíveis")
-    if args.usar_registro:
-        log(f"📋 Usando registro: {args.registro}")
     log("="*80)
 
-    # --- TOKENIZER ---
+    # --- TOKENIZER (OBRIGATÓRIO — NUNCA recriar: quebraria o modelo) ---
     if not os.path.exists(TOKENIZER_PATH):
-        log("⚠️ Tokenizer não encontrado. Criando...")
-        if not criar_tokenizer():
-            log("❌ Falha ao criar tokenizer.", "ERROR")
-            sys.exit(1)
-    else:
-        log(f"✅ Tokenizer carregado de {TOKENIZER_PATH}")
+        log("❌ Tokenizador não encontrado em " + TOKENIZER_PATH, "ERROR")
+        log("   Este arquivo é OBRIGATÓRIO (é o vocabulário do modelo — 23830 tokens).", "ERROR")
+        log("   Copie o arquivo 'tokenizer/tokenizer.json' do seu projeto para esta pasta", "ERROR")
+        log("   no Google Drive (rigelllm/tokenizer/tokenizer.json) e rode de novo.", "ERROR")
+        sys.exit(1)
+    log(f"✅ Tokenizer carregado de {TOKENIZER_PATH}")
     tokenizer = Tokenizer.from_file(TOKENIZER_PATH)
 
     # --- MODELO ---
@@ -1179,6 +1390,10 @@ def main():
     best_val_loss = float('inf')
     no_improve = 0
     total_batches = 0
+
+    # --- OTIMIZADOR (criado ANTES do checkpoint p/ restaurar o estado do Adam) ---
+    optimizer = AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
+    loss_fn = nn.CrossEntropyLoss(ignore_index=0, label_smoothing=LABEL_SMOOTHING)
 
     # --- CARREGAR CHECKPOINT ---
     checkpoint_disponivel = os.path.exists(CHECKPOINT_PATH)
@@ -1208,6 +1423,20 @@ def main():
             best_val_loss = checkpoint.get("best_val_loss", float('inf'))
             no_improve = checkpoint.get("no_improve", 0)
             total_batches = checkpoint.get("total_batches", 0)
+            # Estado do Adam: sem ele, cada restart do while true perde o
+            # momentum e o treino "esquece" (motivo clássico de não aprender).
+            est_otim = checkpoint.get("optimizer_state_dict")
+            if est_otim:
+                try:
+                    optimizer.load_state_dict(est_otim)
+                    log("✅ Estado do otimizador (Adam) restaurado do checkpoint.")
+                except Exception as e:
+                    log(f"⚠️ Não foi possível restaurar o Adam: {e}. Usando otimizador novo.", "WARNING")
+            # "Melhor validação 0.0000" é lixo (validação antiga usava arquivos
+            # minúsculos). Resetar p/ o melhor modelo poder ser salvo de novo.
+            if best_val_loss < 1e-6:
+                log("⚠️ Melhor validação do checkpoint é inválida (~0). Resetando p/ refazer a validação.", "WARNING")
+                best_val_loss = float('inf')
             log(f"✅ Checkpoint carregado. Retomando da época {start_epoch-1}")
             log(f"✅ Melhor validação: {best_val_loss:.4f}")
             log(f"⏱️ Batches processados: {total_batches}")
@@ -1234,33 +1463,44 @@ def main():
         log(f"ℹ️  O checkpoint é maior porque salva o estado do otimizador, scheduler e metadados.")
         log(f"ℹ️  Para reduzir, você pode salvar apenas os pesos (como modelo.pt). A quantização pode reduzir o tamanho, mas com possível perda de qualidade.")
 
-    # --- OTIMIZADOR, SCHEDULER ---
-    optimizer = AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
-    scheduler_warmup = None
-    scheduler_plateau = None
-    loss_fn = nn.CrossEntropyLoss(ignore_index=0, label_smoothing=LABEL_SMOOTHING)
+    # --- OTIMIZADOR (criado acima) — SCHEDULER DE LR DESABILITADO ---
+    # O cosine decay antigo derrubava o LR para 0 no meio da época (estimativa
+    # errada de passos: 156 estimados vs ~13.471 reais) e o modelo parava de
+    # aprender. Agora o LR fica CONSTANTE no valor de --learning-rate (2e-5).
 
     # --- LOOP PRINCIPAL (aprendizado contínuo) ---
     while True:
         # --- SE HOUVER TROCA DE PASTA OU RESET, RECARREGA DADOS ---
-        # ⚡ Só as pastas limpo_* resolvidas — varrer dados/processed inteiro
-        # congela no Google Drive montado do Colab.
+        # Usa as pastas resolvidas (já obtidas do registro)
         arquivos = _listar_apenas_pastas_treino(PASTA_DADOS, pastas_resolvidas)
         if not arquivos:
             log(f"❌ Nenhum arquivo suportado em {PASTA_DADOS}. Verifique o caminho.", "ERROR")
             sys.exit(1)
 
         random.shuffle(arquivos)
-        # Validação usa os arquivos MENORES (perde menos dados), não sorteio.
-        # Ex.: madras(370k)+canarim(163k)+wiki(42k) treinam; alpaca(38k) valida.
-        arquivos.sort(key=_linhas_parquet, reverse=True)  # maiores primeiro
-        val_size = max(1, int(len(arquivos) * 0.1))
-        train_arquivos = arquivos[val_size:]
-        val_arquivos = arquivos[:val_size]
+        arquivos.sort(key=_linhas_parquet)  # ordena por nº de linhas (menor → maior)
+        n_total = len(arquivos)
+        if n_total >= 4:
+            val_size = max(1, int(n_total * 0.1))
+        elif n_total >= 2:
+            val_size = 1   # poucos arquivos: 1 p/ validação, resto p/ treino
+        else:
+            val_size = 0   # 1 arquivo só: tudo p/ treino (sem validação)
+        # Validação: arquivos de TAMANHO MÉDIO. Os MENORES viram quase só
+        # padding (loss ~0 e enganam o 'melhor modelo'); os MAIORES desperdiçam
+        # dado de treino. Pega uma janela central da lista ordenada.
+        inicio_val = max(0, (n_total - val_size) // 2)
+        val_arquivos = arquivos[inicio_val:inicio_val + val_size]
+        train_arquivos = [a for a in arquivos if a not in val_arquivos]
         if MAX_ARQUIVOS and MAX_ARQUIVOS < len(train_arquivos):
             train_arquivos = train_arquivos[:MAX_ARQUIVOS]
-            val_arquivos = val_arquivos[:min(len(val_arquivos), MAX_ARQUIVOS//10)]
+        if not train_arquivos:
+            log("❌ Nenhum arquivo restante p/ treino após separar validação. "
+                "Use mais dados ou um limite maior.", "ERROR")
+            sys.exit(1)
         log(f"📂 {len(train_arquivos)} treino, {len(val_arquivos)} validação")
+        if val_size == 0:
+            log("⚠️ Sem conjunto de validação (poucos arquivos). Acompanhe só o loss de treino.", "WARNING")
 
         # --- DATASETS E DATALOADERS ---
         train_dataset = StreamingTextDataset(PASTA_DADOS, tokenizer, SEQ_LEN, VALIDAR, shuffle=True, max_arquivos=MAX_ARQUIVOS)
@@ -1278,25 +1518,9 @@ def main():
                                 num_workers=num_workers, pin_memory=pin_mem, timeout=0,
                                 multiprocessing_context=ctx)
 
-        # --- RECRIAR SCHEDULERS SE RESETOU ---
-        if scheduler_warmup is None:
-            chunks_por_arquivo = 10
-            estimated_batches_per_epoch = max(1, len(train_arquivos) * chunks_por_arquivo // (BATCH_SIZE * GRADIENT_ACCUMULATION))
-            total_steps = estimated_batches_per_epoch * EPOCHS
-            log(f"🧮 Estimativa de batches/época: {estimated_batches_per_epoch}")
-            log(f"📊 Total de steps estimado: {total_steps}")
-            warmup_steps = min(WARMUP_STEPS, total_steps // 10)
-
-            def lr_lambda(step):
-                if step < warmup_steps:
-                    return step / warmup_steps
-                else:
-                    progress = (step - warmup_steps) / (total_steps - warmup_steps)
-                    return 0.5 * (1 + math.cos(math.pi * progress))
-
-            scheduler_warmup = LambdaLR(optimizer, lr_lambda)
-            scheduler_plateau = ReduceLROnPlateau(optimizer, mode='min', factor=REDUCE_ON_PLATEAU_FACTOR,
-                                                  patience=REDUCE_ON_PLATEAU_PATIENCE)
+        # --- SCHEDULER DE LR: DESABILITADO (LR constante = --learning-rate) ---
+        # Reativar só com medição REAL do tamanho da época (o chute de 10
+        # chunks/arquivo matava o LR no 1º quarto da época).
 
         # --- VERIFICA SE JÁ COMPLETOU AS ÉPOCAS ---
         if start_epoch >= EPOCHS:
@@ -1312,8 +1536,6 @@ def main():
                 no_improve = 0
                 total_batches = 0
                 optimizer = AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
-                scheduler_warmup = None
-                scheduler_plateau = None
                 if args.epochs is None:
                     EPOCHS = 20
                 else:
@@ -1330,6 +1552,21 @@ def main():
                 continue
             else:
                 break
+
+        # --- DIAGNÓSTICO RÁPIDO DO BATCH (confirma que os dados não estão
+        #     vazios nem com padding excessivo — regra: ver antes de treinar) ---
+        _diagnostico_batch(train_loader, tokenizer)
+
+        # --- AMOSTRA ANTES DE TREINAR (linha de base) ---
+        if start_epoch == 0:
+            try:
+                model.eval()
+                gerado = model.generate(tokenizer, "Olá, boa noite!",
+                                        max_new_tokens=30, temperature=0.7)
+                log(f"📝 ANTES do treino: 'Olá, boa noite!' -> '{gerado}'")
+                model.train()
+            except Exception as e:
+                log(f"⚠️ Erro na geração de linha de base: {e}", "WARNING")
 
         # --- LOOP DE ÉPOCAS ---
         for epoch in range(start_epoch, EPOCHS):
@@ -1390,7 +1627,6 @@ def main():
                         else:
                             torch.nn.utils.clip_grad_norm_(model.parameters(), MAX_GRAD_NORM)
                             optimizer.step()
-                        scheduler_warmup.step()
                         optimizer.zero_grad()
                         steps += 1
                         total_batches += 1
@@ -1402,15 +1638,14 @@ def main():
                             log_gpu_usage()
 
                         if total_batches % CHECKPOINT_INTERVAL == 0:
-                            torch.save({
+                            salvar_modelo_seguro({
                                 'epoch': epoch,
                                 'model_state_dict': model.state_dict(),
                                 'best_val_loss': best_val_loss,
                                 'no_improve': no_improve,
                                 'total_batches': total_batches,
-                                'optimizer_state_dict': optimizer.state_dict(),
-                                'scheduler_state_dict': scheduler_warmup.state_dict()
-                            }, CHECKPOINT_PATH)
+                                'optimizer_state_dict': optimizer.state_dict()
+                            }, CHECKPOINT_PATH, "checkpoint")
                             log(f"  💾 Checkpoint salvo em {CHECKPOINT_PATH}")
 
                     if i % 100 == 0:
@@ -1437,6 +1672,17 @@ def main():
             avg_train_loss = total_loss / n_batches_epoch if n_batches_epoch > 0 else 0
             log(f"✅ Epoch {epoch+1} - Loss média treino: {avg_train_loss:.4f}")
 
+            # 🚨 Guard: época com 0 batches = dados não renderam nada (formato
+            # errado, parquet vazio, tudo filtrado). Treinar assim é desperdício
+            # (Colab = recurso limitado) e o "loss 0.0" engana.
+            if n_batches_epoch == 0:
+                log("🚨 NENHUM batch de treino processado nesta época! Verifique o "
+                    "formato dos dados (colunas 'messages'/'text') — treino com 0 "
+                    "dados não faz sentido.", "ERROR")
+                log("🚨 Abortando para NÃO salvar um 'melhor modelo' com loss 0.0 "
+                    "enganoso. Corrija os dados e rode de novo.", "ERROR")
+                sys.exit(1)
+
             # Validação
             model.eval()
             val_loss = 0
@@ -1458,16 +1704,32 @@ def main():
                             target = batch[:, 1:].contiguous()
                             logits = logits[:, :-1, :].contiguous()
                             loss = loss_fn(logits.view(-1, VOCAB_SIZE), target.view(-1))
-                        val_loss += loss.item()
-                        val_steps += 1
+                        # Só acumula valores FINITOS: inf/nan na validação
+                        # (ex.: overflow de fp16 no AMP) corromperia o
+                        # 'melhor modelo' e o early stopping.
+                        _li = loss.item()
+                        if math.isfinite(_li):
+                            val_loss += _li
+                            val_steps += 1
+                        else:
+                            log(f"⚠️ Validação: loss inválido ({_li}) ignorado.", "WARNING")
                     except Exception as e:
                         log(f"⚠️ Erro na validação: {e}", "WARNING")
                         continue
             avg_val_loss = val_loss / val_steps if val_steps > 0 else 0
             log(f"📉 Loss validação: {avg_val_loss:.4f}")
 
-            # Feedback sobre loss
-            if avg_val_loss < best_val_loss:
+            # 🚨 Memorização? val ~0 com treino alto = decorou a validação.
+            if val_steps > 0 and avg_val_loss < 0.05 and avg_train_loss > 0.5:
+                log("🚨 ATENÇÃO: validação ~0 mas treino alto → o modelo DECOROU a "
+                    "validação (overfit). Poucos dados ou muitas épocas? "
+                    "Aumente o conjunto ou reduza --epochs.", "WARNING")
+
+            # Feedback sobre loss (só quando há validação de verdade)
+            if val_steps == 0:
+                log("⚠️ Sem validação nesta época — sem avaliação de 'melhor modelo'. "
+                    "Os checkpoints periódicos continuam sendo salvos.")
+            elif avg_val_loss < best_val_loss:
                 log("📈 O loss está CAINDO → isso é BOM! O modelo está aprendendo.")
                 best_val_loss = avg_val_loss
                 no_improve = 0
@@ -1507,18 +1769,6 @@ def main():
         log(f"🏁 Todas as {EPOCHS} épocas foram concluídas.")
         start_epoch = EPOCHS
 
-        ## NOVO: Atualiza registro de treino (incrementa contador)
-        if args.usar_registro:
-            try:
-                from organizar_pastas import incrementar_treino
-                nome_pasta = os.path.basename(PASTA_DADOS)
-                incrementar_treino([nome_pasta], args.registro)
-                log(f"📋 Registro atualizado: pasta '{nome_pasta}' treinada mais uma vez.")
-            except ImportError:
-                log("⚠️ Módulo organizar_pastas não encontrado. Registro não atualizado.", "WARNING")
-            except Exception as e:
-                log(f"⚠️ Erro ao atualizar registro: {e}", "WARNING")
-
     # --- FIM DO LOOP PRINCIPAL ---
     salvar_modelo_seguro(model.state_dict(), MODEL_PATH, "modelo final", tentativas=6)
     log(f"\n💾 Modelo final salvo em {MODEL_PATH}")
@@ -1530,8 +1780,6 @@ def main():
     log(f"📊 Métricas: {METRICAS_PATH}")
     log(f"📝 Log: {LOG_PATH}")
     log(f"📋 Decisões: {DECISOES_LOG}")
-    if args.usar_registro:
-        log(f"📋 Registro usado: {args.registro}")
     log("="*80)
 
 if __name__ == "__main__":

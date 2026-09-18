@@ -157,6 +157,9 @@ try:
     from .routes import celular
     from .routes import convert_txt
     from .routes import dados
+    from .routes import pdfs
+    from .routes import boletim
+    from .routes import revisao
     from .services import monitor
     from dashboard.services.limpeza import limpar_ansi
     app.include_router(train.router)
@@ -180,6 +183,9 @@ try:
     app.include_router(celular.router)
     app.include_router(convert_txt.router)
     app.include_router(dados.router)
+    app.include_router(pdfs.router)
+    app.include_router(boletim.router)
+    app.include_router(revisao.router)
 except ImportError as e:
     print(f"⚠️ Alguns routers não puderam ser carregados: {e}")
 
@@ -433,6 +439,12 @@ def _serve_html(nome: str) -> HTMLResponse:
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
+    # 🏠 CENTRAL: página única com blocos do pipeline (pedido do usuário).
+    # A visão detalhada antiga continua em /visao_geral.
+    return _serve_html("central.html")
+
+@app.get("/visao_geral", response_class=HTMLResponse)
+async def visao_geral():
     return _serve_html("index.html")
 
 @app.get("/treinamento", response_class=HTMLResponse)
@@ -492,6 +504,22 @@ async def treino_local_page():
 async def treino_colab_page():
     return _serve_html("treino_colab.html")
 
+@app.get("/api/pacote-colab")
+async def api_pacote_colab():
+    """Resumo do pacote do Colab: quantos exemplos estão prontos p/ treino."""
+    pacote = BASE_DIR / "dados" / "gerados" / "colab" / "rigel_colab.jsonl"
+    exemplos = 0
+    tamanho_mb = 0.0
+    try:
+        if pacote.exists():
+            tamanho_mb = round(pacote.stat().st_size / 1e6, 2)
+            with pacote.open(encoding="utf-8", errors="replace") as f:
+                exemplos = sum(1 for _ in f)
+    except Exception:
+        pass
+    return {"existe": pacote.exists(), "exemplos": exemplos, "tamanho_mb": tamanho_mb,
+            "caminho": str(pacote)}
+
 @app.get("/executor", response_class=HTMLResponse)
 async def executor_page():
     return _serve_html("executor.html")
@@ -504,6 +532,10 @@ async def scrap_page():
 async def tratamento_page():
     return _serve_html("tratamento.html")
 
+@app.get("/pdfs", response_class=HTMLResponse)
+async def pdfs_page():
+    return _serve_html("pdfs.html")
+
 # ============================================================================
 # APIS DO SISTEMA
 # ============================================================================
@@ -511,9 +543,217 @@ async def tratamento_page():
 async def api_status():
     return await get_system_status()
 
+@app.get("/api/pendencias")
+async def api_pendencias():
+    """Lista de pendências (o 'retumbante'): o que ainda falta fazer no sistema.
+    Lê estado/pendencias.json — mensagens claras com ações.
+    Pendências DINÂMICAS: 'ajuizar_fila' é marcada como feita automaticamente
+    quando TODAS as pastas de geração já têm bandeira ✓ de verificada."""
+    try:
+        p = Path("estado/pendencias.json")
+        dados = {}
+        if p.exists():
+            dados = json.loads(p.read_text(encoding="utf-8"))
+        pendencias = dados.get("pendencias", [])
+
+        # 🏭 KANBAN: cada pendência pertence a um SETOR do pipeline (etapa).
+        # Se faltar no JSON, inferimos pelo id (robustez).
+        _ETAPA_PADRAO = {
+            "ajuizar_fila": "tratar", "tratar_livros": "tratar",
+            "plano_treino": "treinar", "spam_limites_log": "tratar",
+        }
+        for pend in pendencias:
+            pend.setdefault("etapa", _ETAPA_PADRAO.get(pend.get("id"), "tratar"))
+
+        # ⚖️ ajuizar_fila: verifica dinamicamente se ainda há pastas pendentes
+        try:
+            from dashboard.services.avaliacao import _carregar, _pastas_candidatas, _nome_pasta
+            registro = _carregar()
+            pendentes = [_nome_pasta(p_) for p_ in _pastas_candidatas()
+                         if not (registro.get(_nome_pasta(p_)) or {}).get("verificada")]
+            ajuizar_feito = not pendentes
+            for pend in pendencias:
+                if pend.get("id") == "ajuizar_fila":
+                    if ajuizar_feito:
+                        pend["feito"] = True
+                        pend["titulo"] = "✅ Textos revisados e prontos"
+                        pend["detalhe"] = "Todos os textos gerados já passaram pela revisão de qualidade e estão prontos para o treino."
+                    else:
+                        pend["feito"] = False
+                        pend["detalhe"] = (f"Faltam {len(pendentes)} grupo(s) de textos para revisar. "
+                                           "Clique no botão para o sistema revisar e separar os textos bons dos duvidosos.")
+        except Exception:
+            pass  # sem info do ajuizador, mantém o que está no JSON
+
+        # 📚 tratar_livros: DINÂMICA no estilo KANBAN — o status do material
+        # caminha com ele e dá BAIXA do setor quando sai. Se há material cru
+        # em dados/raw → "aguardando limpeza". Se não (livros já viraram
+        # TXT+JSONL e os PDFs foram apagados) → pendência concluída.
+        try:
+            raw_dir = Path("dados/raw")
+            pastas_com_arquivo: list[tuple[str, int]] = []
+            if raw_dir.is_dir():
+                for pasta in sorted(raw_dir.iterdir()):
+                    if not pasta.is_dir():
+                        continue
+                    try:
+                        n = sum(1 for f in pasta.rglob("*") if f.is_file())
+                    except Exception:
+                        n = 0
+                    if n > 0:
+                        pastas_com_arquivo.append((pasta.name, n))
+            for pend in pendencias:
+                if pend.get("id") == "tratar_livros":
+                    if pastas_com_arquivo:
+                        lista = ", ".join(
+                            f"{nome} ({q} arq)" for nome, q in pastas_com_arquivo[:3])
+                        if len(pastas_com_arquivo) > 3:
+                            lista += "…"
+                        pend["feito"] = False
+                        pend["titulo"] = "📚 Material aguardando limpeza"
+                        pend["detalhe"] = (
+                            f"{len(pastas_com_arquivo)} pasta(s) com material cru esperando tratamento: "
+                            f"{lista}. Depois da limpeza ficam prontos para o treino.")
+                    else:
+                        pend["feito"] = True
+                        pend["titulo"] = "✅ Material limpo e pronto"
+                        pend["detalhe"] = ("Nada aguardando limpeza: os livros já viraram TXT + JSONL e "
+                                           "estão prontos para o treino. Os PDFs foram apagados (HD liberado).")
+        except Exception:
+            pass  # sem info, mantém o que está no JSON
+
+        return {"ok": True, "atualizado_em": datetime.now().isoformat(timespec="seconds"),
+                "pendencias": pendencias}
+    except Exception as e:
+        return {"ok": False, "erro": str(e)}
+
+@app.get("/api/heartbeat")
+async def api_heartbeat():
+    """⏰ Relógio do servidor + prova de vida (heartbeat). O relógio passando =
+    sistema ATIVO. Registra ticks em estado/heartbeat.json (persistente)."""
+    import time as _time
+    from pathlib import Path as _P
+    hb = _P("estado/heartbeat.json")
+    ticks = []
+    try:
+        if hb.exists():
+            ticks = json.loads(hb.read_text(encoding="utf-8")).get("ticks", [])
+    except Exception:
+        ticks = []
+    agora = datetime.now().isoformat(timespec="seconds")
+    ticks.append({"t": agora})
+    ticks = ticks[-60:]
+    try:
+        hb.write_text(json.dumps({"ticks": ticks, "ultimo": agora},
+                                 ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+    # uptime do processo do servidor
+    uptime_seg = 0
+    try:
+        uptime_seg = int(_time.time() - psutil.Process().create_time())
+    except Exception:
+        pass
+    # pulso da fila (último progresso conhecido)
+    pulso_fila = None
+    try:
+        p = _P("logs/fila_progresso.json")
+        if p.exists():
+            fp = json.loads(p.read_text(encoding="utf-8"))
+            pulso_fila = {"porcentagem": fp.get("porcentagem"),
+                          "status": fp.get("status"),
+                          "ordem": str(fp.get("ordem_atual", ""))[:50]}
+    except Exception:
+        pass
+    return {
+        "server_time": agora,
+        "uptime_seg": uptime_seg,
+        "tick": len(ticks),
+        "fila_pulso": pulso_fila,
+        "ultimo_tick": agora,
+    }
+
 @app.get("/api/system/details")
 async def system_details():
     return get_full_status()
+
+
+@app.get("/api/registro-treino")
+async def api_registro_treino():
+    """📋 Último registro de treino (local ou Colab) — lido de
+    modelo/registro_treino.json. Mostra o que foi treinado: datasets,
+    arquivos, épocas, loss, nível do modelo. Trazido junto com o modelo."""
+    p = Path("modelo/registro_treino.json")
+    if not p.exists():
+        return {"ok": True, "existe": False, "registro": None}
+    try:
+        dados = json.loads(p.read_text(encoding="utf-8"))
+        return {"ok": True, "existe": True, "registro": dados}
+    except Exception as e:
+        return {"ok": False, "existe": True, "erro": str(e)}
+
+
+@app.get("/api/qualidade")
+async def api_qualidade():
+    """💉 CARTEIRA DE VACINAÇÃO dos dados: o que cada pasta já passou
+    (sanitizado, verificado, ajuizado, promovido) e o que está PRONTO
+    para treino vs CRU (sem tratamento). Inclui o CAMINHO físico da pasta
+    (para o botão "abrir no Explorer" e copiar para o Google Drive)."""
+    try:
+        from dashboard.services import qualidade
+        from dashboard.services import treino_local
+        dados = qualidade.listar()
+        for item in dados.get("itens", []):
+            try:
+                pasta, _base = treino_local._localizar_dataset_rapido(item["pasta"])
+            except Exception:
+                pasta = None
+            item["caminho"] = str(pasta) if pasta else ""
+            item["arquivos"] = 0
+            if pasta and pasta.is_dir():
+                try:
+                    item["arquivos"] = sum(1 for f in pasta.rglob("*") if f.is_file())
+                except Exception:
+                    pass
+        return {"ok": True, **dados}
+    except Exception as e:
+        return {"ok": False, "erro": str(e)}
+
+
+@app.get("/carteira", response_class=HTMLResponse)
+async def carteira_page():
+    """📂 Carteira de pastas prontas — lista onde os textos tratados estão
+    (com botão para abrir a pasta no Explorer e copiar para o Google Drive)."""
+    return _serve_html("carteira.html")
+
+
+@app.get("/revisar", response_class=HTMLResponse)
+async def revisar_page():
+    """🔍 Revisão dos suspeitos — página onde o usuário lê cada texto
+    marcado como suspeito pelo ajuizador e decide: ✅ aprovar ou ❌ descartar."""
+    return _serve_html("revisar.html")
+
+
+@app.post("/api/carteira/abrir")
+async def carteira_abrir(req: dict | None = None):
+    """📂 Abre a pasta no Explorer (Windows) / gerenciador de arquivos
+    (Linux/Mac) para o usuário copiar os textos para o Google Drive."""
+    body = req or {}
+    caminho = (body.get("caminho") or "").strip()
+    if not caminho:
+        return {"ok": False, "erro": "Informe o caminho da pasta."}
+    p = Path(caminho)
+    if not p.is_dir():
+        return {"ok": False, "erro": f"Pasta não encontrada: {caminho}"}
+    try:
+        if os.name == "nt":
+            os.startfile(str(p))  # type: ignore[attr-defined]
+        else:
+            import subprocess as _sp
+            _sp.Popen(["xdg-open", str(p)])
+        return {"ok": True, "mensagem": f"Abrindo: {caminho}"}
+    except Exception as e:
+        return {"ok": False, "erro": f"Não consegui abrir a pasta: {e}"}
 
 @app.get("/api/local-generate/pesquisa-status")
 async def pesquisa_status():
@@ -751,6 +991,14 @@ async def local_gerar_massa(req: dict | None = None):
     estilos = (body.get("estilos") or "todos").strip() or "todos"
     formato = (body.get("formato") or "txt").strip() or "txt"
     nome = (body.get("nome") or "Geração em massa").strip()
+    fonte = (body.get("fonte") or "topicos").strip().lower()
+    if fonte not in ("topicos", "categorias", "misto", "rss"):
+        fonte = "topicos"
+    categorias = (body.get("categorias") or "todas").strip() or "todas"
+    try:
+        rss_limite = int(body.get("rss_limite") or 0)
+    except Exception:
+        rss_limite = 0
     script = BASE_DIR / "scripts" / "gerar_massa_local.py"
     if not script.exists():
         return JSONResponse({"ok": False, "erro": f"Script não encontrado: {script}"},
@@ -762,7 +1010,10 @@ async def local_gerar_massa(req: dict | None = None):
            "--templates", templates,
            "--estilos", estilos,
            "--formato", formato,
-           "--nome", nome]
+           "--nome", nome,
+           "--fonte", fonte,
+           "--categorias", categorias,
+           "--rss_limite", str(rss_limite)]
     from dashboard.services import executor as executor_service
     return await asyncio.to_thread(
         executor_service.iniciar, cmd, nome=nome, cwd=str(BASE_DIR))
@@ -778,6 +1029,207 @@ async def local_massa_progresso():
         except Exception:
             pass
     return {"pct": 0, "gerados": 0, "erros": 0, "atual": "", "meta": 0}
+
+
+# ─── Fonte de temas: categories.py + RSS (13/08/2026) ───
+
+@app.get("/api/local-generate/categorias")
+async def local_categorias():
+    """Lista as categorias do categories.py com contagem de assuntos."""
+    from dashboard.services.gerador_categorias import listar_categorias, contar_assuntos
+    return {"categorias": listar_categorias(), "total": contar_assuntos()}
+
+
+@app.get("/api/local-generate/categorias/amostra")
+async def local_amostra_categorias(categoria: str = "", n: int = 5):
+    """Amostra de perguntas de uma categoria (prévia no dashboard)."""
+    from dashboard.services.gerador_categorias import amostra_perguntas, listar_categorias
+    n = max(1, min(int(n or 5), 20))
+    if categoria:
+        return {"categoria": categoria, "perguntas": amostra_perguntas(categoria, n)}
+    out = []
+    for c in listar_categorias()[:8]:
+        for p in amostra_perguntas(c["id"], 2):
+            out.append(p)
+    return {"categoria": "", "perguntas": out}
+
+
+@app.get("/api/local-generate/rss-titulos")
+async def local_titulos_rss(limite: int = 50, forcar: bool = False):
+    """Títulos RSS disponíveis (cache 6h ou fetch ao vivo) p/ o modo 📰."""
+    from dashboard.services.gerador_categorias import carregar_titulos_rss
+    titulos = carregar_titulos_rss(limite=None, forcar=bool(forcar))
+    return {"titulos": titulos[:limite] if limite else titulos, "total": len(titulos)}
+
+
+# ─── 🧾 FILA DE GERAÇÃO (pipeline em série, 13/08/2026) ───
+
+def _fila_worker_rodando() -> bool:
+    """True se o worker da fila está VIVO (atividade 'Fila de geração' rodando)."""
+    try:
+        from dashboard.services import executor as executor_service
+        st = executor_service.status()
+        for a in st.get("atividades", []):
+            if ("executar_fila_geracao" in (a.get("comando") or "")
+                    or "Fila de geração" in (a.get("nome") or "")) \
+                    and a.get("status") in ("rodando", "rodando_externo"):
+                return True
+    except Exception:
+        pass
+    return False
+
+
+@app.get("/api/local-generate/fila")
+async def fila_estado():
+    """Estado da fila de geração (ordens + resumo)."""
+    from dashboard.services import fila_geracao
+    return fila_geracao.listar_resumo()
+
+
+@app.post("/api/local-generate/fila/adicionar")
+async def fila_adicionar(req: dict | None = None):
+    """Adiciona UMA ordem ao final da fila (aguardando)."""
+    from dashboard.services import fila_geracao
+    body = req or {}
+    try:
+        meta = max(1, int(body.get("meta") or 1))
+    except Exception:
+        return {"ok": False, "erro": "Quantidade inválida."}
+    templates = body.get("templates") or ["todos"]
+    if isinstance(templates, str):
+        templates = [t.strip() for t in templates.split(",") if t.strip()] or ["todos"]
+    estilos = body.get("estilos") or ["todos"]
+    if isinstance(estilos, str):
+        estilos = [e.strip() for e in estilos.split(",") if e.strip()] or ["todos"]
+    ordem = fila_geracao.nova_ordem(
+        modelo=(body.get("modelo") or "llama3.2:3b").strip(),
+        templates=templates,
+        estilos=estilos,
+        fonte=(body.get("fonte") or "categorias").strip(),
+        categorias=(body.get("categorias") or "todas").strip(),
+        rss_limite=int(body.get("rss_limite") or 0),
+        meta=meta,
+        formato=(body.get("formato") or "txt").strip(),
+        ajuizar=bool(body.get("ajuizar")),
+        titulo=(body.get("titulo") or "").strip(),
+    )
+    return {"ok": True, "ordem": ordem}
+
+
+@app.post("/api/local-generate/fila/remover")
+async def fila_remover(req: dict | None = None):
+    """Remove uma ordem da fila (não pode ser a que está rodando)."""
+    from dashboard.services import fila_geracao
+    body = req or {}
+    oid = body.get("id") or body.get("oid") or ""
+    return fila_geracao.remover(oid)
+
+
+@app.post("/api/local-generate/fila/limpar")
+async def fila_limpar():
+    """Remove ordens concluídas/erro (mantém aguardando/rodando)."""
+    from dashboard.services import fila_geracao
+    return fila_geracao.limpar_concluidas()
+
+
+@app.post("/api/local-generate/fila/iniciar")
+async def fila_iniciar(req: dict | None = None):
+    """▶️ Inicia a execução da fila via Executor (sobrevive a reload, uma
+    ordem por vez, em série — nunca em paralelo). Se pausada, retoma."""
+    from dashboard.services import executor as executor_service
+    from dashboard.services import fila_geracao
+    body = req or {}
+    if _fila_worker_rodando():
+        return {"ok": False, "erro": "A fila já está rodando — use ⏸️ Pausar ou ⏹️ Parar antes."}
+    # Só recupera ordens 'rodando' órfãs se o worker NÃO estiver ativo (evita
+    # resetar a ordem em execução num duplo-start acidental).
+    if not _fila_worker_rodando():
+        fila_geracao.recuperar_orfas()
+    if fila_geracao.contar_aguardando() == 0:
+        return {"ok": False, "erro": "A fila está vazia — adicione ordens primeiro."}
+    fila_geracao.continuar()   # limpa pausado (retomar)
+    script = BASE_DIR / "scripts" / "executar_fila_geracao.py"
+    if not script.exists():
+        return {"ok": False, "erro": f"Script não encontrado: {script}"}
+    cmd = ["python", str(script)]
+    nome = "Fila de geração"
+    return await asyncio.to_thread(
+        executor_service.iniciar, cmd, nome=nome, cwd=str(BASE_DIR))
+
+
+@app.post("/api/local-generate/fila/parar")
+async def fila_parar():
+    """⏹️ Para a execução da fila (mata a atividade do Executor)."""
+    from dashboard.services import executor as executor_service
+    try:
+        st = executor_service.status()
+        for a in st.get("atividades", []):
+            comando = a.get("comando") or ""
+            nome = a.get("nome") or ""
+            if "executar_fila_geracao" in comando or "Fila de geração" in nome:
+                return executor_service.parar(a.get("id", ""))
+    except Exception as e:
+        return {"ok": False, "erro": str(e)}
+    return {"ok": False, "erro": "Nenhuma fila em execução."}
+
+
+@app.post("/api/local-generate/fila/pausar")
+async def fila_pausar():
+    """⏸️ Pausa a fila: o worker encerra no ponto seguro e as ordens não
+    processadas continuam 'aguardando' (pode desligar o PC e retomar amanhã)."""
+    from dashboard.services import fila_geracao
+    from dashboard.services import executor as executor_service
+    # para a atividade do worker se estiver rodando
+    try:
+        st = executor_service.status()
+        for a in st.get("atividades", []):
+            if "executar_fila_geracao" in (a.get("comando") or "") or "Fila de geração" in (a.get("nome") or ""):
+                executor_service.parar(a.get("id", ""))
+    except Exception:
+        pass
+    return fila_geracao.pausar()
+
+
+@app.post("/api/local-generate/fila/continuar")
+async def fila_continuar():
+    """▶️ Retoma a fila pausada (re-inicia o worker; ordens 'aguardando' prosseguem)."""
+    from dashboard.services import fila_geracao
+    from dashboard.services import executor as executor_service
+    fila_geracao.continuar()
+    if not _fila_worker_rodando():
+        fila_geracao.recuperar_orfas()   # ordens 'rodando' órfãs → aguardando
+    if fila_geracao.contar_aguardando() == 0:
+        return {"ok": False, "erro": "Fila vazia — adicione ordens."}
+    script = BASE_DIR / "scripts" / "executar_fila_geracao.py"
+    if not script.exists():
+        return {"ok": False, "erro": f"Script não encontrado: {script}"}
+    cmd = ["python", str(script)]
+    return await asyncio.to_thread(
+        executor_service.iniciar, cmd, nome="Fila de geração", cwd=str(BASE_DIR))
+
+
+@app.post("/api/local-generate/fila/limpar-tudo")
+async def fila_limpar_tudo():
+    """🗑️ Limpa TODA a fila (aguardando/concluído/erro; mantém a rodando)."""
+    from dashboard.services import fila_geracao
+    return fila_geracao.limpar_tudo()
+
+
+@app.get("/api/local-generate/fila/ordem/{oid}")
+async def fila_ordem(oid: str):
+    """Retorna UMA ordem com o log completo (p/ exibir no painel)."""
+    from dashboard.services import fila_geracao
+    o = fila_geracao.ordem(oid)
+    if o is None:
+        return {"ok": False, "erro": "Ordem não encontrada."}
+    return o
+
+
+@app.get("/api/local-generate/fila/progresso")
+async def fila_progresso():
+    """Progresso da fila (logs/fila_progresso.json) p/ a barra."""
+    from dashboard.services import fila_geracao
+    return fila_geracao.progresso()
 
 
 @app.get("/api/local-generate/arquivos-salvos")

@@ -381,7 +381,7 @@ def baixar_e_explodir(repo_id: str, max_total=None, tratamento: str = "auto") ->
                         _res = _sp.run(
                             [sys.executable, "-u", "limpeza_leve_rigel_v2.py",
                              "--origem", str(_raw),
-                             "--saida", str(PROJETO_ROOT / "dados" / "processed")],
+                             "--saida", str(PROJETO_ROOT / "dados" / "processed" / "parquet")],
                             capture_output=True, text=True, timeout=3600,
                             encoding="utf-8", errors="replace",
                             cwd=str(PROJETO_ROOT))

@@ -118,6 +118,16 @@ VAL_BATCHES_LIMIT = 200
 # --- Caminhos ---
 PASTA_BASE = "dados"
 PASTA_PROCESSED = os.path.join(PASTA_BASE, "processed")
+PASTA_TXT = os.path.join(PASTA_PROCESSED, "txt")
+
+# Registro de PASTAS por tipo (gerado por scripts/registrar_pastas.py) — com
+# --usar-registro o treino vai DIRETO às pastas registradas (sem escanear tudo).
+REGISTRO_TREINO_PATH = "registro_pastas_treino.json"
+
+
+def _base_txt_efetiva() -> str:
+    """Base das pastas .txt: processed/txt se existir (padrão 18/08), senão processed."""
+    return PASTA_TXT if os.path.isdir(PASTA_TXT) else PASTA_PROCESSED
 TOKENIZER_PATH = "tokenizer/tokenizer.json"
 MODEL_PATH = "modelo/modelo.pt"
 LOG_PATH = "logs/treino.log"
@@ -638,15 +648,16 @@ class StreamingTextDataset(IterableDataset):
 # ============================================================================
 
 def detectar_pastas_validas() -> List[Tuple[str, str, int]]:
-    if not os.path.exists(PASTA_PROCESSED):
-        log(f"❌ Pasta base não encontrada: {PASTA_PROCESSED}", "ERROR")
+    base = _base_txt_efetiva()
+    if not os.path.exists(base):
+        log(f"❌ Pasta base não encontrada: {base}", "ERROR")
         return []
 
     pastas_validas = []
-    log(f"🔍 Escaneando {PASTA_PROCESSED} em busca de pastas com >= {MIN_ARQUIVOS_POR_PASTA} arquivos .txt...")
+    log(f"🔍 Escaneando {base} em busca de pastas com >= {MIN_ARQUIVOS_POR_PASTA} arquivos .txt...")
 
-    for item in os.listdir(PASTA_PROCESSED):
-        caminho_item = os.path.join(PASTA_PROCESSED, item)
+    for item in os.listdir(base):
+        caminho_item = os.path.join(base, item)
 
         if not os.path.isdir(caminho_item):
             continue
@@ -666,6 +677,30 @@ def detectar_pastas_validas() -> List[Tuple[str, str, int]]:
     pastas_validas.sort(key=lambda x: x[2], reverse=True)
     log(f"📂 Total de pastas válidas: {len(pastas_validas)}")
     return pastas_validas
+
+
+def _pastas_txt_do_registro() -> List[Tuple[str, str, int]]:
+    """Lê registro_pastas_treino.json e devolve pastas tipo 'txt' que existem
+    (vai DIRETO às pastas registradas — sem escanear o acervo inteiro)."""
+    reg = carregar_json(REGISTRO_TREINO_PATH, {})
+    pastas = reg.get("pastas", {}) if isinstance(reg, dict) else {}
+    out: List[Tuple[str, str, int]] = []
+    for nome, info in pastas.items():
+        if not isinstance(info, dict):
+            continue
+        if info.get("tipo", "") != "txt":
+            continue
+        caminho = info.get("caminho")
+        if not caminho or not os.path.isdir(caminho):
+            continue
+        total = 0
+        for raiz, _, arquivos in os.walk(caminho):
+            total += sum(1 for a in arquivos if a.lower().endswith('.txt'))
+        if total >= MIN_ARQUIVOS_POR_PASTA:
+            out.append((nome, caminho, total))
+    out.sort(key=lambda x: x[2], reverse=True)
+    log(f"📂 Pastas 'txt' do registro: {len(out)}")
+    return out
 
 # ============================================================================
 # Função de treino por pasta (com interrupção segura)
@@ -991,9 +1026,19 @@ def main():
               os.path.dirname(LOG_PATH), PASTA_PROCESSED]:
         os.makedirs(p, exist_ok=True)
 
-    # Passo 1: Detectar pastas
-    print("\n🔍 PASSO 1: Detectando pastas com dados suficientes...")
-    pastas = detectar_pastas_validas()
+    # Passo 1: Detectar pastas (registro direto OU scan completo)
+    usar_registro = "--usar-registro" in sys.argv
+    if usar_registro:
+        print("\n🔍 PASSO 1: Lendo pastas do REGISTRO (sem escanear o acervo)...")
+        pastas = _pastas_txt_do_registro()
+        if not pastas:
+            log("❌ Nenhuma pasta 'txt' no registro "
+                "(registro_pastas_treino.json). Rode "
+                "scripts/registrar_pastas.py --tipo txt primeiro.", "ERROR")
+            sys.exit(1)
+    else:
+        print("\n🔍 PASSO 1: Detectando pastas com dados suficientes...")
+        pastas = detectar_pastas_validas()
 
     if not pastas:
         log("❌ Nenhuma pasta com dados suficientes encontrada.", "ERROR")

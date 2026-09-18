@@ -1,7 +1,7 @@
 {
-  "tipo": "treino_jsonl",
-  "rotulo": "Treino JSONL",
+  "tipo": "treino_txt",
+  "rotulo": "Treino TXT",
   "pid": null,
-  "detalhe": "rigeljsonl_20260802_0136",
-  "inicio": "2026-08-07T11:46:08.320903"
+  "detalhe": "desclassificados_aprovado, parquet, txt/api_gerados, txt/Artigo, txt/canarim_1, txt/canarim_10, txt/canarim_2, txt/canar",
+  "inicio": "2026-09-01T23:42:46.611895"
 }

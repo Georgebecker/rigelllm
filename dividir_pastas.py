@@ -9,7 +9,9 @@ from tqdm import tqdm
 # CONFIGURAÇÕES (podem ser sobrescritas por argumentos)
 # =============================================================================
 PASTA_BASE = r"D:\Projetos\rigelllm\dados\processed"
-LIMITE_ARQUIVOS = 5000  # Máximo de arquivos permitido por pasta
+# Limites POR TIPO (regra de ouro 18/08/2026): TXT=1000, JSONL=5000, PARQUET=5000
+LIMITES_POR_TIPO = {".txt": 1000, ".jsonl": 5000, ".parquet": 5000}
+LIMITE_ARQUIVOS = 5000  # Máximo padrão por pasta (JSONL/PARQUET)
 
 # =============================================================================
 # FUNÇÕES AUXILIARES
@@ -36,12 +38,35 @@ def contar_arquivos_na_raiz(caminho_pasta: str) -> int:
         return 0
     return len([f for f in os.listdir(caminho_pasta) if os.path.isfile(os.path.join(caminho_pasta, f))])
 
+def _limite_tipo(caminho_pasta: str, limite_default: int) -> int:
+    """Limite conforme o TIPO dominante dos arquivos (regra de ouro 18/08).
+
+    TXT → 1000 | JSONL → 5000 | PARQUET → 5000. Se não identificar, usa o
+    limite padrão informado."""
+    cont = {e: 0 for e in LIMITES_POR_TIPO}
+    try:
+        for f in os.listdir(caminho_pasta):
+            e = os.path.splitext(f)[1].lower()
+            if e in cont:
+                cont[e] += 1
+    except Exception:
+        pass
+    dom = max(cont, key=lambda k: cont[k])
+    if cont[dom] == 0:
+        return limite_default
+    return LIMITES_POR_TIPO[dom]
+
+
 def dividir_pasta_recursivamente(caminho_pasta: str, limite: int, dry_run: bool = False) -> None:
     """
     Verifica se a pasta atual tem mais que 'limite' arquivos.
     Se sim, divide os arquivos em subpastas com sufixos _a, _b, ...
     Depois, chama-se recursivamente para cada subpasta (para processar subníveis).
+
+    O limite efetivo é POR TIPO de arquivo (TXT=1000, JSONL/PARQUET=5000).
     """
+    # aplica o limite conforme o tipo dominante da pasta
+    limite = _limite_tipo(caminho_pasta, limite)
     nome_pasta = os.path.basename(caminho_pasta)
 
     # Pula pastas que já foram divididas (para não reprocessar)

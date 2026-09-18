@@ -1,0 +1,142 @@
+{
+  "api_gerados": {
+    "verificada": true,
+    "data": "2026-08-16T23:12:01.493718",
+    "total": 1,
+    "aprovados": 1,
+    "suspeitos": 0,
+    "lixos": 0,
+    "juiz": "deepseek-r1:7b",
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  },
+  "completos": {
+    "verificada": true,
+    "data": "2026-08-17T04:14:51.407533",
+    "total": 58,
+    "aprovados": 25,
+    "suspeitos": 33,
+    "lixos": 0,
+    "juiz": "deepseek-r1:7b",
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  },
+  "curtos": {
+    "verificada": true,
+    "data": "2026-08-17T09:01:04.513219",
+    "total": 127,
+    "aprovados": 125,
+    "suspeitos": 2,
+    "lixos": 0,
+    "juiz": null,
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  },
+  "debates": {
+    "verificada": true,
+    "data": "2026-08-17T09:01:04.537888",
+    "total": 2,
+    "aprovados": 1,
+    "suspeitos": 1,
+    "lixos": 0,
+    "juiz": null,
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  },
+  "Dicionário": {
+    "verificada": true,
+    "data": "2026-08-17T09:01:04.612110",
+    "total": 104,
+    "aprovados": 102,
+    "suspeitos": 2,
+    "lixos": 0,
+    "juiz": null,
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  },
+  "gerados_local": {
+    "verificada": true,
+    "data": "2026-08-17T09:01:07.649278",
+    "total": 1164,
+    "aprovados": 490,
+    "suspeitos": 666,
+    "lixos": 8,
+    "juiz": null,
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  },
+  "longos": {
+    "verificada": true,
+    "data": "2026-08-17T09:01:07.866777",
+    "total": 197,
+    "aprovados": 196,
+    "suspeitos": 1,
+    "lixos": 0,
+    "juiz": null,
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  },
+  "massa_final": {
+    "verificada": true,
+    "data": "2026-08-17T09:01:11.008492",
+    "total": 1246,
+    "aprovados": 785,
+    "suspeitos": 461,
+    "lixos": 0,
+    "juiz": null,
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  },
+  "txt_livros": {
+    "verificada": true,
+    "data": "2026-08-17T09:01:12.378430",
+    "total": 5,
+    "aprovados": 1,
+    "suspeitos": 3,
+    "lixos": 1,
+    "juiz": null,
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  },
+  "massa_final\\explicacao": {
+    "verificada": true,
+    "data": "2026-08-17T09:01:12.453906",
+    "total": 41,
+    "aprovados": 19,
+    "suspeitos": 22,
+    "lixos": 0,
+    "juiz": null,
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  },
+  "massa_final\\pergunta_resposta": {
+    "verificada": true,
+    "data": "2026-08-17T09:01:14.778597",
+    "total": 1105,
+    "aprovados": 693,
+    "suspeitos": 412,
+    "lixos": 0,
+    "juiz": null,
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  },
+  "massa_final\\resumo": {
+    "verificada": true,
+    "data": "2026-08-17T09:01:14.865098",
+    "total": 50,
+    "aprovados": 23,
+    "suspeitos": 27,
+    "lixos": 0,
+    "juiz": null,
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  },
+  "massa_final\\saudacao": {
+    "verificada": true,
+    "data": "2026-08-17T09:01:14.910298",
+    "total": 50,
+    "aprovados": 50,
+    "suspeitos": 0,
+    "lixos": 0,
+    "juiz": null,
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  },
+  "desclassificados": {
+    "verificada": true,
+    "data": "2026-08-19T01:33:15.743476",
+    "total": 3,
+    "aprovados": 0,
+    "suspeitos": 3,
+    "lixos": 0,
+    "juiz": null,
+    "relatorio": "D:\\Projetos\\rigelllm\\logs\\ajuizar_relatorio.json"
+  }
+}

@@ -149,7 +149,15 @@ function debateLocalState() {
       // Carrega perfis
       try { const r=await fetch('/api/debate-local/perfis', {signal: AbortSignal.timeout(5000)}); if(r.ok) { const d=await r.json(); this.perfis=d.perfis||[]; } } catch(e) {}
       // Carrega modelos Ollama
-      try { const r=await fetch('/api/local-generate/modelos', {signal: AbortSignal.timeout(5000)}); if(r.ok) { const d=await r.json(); this.modelos=d.modelos||[]; this.ollamaOnline=d.online||false; if(d.modelos?.length && !this.modelo) this.modelo=d.modelos[0]; } } catch(e) {}
+      try { const r=await fetch('/api/local-generate/modelos', {signal: AbortSignal.timeout(5000)}); if(r.ok) { const d=await r.json(); this.ollamaOnline=d.online||false;
+        // 🧠 PADRÃO: modelo conversacional geral; rigel NUNCA é padrão (só se escolhido).
+        const PREFS=['llama3.2:3b','gemma2:2b','qwen2.5:3b','llama3.2:1b','phi3:mini','tinyllama:1.1b'];
+        const rank=m=>{const n=(m||'').toLowerCase(); if(/rigel|deepseek/.test(n))return 99; const i=PREFS.findIndex(p=>n===p||n.startsWith(p.split(':')[0]+':')); return i>=0?i:50;};
+        const lista=[...(d.modelos||[])].sort((a,b)=>rank(a)-rank(b));
+        this.modelos=lista;
+        const padrao=lista.find(m=>!/rigel|deepseek/i.test(m)) || lista[0];
+        if(lista.length && !this.modelo) this.modelo=padrao;
+      } } catch(e) {}
       // Carrega tópicos
       try { const r=await fetch('/api/topicos/listar', {signal: AbortSignal.timeout(5000)}); if(r.ok) this.topicos = (await r.json()).topicos||[]; } catch(e) {}
     },

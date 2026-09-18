@@ -69,8 +69,12 @@
       </div>
     </div>
 
-    <!-- Tópicos rápidos -->
+    <!-- Tópicos rápidos (colapsável) -->
     <div class="mt-2">
+      <button @click="mostrarTopicos=!mostrarTopicos" title="Mostrar ou esconder a lista de tópicos sugeridos (pode ficar grande)"
+              class="text-[10px] text-zinc-500 hover:text-zinc-300 underline mb-1"
+              x-text="mostrarTopicos ? '📚 Ocultar tópicos sugeridos ▲' : ('📚 Ver tópicos sugeridos (' + topicos.length + ') ▼')"></button>
+      <div x-show="mostrarTopicos" x-cloak>
       <div class="flex items-center justify-between mb-1">
         <p class="text-xs text-zinc-500">� Clique num tópico para preencher o tema:</p>
         <div class="flex gap-2">
@@ -82,6 +86,7 @@
         <template x-for="t in topicos.slice(0,40)" :key="t">
           <button @click="tema=t" class="text-[11px] bg-zinc-800/80 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 px-2.5 py-1 rounded-lg truncate max-w-[200px] transition-colors" :title="t"><span x-text="t.length>40?t.slice(0,40)+'…':t"></span></button>
         </template>
+      </div>
       </div>
     </div>
 
@@ -99,67 +104,294 @@
     <p x-show="msg" class="text-xs mt-2" :class="msg.startsWith('✅')?'text-emerald-400':msg.startsWith('❌')?'text-red-400':'text-zinc-500'" x-text="msg"></p>
   </div>
 
-  <!-- ═══ GERAÇÃO EM MASSA (todos os tópicos × vezes × templates × estilos) ═══ -->
+  <!-- ═══ 🧾 FILA DE GERAÇÃO (pipeline em série — nunca paralelo) ═══ -->
   <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
-    <h3 class="text-sm font-semibold mb-1">⚙️ Geração em MASSA (Ollama local)</h3>
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+      <h3 class="text-sm font-semibold">🧾 Fila de Geração <span class="text-[10px] text-zinc-500 font-normal">(pipeline em série — uma ordem por vez)</span></h3>
+      <div class="flex flex-wrap items-center gap-2">
+        <button @click="iniciarFila()" :disabled="filaRodando || (filaResumo.aguardando||0)===0"
+                title="▶️ Processa as ordens da fila UMA POR VEZ, em sequência (nunca em paralelo). Roda no Executor e sobrevive a recarregar a página. Se pausada, retoma de onde parou."
+                class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40">
+          <i class="fa-solid" :class="filaRodando?'fa-spinner fa-spin':'fa-play'"></i>
+          <span class="ml-1" x-text="filaRodando ? 'Processando...' : (filaPausada ? '▶️ Continuar fila' : ('▶️ Iniciar fila (' + (filaResumo.aguardando||0) + ')'))"></span>
+        </button>
+        <button @click="pausarFila()" :disabled="!filaRodando" title="⏸️ Pausa a fila no ponto seguro — as ordens não processadas continuam 'aguardando'. Pode desligar o PC e retomar amanhã."
+                class="bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 px-3 py-2 rounded-xl text-xs font-medium disabled:opacity-40">
+          <i class="fa-solid fa-pause"></i><span class="ml-1">⏸️ Pausar</span>
+        </button>
+        <button @click="pararFila()" :disabled="!filaRodando" title="⏹️ Para a fila AGORA (mata a atividade; ordens não processadas continuam 'aguardando' para outro dia)"
+                class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3 py-2 rounded-xl text-xs font-medium disabled:opacity-40">
+          <i class="fa-solid fa-stop"></i><span class="ml-1">⏹️ Parar</span>
+        </button>
+        <!-- ⚖️ AJUIZAR: avalia a qualidade das pastas pendentes (bandeira ✓) -->
+        <button @click="abrirPainelAjuizar()" title="⚖️ Ajuizar: avalia a qualidade das pastas de geração ainda sem bandeira ✓ (verde). Roda no Executor com barra de progresso."
+                class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-4 py-2 rounded-xl text-xs font-medium">
+          <i class="fa-solid fa-scale-balanced mr-1"></i>
+          <span x-text="ajuizarPendentes ? ('Ajuizar (' + ajuizarPendentes + ' pendentes)') : '⚖️ Ajuizar'"></span>
+        </button>
+        <button @click="carregarFila()" :disabled="filaCarregando" title="Atualizar a lista de ordens"
+                class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2.5 py-2 rounded-xl text-xs">
+          <i class="fa-solid fa-rotate" :class="filaCarregando?'fa-spin':''"></i>
+        </button>
+        <span x-show="filaEstimativa>0 && !filaRodando && !filaPausada" class="text-[10px] text-amber-300"
+              :title="'Estimativa aproximada: ' + fmtTempo(filaEstimativa) + ' para ' + (filaResumo.aguardando||0) + ' ordem(ns) pendente(s)'">⏳ ~<span x-text="fmtTempo(filaEstimativa)"></span> estimados</span>
+        <span x-show="filaPausada" class="text-[10px] text-amber-400 bg-amber-600/10 border border-amber-600/30 rounded-lg px-2 py-1"
+              title="Fila pausada — as ordens aguardando ficam salvas. Retome quando quiser (até amanhã).">⏸️ Pausada — ordens salvas</span>
+      </div>
+    </div>
     <p class="text-xs text-zinc-500 mb-3">
-      Sorteia <b>TODOS os tópicos</b> × repetições × <b>TODOS os templates</b> × <b>TODOS os estilos</b>
-      (mesmos da geração por API). Faz um, salva, faz outro, salva... até a meta.
-      Depois <b>filtra qualidade → classifica por tipo → sanitiza → pasta certa ou JSONL</b>.
+      Monte <b>ordens</b> (ex.: 10 perguntas → depois 20 artigos → depois 15 receitas). A fila executa
+      <b>uma de cada vez, em série</b> — nunca em paralelo. Cada ordem: gera → <b>filtra qualidade → sanitiza →
+      classifica → pasta certa ou JSONL</b> (e ajuíza se você marcar).
     </p>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-      <div>
-        <label class="text-[10px] text-zinc-400">🧠 Modelo</label>
-        <select x-model="massaModelo" class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none"
-                title="Modelo do Ollama usado na geração em massa">
-          <template x-for="m in modelos" :key="m"><option :value="m" x-text="m"></option></template>
-        </select>
-      </div>
-      <div>
-        <label class="text-[10px] text-zinc-400">🔁 Repetições por tópico</label>
-        <input type="number" x-model.number="massaRepeticoes" min="1" max="200"
-               class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none"
-               title="Quantas vezes cada tópico é sorteado (quantidade não é empecilho)">
-      </div>
-      <div>
-        <label class="text-[10px] text-zinc-400">🎯 Meta total (0 = todas)</label>
-        <input type="number" x-model.number="massaMeta" min="0"
-               class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none"
-               title="Meta máxima de itens (0 = tópicos × repetições)">
-      </div>
-      <div>
-        <label class="text-[10px] text-zinc-400">📦 Formato final</label>
-        <select x-model="massaFormato" class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none"
-                title="txt = pastas por tipo (dados/gerados/massa_final) | jsonl = dataset de treino">
-          <option value="txt">📄 TXT (pastas por tipo)</option>
-          <option value="jsonl">📦 JSONL (treino)</option>
-        </select>
-      </div>
-    </div>
-    <div class="flex flex-wrap items-center gap-2">
-      <button @click="gerarMassa()" :disabled="massaRodando || !massaModelo"
-              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40"
-              title="Inicia a geração em massa no backend (sorteia todos os tópicos × repetições × todos os templates × todos os estilos; mostra o percentual real)">
-        <i class="fa-solid" :class="massaRodando?'fa-spinner fa-spin':'fa-industry'"></i>
-        <span class="ml-1" x-text="massaRodando ? 'Gerando...' : '🏭 Gerar em massa'"></span>
-      </button>
-      <span class="text-xs text-zinc-500" x-text="'📚 ' + topicos.length + ' tópicos · 🧩 ' + templates.length + ' templates · 🎨 ' + estilos.length + ' estilos'"></span>
-      <span class="text-xs text-zinc-500" x-text="massaMsg"></span>
-    </div>
-    <!-- Barra de progresso REAL da massa (visível desde o início) -->
-    <template x-if="massaRodando && massaPct < 100">
-      <div class="mt-3">
-        <div class="flex justify-between text-[10px] mb-1">
-          <span class="text-sky-300" x-text="'⏳ ' + (massaPct || 0) + '%'"></span>
-          <span class="text-zinc-500 truncate max-w-[60%]" x-text="massaAtual"></span>
+
+    <!-- ➕ Nova ordem -->
+    <div class="mb-3 border border-zinc-800 rounded-xl p-3 bg-zinc-800/30">
+      <p class="text-[11px] font-semibold text-zinc-300 mb-2">➕ Nova ordem (entra no fim da fila)</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
+        <div>
+          <label class="text-[10px] text-zinc-400">🧠 Modelo</label>
+          <select x-model="filaModelo" title="Modelo do Ollama usado nesta ordem" class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none">
+            <template x-for="m in modelos" :key="m"><option :value="m" x-text="m"></option></template>
+          </select>
         </div>
-        <div class="bg-zinc-800 rounded-full h-2 overflow-hidden">
-          <div class="bg-sky-500 h-full rounded-full transition-all duration-700" :style="'width:'+(massaPct||0)+'%'"></div>
+        <div>
+          <label class="text-[10px] text-zinc-400">📋 Template</label>
+          <select x-model="filaTemplate" title="🎲 Aleatório = sorteia entre TODOS os templates a cada item · ou escolha um específico (artigo, receita, pergunta_resposta...)" class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none">
+            <option value="todos">🎲 Aleatório (todos)</option>
+            <template x-for="t in templates" :key="t.id"><option :value="t.id" x-text="t.nome"></option></template>
+          </select>
         </div>
-        <p class="text-[10px] text-zinc-500 mt-1" x-text="'salvos: ' + massaGerados + ' · erros: ' + massaErros + ' de ' + (massaMeta||0)"></p>
+        <div>
+          <label class="text-[10px] text-zinc-400">🎨 Estilo</label>
+          <select x-model="filaEstilo" title="🎲 Aleatório = sorteia entre TODOS os estilos a cada item · ou escolha um específico" class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none">
+            <option value="todos">🎲 Aleatório (todos)</option>
+            <template x-for="e in estilos" :key="e.id"><option :value="e.id" x-text="e.nome"></option></template>
+          </select>
+        </div>
+        <div>
+          <label class="text-[10px] text-zinc-400">🗂️ Fonte</label>
+          <select x-model="filaFonte" @change="sortearPrevia()" title="De onde saem os temas: 📚 tópicos · 🗂️ categorias do categories.py (~9 mil assuntos) · 🔀 misto · 📰 títulos RSS com categoria detectada" class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none">
+            <option value="topicos">📚 Tópicos</option>
+            <option value="categorias">🗂️ Categorias</option>
+            <option value="misto">🔀 Misto</option>
+            <option value="rss">📰 RSS</option>
+          </select>
+        </div>
+        <template x-if="filaFonte==='categorias' || filaFonte==='misto'">
+          <div>
+            <label class="text-[10px] text-zinc-400">📁 Categoria</label>
+            <select x-model="filaCategoria" @change="sortearPrevia()" title="Selecione UMA categoria ou 'Todas'" class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none">
+              <option value="todas">🌐 Todas</option>
+              <template x-for="c in categoriasMeta" :key="c.id"><option :value="c.id" x-text="c.emoji+' '+c.nome"></option></template>
+            </select>
+          </div>
+        </template>
+        <template x-if="filaFonte==='rss'">
+          <div>
+            <label class="text-[10px] text-zinc-400">📰 Limite RSS</label>
+            <input type="number" x-model.number="filaRssLimite" min="0" max="500" title="Máximo de títulos RSS usados (0 = todos)" class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none">
+          </div>
+        </template>
+        <div>
+          <label class="text-[10px] text-zinc-400">🔢 Quantidade</label>
+          <input type="number" x-model.number="filaMeta" min="1" max="2000" title="Quantos itens gerar nesta ordem (1 a 2000)" class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none">
+        </div>
+        <div>
+          <label class="text-[10px] text-zinc-400">📦 Formato</label>
+          <select x-model="filaFormato" title="txt = pastas por tipo (dados/gerados/massa_final) · jsonl = dataset de treino (pergunta + resposta)" class="w-full bg-zinc-800 text-zinc-100 rounded-lg px-2 py-2 text-xs border border-zinc-700 outline-none">
+            <option value="txt">📄 TXT (pastas por tipo)</option>
+            <option value="jsonl">📦 JSONL (treino)</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <label class="flex items-center gap-1.5 text-[10px] text-zinc-400 cursor-pointer pb-2" title="Ao concluir a ordem (txt), roda o ⚖️ Ajuizar nos textos gerados — avalia a qualidade e marca a bandeira ✓">
+            <input type="checkbox" x-model="filaAjuizar" class="accent-emerald-500">
+            ⚖️ Ajuizar depois
+          </label>
+        </div>
+        <div class="flex items-end">
+          <button @click="adicionarOrdem()" :disabled="!filaModelo || !filaMeta"
+                  title="Adiciona esta ordem ao final da fila (fica 'aguardando')"
+                  class="w-full bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-3 py-2 rounded-xl text-xs font-medium disabled:opacity-40">
+            <i class="fa-solid fa-plus"></i><span class="ml-1">➕ Adicionar</span>
+          </button>
+        </div>
+      </div>
+      <p class="text-[10px] text-zinc-500 mt-2" x-text="filaAddMsg"></p>
+      <span class="text-[10px] text-zinc-500" x-show="filaFonte!=='topicos'"
+            x-text="filaFonte==='rss' ? ('📰 ' + rssTotal + ' títulos disponíveis') : ('🗂️ ' + categoriasMeta.length + ' categorias · ' + categoriasTotal + ' assuntos')"></span>
+    </div>
+
+    <!-- Prévia (perguntas sorteadas por categoria) -->
+    <template x-if="massaPrevia.length && filaFonte!=='rss'">
+      <div class="mb-3">
+        <p class="text-[10px] text-zinc-400 mb-1">🔍 Prévia (exemplo do que será gerado):</p>
+        <ul class="space-y-1 max-h-32 overflow-auto scrollbar-thin">
+          <template x-for="(p, idx) in massaPrevia" :key="idx">
+            <li class="text-[11px] text-zinc-300 flex gap-1.5 items-start">
+              <span class="text-zinc-600 shrink-0" x-text="'•'"></span>
+              <span x-text="p.pergunta"></span>
+              <span class="text-[9px] text-zinc-500 shrink-0" x-text="p.categoria"></span>
+            </li>
+          </template>
+        </ul>
       </div>
     </template>
-    <p x-show="!massaRodando && massaMsg" class="text-[10px] text-emerald-400 mt-2" x-text="'✅ ' + massaMsg"></p>
+    <!-- Prévia RSS (títulos disponíveis) -->
+    <template x-if="filaFonte==='rss' && rssTitulos.length">
+      <div class="mb-3">
+        <p class="text-[10px] text-zinc-400 mb-1">📰 Títulos RSS disponíveis (amostra):</p>
+        <ul class="space-y-0.5 max-h-24 overflow-auto scrollbar-thin">
+          <template x-for="(t, idx) in rssTitulos.slice(0, 10)" :key="idx">
+            <li class="text-[10px] text-zinc-500 truncate" :title="t" x-text="t"></li>
+          </template>
+        </ul>
+      </div>
+    </template>
+    <!-- 🗂️ Lista de ordens -->
+    <div class="mb-3" x-show="filaOrdens.length">
+      <p class="text-[11px] font-semibold text-zinc-300 mb-2" x-text="'🗂️ Ordens na fila (' + filaOrdens.length + '):'"></p>
+      <div class="space-y-1.5 max-h-64 overflow-auto scrollbar-thin">
+        <template x-for="o in filaOrdens" :key="o.id">
+          <div>
+            <div class="flex items-center gap-2 text-[11px] rounded-lg px-2.5 py-2 border" :class="statusOrdemClasse(o.status)">
+              <span x-text="statusOrdemIcone(o.status)" :title="statusOrdemLabel(o.status)"></span>
+              <span class="font-medium truncate flex-1" x-text="'#' + o.id + ' ' + o.titulo"></span>
+              <span class="text-[10px] text-zinc-500 hidden md:inline truncate max-w-[35%]" x-text="resumoOrdem(o)"></span>
+              <span class="text-[10px] shrink-0" x-text="o.gerados + '/' + o.meta"></span>
+              <template x-if="o.status==='rodando'">
+                <span class="text-[10px] text-amber-300" title="Em execução agora">↻</span>
+              </template>
+              <span x-show="o.diagnostico" class="text-[10px] text-amber-300 shrink-0"
+                    :title="'⚠️ Diagnóstico: ' + (o.diagnostico || '')">⚠️</span>
+              <button @click="toggleOrdemLog(o.id)" :title="ordemLogAberta===o.id ? 'Fechar log da ordem' : 'Ver log/tratamento da ordem'"
+                      class="text-zinc-500 hover:text-sky-300 text-[10px] px-1">
+                <i class="fa-solid" :class="ordemLogAberta===o.id ? 'fa-chevron-up' : 'fa-list-ul'"></i>
+              </button>
+              <button @click="removerOrdem(o.id)" :disabled="o.status==='rodando'"
+                      title="Remover ordem da fila (não remove a que está rodando)"
+                      class="text-zinc-600 hover:text-red-400 text-[10px] px-1 disabled:opacity-30">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+            <!-- 📜 Log da ordem (expansível) -->
+            <template x-if="ordemLogAberta === o.id">
+              <div class="mt-1 ml-6 rounded-lg bg-black/30 border border-zinc-800 p-2">
+                <p class="text-[9px] text-zinc-500 mb-1">📜 Log da ordem #<span x-text="o.id"></span> (geração, reinícios, diagnóstico):</p>
+                <div class="space-y-0.5 max-h-40 overflow-auto scrollbar-thin">
+                  <template x-for="(l, li) in ordemLog" :key="li">
+                    <p class="text-[10px] text-zinc-400 font-mono leading-relaxed" x-text="l.msg"></p>
+                  </template>
+                </div>
+                <p x-show="ordemLog.length===0" class="text-[10px] text-zinc-600">Sem entradas ainda.</p>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 mt-1.5">
+        <button @click="limparFila()" title="Remove ordens concluídas/erro (mantém aguardando e rodando)"
+                class="text-[10px] text-zinc-500 hover:text-zinc-300 underline">🧹 Limpar concluídas</button>
+        <button @click="limparTudoFila()" title="🗑️ Limpa TODA a fila (aguardando/concluído/erro; mantém a que está rodando)"
+                class="text-[10px] text-zinc-500 hover:text-red-300 underline">🗑️ Limpar fila toda</button>
+        <span class="text-[10px] text-zinc-600"
+              x-text="'⏳ ' + (filaResumo.aguardando||0) + ' aguardando · 🔄 ' + (filaResumo.rodando||0) + ' rodando · ✅ ' + (filaResumo.concluido||0) + ' concluídas · ❌ ' + (filaResumo.erro||0) + ' erro'"></span>
+        <span class="text-[10px] text-zinc-600" x-text="'📚 ' + topicos.length + ' tópicos · 🧩 ' + templates.length + ' templates · 🎨 ' + estilos.length + ' estilos'"></span>
+      </div>
+    </div>
+    <!-- ⚖️ Painel Ajuizar (pastas + bandeiras + opções) -->
+    <div x-show="painelAjuizarAberto" x-cloak class="mt-3 border border-emerald-600/30 rounded-xl p-3 bg-emerald-600/5">
+      <div class="flex items-center justify-between mb-2">
+        <p class="text-xs font-semibold text-emerald-300">⚖️ Ajuizar — pastas de geração</p>
+        <button @click="painelAjuizarAberto=false" title="Fechar painel" class="text-zinc-500 hover:text-zinc-300 text-sm px-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-[10px] text-zinc-500 mb-2">
+        🟢 <b>verificada</b> (bandeira ✓) · 🟡 <b>pendente</b>. Marque para <b>verificar ao gerar</b> ou rode agora — NADA é apagado, só classifica.
+      </p>
+      <div class="flex flex-wrap items-center gap-2 mb-2">
+        <label class="text-[10px] text-zinc-400" title="Qual pasta avaliar: TODAS as pendentes ou uma específica">📁 Pasta:</label>
+        <select x-model="ajuizarPastaSel" class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1.5 text-xs border border-zinc-700 outline-none max-w-[180px]"
+                title="Escolha uma pasta específica ou 'Todas as pendentes'">
+          <option value="">📦 Todas as pendentes</option>
+          <template x-for="p in ajuizarPastas" :key="p.nome">
+            <option :value="p.nome" x-text="(p.status==='verificada'?'🟢 ':'🟡 ')+p.nome+' ('+p.txt+' txt)'"></option>
+          </template>
+        </select>
+        <label class="text-[10px] text-zinc-400" title="O deepseek-r1:7b analisa os 'suspeitos' (mais rigoroso, porém mais lento)">⚖️ Juiz:</label>
+        <select x-model="ajuizarJuiz" class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1.5 text-xs border border-zinc-700 outline-none"
+                title="Nenhum = só camada 1 (rápido, grátis) · deepseek-r1:7b = analisa suspeitos (rigoroso, lento)">
+          <option value="">⚪ Nenhum (rápido)</option>
+          <option value="--juiz">🟢 deepseek-r1:7b (rigoroso, mais lento)</option>
+        </select>
+        <label class="flex items-center gap-1.5 text-[10px] text-zinc-400 cursor-pointer" title="Avalia a qualidade de cada arquivo AO GERAR — deixa a geração ~2x mais lenta. Se não marcar, faça o ajuizamento depois.">
+          <input type="checkbox" x-model="ajuizarAoGerar" class="accent-emerald-500">
+          ✅ Verificar ao gerar <span class="text-amber-400">(~2x mais lento)</span>
+        </label>
+        <button @click="ajuizarTodas()" :disabled="ajuizarRodando || (ajuizarPendentes===0 && !ajuizarPastaSel)"
+                class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-40"
+                :title="ajuizarPastaSel ? ('Ajuizar a pasta ' + ajuizarPastaSel) : 'Roda o ajuizamento nas pastas PENDENTES (via Executor, com barra de progresso)'">
+          <i class="fa-solid" :class="ajuizarRodando?'fa-spinner fa-spin':'fa-scale-balanced'"></i>
+          <span class="ml-1" x-text="ajuizarRodando ? 'Ajuizando...' : (ajuizarPastaSel ? ('⚖️ Ajuizar: ' + ajuizarPastaSel) : ('⚖️ Ajuizar pendentes (' + (ajuizarPendentes||0) + ')'))"></span>
+        </button>
+        <button @click="carregarPastasAjuizar()" title="Atualizar lista de pastas" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-2.5 py-1.5 rounded-lg text-xs">
+          <i class="fa-solid fa-rotate" :class="ajuizarCarregando?'fa-spin':''"></i>
+        </button>
+      </div>
+      <!-- Lista de pastas + bandeiras -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-1.5 max-h-44 overflow-auto scrollbar-thin">
+        <template x-for="p in ajuizarPastas" :key="p.nome">
+          <div class="flex items-center gap-2 text-[11px] rounded-lg px-2 py-1.5"
+               :class="p.status==='verificada' ? 'bg-emerald-600/10 text-emerald-300' : 'bg-zinc-800/50 text-zinc-400'">
+            <span x-text="p.status==='verificada' ? '🟢' : '🟡'" :title="p.status==='verificada' ? 'Verificada em ' + (p.data||'') : 'Pendente'"></span>
+            <span class="font-medium truncate flex-1" x-text="p.nome"></span>
+            <span class="text-[9px] text-zinc-500" x-text="p.txt + ' txt'"></span>
+            <template x-if="p.status==='verificada'">
+              <span class="text-[9px] text-emerald-400" x-text="'✓ ' + (p.aprovados||0) + 'a/' + (p.suspeitos||0) + 's/' + (p.lixos||0) + 'l'"></span>
+            </template>
+            <button x-show="p.status==='verificada'" @click="desmarcarAjuizar(p.nome)" title="Remover bandeira (re-avaliar)"
+                    class="text-zinc-500 hover:text-amber-300 text-[10px] px-1"><i class="fa-solid fa-rotate-left"></i></button>
+          </div>
+        </template>
+      </div>
+      <!-- Barra de progresso do ajuizamento (via Executor) -->
+      <template x-if="ajuizarRodando">
+        <div class="mt-2">
+          <div class="flex justify-between text-[10px] mb-1">
+            <span class="text-emerald-300" x-text="'⏳ ' + (ajuizarPct||0) + '%'"></span>
+            <span class="text-zinc-500 truncate max-w-[70%]" x-text="ajuizarAtual"></span>
+          </div>
+          <div class="bg-zinc-800 rounded-full h-2 overflow-hidden">
+            <div class="bg-emerald-500 h-full rounded-full transition-all duration-700" :style="'width:'+(ajuizarPct||0)+'%'"></div>
+          </div>
+          <p class="text-[10px] text-zinc-500 mt-1" x-text="ajuizarMsg"></p>
+        </div>
+      </template>
+      <!-- ✅ Resultado PERSISTENTE (não some quando a barra desaparece) -->
+      <p x-show="!ajuizarRodando && ajuizarMsg" class="text-[11px] mt-2 px-2 py-1.5 rounded-lg"
+         :class="ajuizarMsg.startsWith('✅') ? 'bg-emerald-600/10 text-emerald-300' : (ajuizarMsg.startsWith('❌') ? 'bg-red-600/10 text-red-300' : 'bg-zinc-800/60 text-zinc-300')"
+         x-text="ajuizarMsg"></p>
+    </div>
+    <!-- Barra de progresso REAL da FILA (ordem X de N + % da ordem + tempo) -->
+    <template x-if="filaRodando">
+      <div class="mt-3">
+        <div class="flex justify-between text-[10px] mb-1 gap-2">
+          <span class="text-emerald-300 shrink-0" x-text="'🧾 fila: ' + (filaPct||0) + '% (' + filaOrdemAtual + '/' + filaTotalOrdens + ')'"></span>
+          <span class="text-zinc-400 truncate flex-1" x-text="filaAtual" :title="filaAtual"></span>
+          <span class="text-violet-300 shrink-0" x-show="filaCategoriaAtual" x-text="filaCategoriaAtual" :title="filaCategoriaAtual"></span>
+        </div>
+        <div class="bg-zinc-800 rounded-full h-2 overflow-hidden">
+          <div class="bg-emerald-500 h-full rounded-full transition-all duration-700" :style="'width:'+(filaPct||0)+'%'"></div>
+        </div>
+        <p class="text-[10px] text-zinc-500 mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+          <span x-text="'💾 itens: ' + filaGerados + ' de ' + (filaMetaOrdem||0)"></span>
+          <span x-show="filaDecorrido" x-text="'⏱️ decorrido: ' + filaDecorrido"></span>
+          <span x-show="filaPrevisao" x-text="'🕐 restam ~' + filaPrevisao"></span>
+          <span x-show="filaMedia" x-text="'⏳ média: ' + filaMedia + ' s/item'"></span>
+        </p>
+      </div>
+    </template>
+    <p x-show="!filaRodando && filaMsg" class="text-[10px] mt-2" :class="filaMsg.startsWith('✅')?'text-emerald-400':filaMsg.startsWith('❌')?'text-red-400':'text-zinc-500'" x-text="filaMsg"></p>
   </div>
 
   <!-- ═══ LISTA DE ARQUIVOS GERADOS ═══ -->
@@ -187,33 +419,30 @@
 
   <!-- ═══ ABA 2: Scripts Python ═══ -->
   <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
-    <h3 class="text-sm font-semibold mb-3">💻 Scripts Python (geração via API)</h3>
+    <h3 class="text-sm font-semibold mb-3">💻 Scripts Python (geração via API) <span class="text-[10px] text-purple-400/80 font-normal">— 🔓 reativado (exige confirmar na tela)</span></h3>
+    <p class="text-xs text-zinc-500 mb-3">⚠️ Geração via API DeepSeek <b class="text-amber-400">requer chave e consome créditos (tem custo)</b>. Ao clicar, o sistema pede para você digitar <b class="text-purple-300">CONFIRMO</b> antes de liberar. Downloads de datasets seguem liberados.</p>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <button @click="executarScript('dialogos.py')" :disabled="procExecutando"
-              class="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 px-4 py-3 rounded-xl text-sm font-medium transition-all flex items-center gap-3 border border-zinc-700"
-              title="Gera pares pergunta-resposta sintéticos via DeepSeek. Requer chave de API.">
-        <i class="fa-solid" :class="procExecutando?'fa-spinner fa-spin':'fa-wand-magic-sparkles'"></i>
-        <span><strong>Diálogos v1</strong><br><span class="text-xs text-zinc-500">Pergunta-resposta via API</span></span>
-      </button>
-      <div class="bg-zinc-800/60 border border-zinc-700 rounded-xl px-4 py-3 transition-all"
-           title="22 tipos de conteúdo via DeepSeek. Gera ~200 itens. Requer chave de API.">
+      <div class="bg-zinc-800/40 border border-purple-700/30 rounded-xl px-4 py-3 transition-all"
+           title="Gera diálogos sintéticos v1 (dialogos.py) via API DeepSeek — exige confirmação CONFIRMO (requer chave, tem custo).">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-sm font-medium"><strong>Diálogos v2</strong><br><span class="text-xs text-zinc-500">22 tipos de conteúdo</span></span>
-          <button @click="executarDialogos2()" :disabled="procExecutando"
-                  class="shrink-0 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50 px-3 py-2 rounded-lg text-xs font-medium transition-all">
-            <i class="fa-solid" :class="procExecutando?'fa-spinner fa-spin':'fa-wand-magic-sparkles'"></i> Gerar
+          <span class="text-sm font-medium text-zinc-200"><strong>Diálogos v1</strong><br><span class="text-xs text-zinc-500">via API (confirmar uso)</span></span>
+          <button @click="pedirConfirmacao('dialogos1')" :disabled="procExecutando"
+                  class="shrink-0 bg-purple-600/25 hover:bg-purple-600/40 text-purple-200 disabled:opacity-50 px-3 py-2 rounded-lg text-xs font-medium">
+            <i class="fa-solid" :class="procExecutando?'fa-spinner fa-spin':'fa-robot'"></i> Gerar
           </button>
         </div>
-        <div class="flex items-center gap-2 mt-2">
-          <span class="text-[10px] text-zinc-400">Formato:</span>
-          <select x-model="formatoDialogos2" class="bg-zinc-800 text-zinc-100 rounded-lg px-2 py-1 text-xs border border-zinc-700 outline-none">
-            <option value="txt">📄 TXT (texto bruto)</option>
-            <option value="jsonl">📦 JSONL (dataset de treino)</option>
-          </select>
+        <p class="text-[10px] text-zinc-600 mt-1.5">🔓 Requer chave de API DeepSeek + confirmação CONFIRMO na tela.</p>
+      </div>
+      <div class="bg-zinc-800/40 border border-purple-700/30 rounded-xl px-4 py-3 transition-all"
+           title="Gera diálogos sintéticos v2 (dialogos2.py) via API DeepSeek — exige confirmação CONFIRMO (requer chave, tem custo).">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-sm font-medium text-zinc-200"><strong>Diálogos v2</strong><br><span class="text-xs text-zinc-500">via API (confirmar uso)</span></span>
+          <button @click="pedirConfirmacao('dialogos2')" :disabled="procExecutando"
+                  class="shrink-0 bg-purple-600/25 hover:bg-purple-600/40 text-purple-200 disabled:opacity-50 px-3 py-2 rounded-lg text-xs font-medium">
+            <i class="fa-solid" :class="procExecutando?'fa-spinner fa-spin':'fa-robot'"></i> Gerar
+          </button>
         </div>
-        <p x-show="formatoDialogos2==='jsonl'" class="text-[10px] text-emerald-400/90 mt-1.5">
-          📦 Sai em <code class="text-emerald-300">dados/gerados/jsonl/dialogos2/</code> → aparece no <b>Treino Local</b>
-        </p>
+        <p class="text-[10px] text-zinc-600 mt-1.5">🔓 Requer chave de API DeepSeek + confirmação CONFIRMO na tela.</p>
       </div>
       <button @click="executarDowndata()" :disabled="procExecutando"
               class="bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 px-4 py-3 rounded-xl text-sm font-medium transition-all flex items-center gap-3 border border-zinc-700"
@@ -232,28 +461,72 @@
 
   <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5">
     <h3 class="text-sm font-semibold mb-3">🛠️ Preparação e Limpeza</h3>
-    <p class="text-xs text-zinc-500 mb-4">🔒 Opera sobre cópias em <code class="text-emerald-400">dados/gerados/</code>. Não altera originais.</p>
+    <p class="text-xs text-zinc-500 mb-4">🔒 Operações de preparo dos textos para o treino. Veja o que cada uma faz e onde o resultado fica.</p>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
       <button @click="executarScript('preparar_dados.py')" :disabled="procExecutando"
-              class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 disabled:opacity-50 px-4 py-3 rounded-xl font-semibold transition-all flex items-center gap-3"
-              title="Valida, limpa e classifica arquivos brutos. NÃO deleta nada.">
+              class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 disabled:opacity-50 px-4 py-3 rounded-xl font-semibold transition-all flex items-center gap-3 text-left"
+              title="Prepara os textos para o treino: valida, limpa e copia o que passou para dados/processed/ (pronto para treino). Não apaga os originais.">
         <i class="fa-solid" :class="procExecutando?'fa-spinner fa-spin':'fa-broom'"></i>
-        <span class="text-left"><span class="text-sm font-bold">Preparar Dados</span><br><span class="text-xs opacity-80">Validar e classificar</span></span>
+        <span><span class="text-sm font-bold">Preparar Dados</span><br><span class="text-xs opacity-80">Valida, limpa e copia p/ processed</span></span>
       </button>
       <button @click="executarScript('agrupar.py')" :disabled="procExecutando"
-              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 disabled:opacity-50 px-4 py-3 rounded-xl font-semibold transition-all flex items-center gap-3"
-              title="Junta arquivos pequenos em lotes. Não deleta originais.">
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 disabled:opacity-50 px-4 py-3 rounded-xl font-semibold transition-all flex items-center gap-3 text-left"
+              title="Junta arquivos .txt de pergunta/resposta em lotes de 500 pares (dados/gerados/agrupados) e MOVE os originais para backup — libera espaço. Não apaga nada: faz backup.">
         <i class="fa-solid" :class="procExecutando?'fa-spinner fa-spin':'fa-compress'"></i>
-        <span class="text-left"><span class="text-sm font-bold">Agrupar</span><br><span class="text-xs opacity-80">Juntar arquivos pequenos</span></span>
+        <span><span class="text-sm font-bold">Agrupar</span><br><span class="text-xs opacity-80">Lota .txt em pares P/R (com backup)</span></span>
       </button>
       <button @click="executarScript('ultra.py')" :disabled="procExecutando"
-              class="bg-violet-600/20 hover:bg-violet-600/30 text-violet-400 disabled:opacity-50 px-4 py-3 rounded-xl font-semibold transition-all flex items-center gap-3"
-              title="Limpeza pesada: remove duplicatas, normaliza, elimina ruído.">
+              class="bg-violet-600/20 hover:bg-violet-600/30 text-violet-400 disabled:opacity-50 px-4 py-3 rounded-xl font-semibold transition-all flex items-center gap-3 text-left"
+              title="Baixa datasets prontos do Hugging Face e salva como TXT em dados/ultratxt/ (base grande de treino). Precisa de internet e pode demorar.">
         <i class="fa-solid" :class="procExecutando?'fa-spinner fa-spin':'fa-bolt'"></i>
-        <span class="text-left"><span class="text-sm font-bold">Ultra</span><br><span class="text-xs opacity-80">Limpeza avançada</span></span>
+        <span><span class="text-sm font-bold">Ultra</span><br><span class="text-xs opacity-80">Baixa datasets (HF) p/ dados/ultratxt</span></span>
       </button>
     </div>
+    <!-- 📜 Onde acompanhar cada serviço -->
+    <div class="mt-3 bg-zinc-800/40 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-[11px] text-zinc-400 leading-relaxed">
+      <p class="flex items-start gap-1.5">
+        <i class="fa-solid fa-circle-info mt-0.5 text-zinc-600"></i>
+        <span>
+          <b class="text-zinc-200">Acompanhe o andamento</b> em
+          <a href="/logs" class="text-sky-300 hover:text-sky-200 underline" title="Abrir a página de Registros (mostra logs/scripts.log)">📜 Registros</a>
+          — cada execução aparece com o comando e o resultado. Resultados:
+          <b class="text-emerald-300">Preparar Dados</b> → <code class="text-emerald-400">dados/processed/</code> ·
+          <b class="text-sky-300">Agrupar</b> → <code class="text-sky-400">dados/gerados/agrupados/</code> (+ backup dos originais) ·
+          <b class="text-violet-300">Ultra</b> → <code class="text-violet-400">dados/ultratxt/</code>.
+        </span>
+      </p>
+    </div>
     <p x-show="procMsg" class="text-sm mt-4" :class="procMsg.startsWith('✅')?'text-emerald-400':procMsg.startsWith('❌')?'text-red-400':'text-zinc-400'" x-text="procMsg"></p>
+  </div>
+
+  <!-- ⚠️ Modal de confirmação obrigatória (digitar CONFIRMO) para geração via API -->
+  <div x-show="confirmarAcao" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" @click.self="fecharConfirmacao()">
+    <div class="bg-zinc-900 border border-purple-700/50 rounded-2xl p-5 w-full max-w-md shadow-2xl">
+      <h3 class="font-bold text-base mb-2">⚠️ Confirmar uso da API</h3>
+      <p class="text-xs text-zinc-400 leading-relaxed mb-3">
+        Você está prestes a usar a <b class="text-purple-300">geração via API DeepSeek</b>
+        (<span class="text-zinc-200" x-text="confirmarAcao==='dialogos1' ? 'Diálogos v1' : 'Diálogos v2'"></span>).
+        Isso <b class="text-amber-400">consome créditos (tem custo)</b> e requer chave de API configurada.
+        Para liberar, digite <b class="text-purple-300">CONFIRMO</b> abaixo.
+      </p>
+      <input x-model="confirmarTexto" @keyup.enter="confirmarGerar()"
+             :class="confirmarTexto==='CONFIRMO' ? 'border-emerald-500/60' : 'border-zinc-700'"
+             class="w-full bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-sm border outline-none mb-3"
+             placeholder="Digite CONFIRMO para liberar"
+             title="Digite exatamente CONFIRMO para liberar a geração via API">
+      <div class="flex gap-2 justify-end">
+        <button @click="fecharConfirmacao()"
+                class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-xl text-xs font-medium"
+                title="Cancelar — não vai usar a API">
+          Cancelar
+        </button>
+        <button @click="confirmarGerar()" :disabled="confirmarTexto !== 'CONFIRMO'"
+                class="bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-40"
+                title="Confirma o uso da API DeepSeek e inicia a geração">
+          <i class="fa-solid fa-robot mr-1"></i>Confirmar e gerar
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Toast -->
@@ -283,15 +556,36 @@ function gerarLocalState() {
     procExecutando: false, procMsg: '', gerando: false,
     quantidade: 1, quantidadeGerada: 0, quantidadeSolicitada: 0,
     formatoDialogos2: 'txt',
-    massaModelo: '', massaRepeticoes: 1, massaMeta: 0, massaFormato: 'txt',
-    massaRodando: false, massaPct: 0, massaAtual: '', massaGerados: 0, massaErros: 0, massaMsg: '',
-    _massaTimer: null,
+    // 🧾 FILA DE GERAÇÃO (pipeline em série — uma ordem por vez)
+    mostrarTopicos: false,
+    filaModelo: '', filaTemplate: 'todos', filaEstilo: 'todos',
+    filaFonte: 'categorias', filaCategoria: 'todas', filaRssLimite: 20,
+    filaMeta: 10, filaFormato: 'txt', filaAjuizar: false, filaAddMsg: '',
+    filaOrdens: [], filaResumo: {}, filaRodando: false, filaPausada: false, filaEstimativa: 0,
+    filaPct: 0, filaAtual: '', filaGerados: 0, filaErros: 0, filaMetaOrdem: 0,
+    filaOrdemAtual: 0, filaTotalOrdens: 0, filaCategoriaAtual: '',
+    filaDecorrido: '', filaPrevisao: '', filaMedia: 0, filaMsg: '',
+    filaCarregando: false, _filaTimer: null,
+    ordemLogAberta: null, ordemLog: [],
+    // 🗂️ FONTE DE TEMAS (categories.py + RSS) — compartilhado com a fila
+    categoriasMeta: [], categoriasTotal: 0, rssTitulos: [], rssTotal: 0,
+    massaPrevia: [], massaPreviaCarregando: false, rssCarregando: false,
+    // ⚖️ AJUIZAR (avaliação de qualidade + bandeiras ✓)
+    painelAjuizarAberto: false, ajuizarPastas: [], ajuizarPendentes: 0,
+    ajuizarPastaSel: '', ajuizarJuiz: '', ajuizarAoGerar: false, ajuizarRodando: false,
+    ajuizarPct: 0, ajuizarAtual: '', ajuizarMsg: '', ajuizarCarregando: false,
+    _ajuizarTimer: null,
     toast: '', toastTipo: '', toastIcone: '', toastTimer: null,
+    // ⚠️ Confirmação obrigatória para geração via API (digitar CONFIRMO)
+    confirmarAcao: null, confirmarTexto: '',
 
     init() {
       console.log("[GERAR_LOCAL] Inicializando...");
       this.carregarDados();
-      this.carregarMassaProgresso();
+      this.carregarFila();
+      this.carregarCategorias();
+      this.carregarRss();
+      this.sortearPrevia();
     },
 
     mostrarToast(msg, tipo='info') {
@@ -303,7 +597,18 @@ function gerarLocalState() {
 
     async carregarDados() {
       try{const r=await fetch('/api/generate/status'); if(r.ok) this.dados=await r.json();}catch(e){}
-      try{const r=await fetch('/api/local-generate/modelos'); if(r.ok){const d=await r.json(); this.modelos=d.modelos||[]; this.ollamaOnline=d.online||false; if(d.modelos?.length&&!this.modelo) this.modelo=d.modelos[0]; if(d.modelos?.length&&!this.massaModelo) this.massaModelo=d.modelos[0];}}catch(e){}
+      try{const r=await fetch('/api/local-generate/modelos'); if(r.ok){const d=await r.json(); this.ollamaOnline=d.online||false;
+        // 🧠 PADRÃO: modelo conversacional GERAL primeiro (llama3.2/gemma2/...).
+        // O rigelslm NUNCA é o padrão (só se for escolhido); o deepseek também
+        // não (é para ajuizar/limpar documentos).
+        const PREFS=['llama3.2:3b','gemma2:2b','qwen2.5:3b','llama3.2:1b','phi3:mini','tinyllama:1.1b'];
+        const rank=m=>{const n=(m||'').toLowerCase(); if(/rigel|deepseek/.test(n))return 99; const i=PREFS.findIndex(p=>n===p||n.startsWith(p.split(':')[0]+':')); return i>=0?i:50;};
+        const lista=[...(d.modelos||[])].sort((a,b)=>rank(a)-rank(b));
+        this.modelos=lista;
+        const padrao=lista.find(m=>!/rigel|deepseek/i.test(m)) || lista[0];
+        if(lista.length&&!this.modelo) this.modelo=padrao;
+        if(lista.length&&!this.filaModelo) this.filaModelo=padrao;
+      }}catch(e){}
       try{const r=await fetch('/api/local-generate/templates'); if(r.ok){const d=await r.json(); this.templates=d.templates||[]; if(this.templates.length&&!this.template) this.template=this.templates[0].id;}}catch(e){}
       try{const r=await fetch('/api/local-generate/estilos'); if(r.ok){const d=await r.json(); this.estilos=d.estilos||[]; if(this.estilos.length&&!this.estilo) this.estilo=this.estilos[0].id;}}catch(e){}
       try{const r=await fetch('/api/local-generate/arquivos-salvos'); if(r.ok) this.localArquivosSalvos=(await r.json()).arquivos||[];}catch(e){}
@@ -316,76 +621,318 @@ function gerarLocalState() {
       try{const r=await fetch('/api/topicos/sortear'); if(r.ok){const d=await r.json(); if(d.topico) this.tema=d.topico;}}catch(e){}
     },
 
-    // ═══════ GERAÇÃO EM MASSA (todos os tópicos × vezes × templates × estilos) ═══════
-    async gerarMassa() {
-      if (this.massaRodando) return;
-      if (!this.massaModelo) { this.massaMsg = '❌ Escolha o modelo.'; return; }
-      this.massaRodando = true; this.massaPct = 0; this.massaMsg = 'Iniciando...';
+    // ═══════ ⚖️ AJUIZAR (avaliação de qualidade + bandeiras ✓) ═══════
+    async carregarPastasAjuizar() {
+      this.ajuizarCarregando = true;
       try {
-        const r = await fetch('/api/local-generate/gerar-massa', {
+        const r = await fetch('/api/executor/avaliacao/pastas');
+        if (r.ok) {
+          const d = await r.json();
+          this.ajuizarPastas = d.pastas || [];
+          this.ajuizarPendentes = d.pendentes || 0;
+        }
+      } catch(e) { console.warn('[AJUIZAR] pastas:', e); }
+      finally { this.ajuizarCarregando = false; }
+    },
+    abrirPainelAjuizar() {
+      this.painelAjuizarAberto = !this.painelAjuizarAberto;
+      if (this.painelAjuizarAberto) {
+        this.carregarPastasAjuizar();
+        this.carregarAjuizarProgresso();
+        if (!this._ajuizarTimer) {
+          this._ajuizarTimer = setInterval(() => {
+            this.carregarAjuizarProgresso();
+            this.carregarPastasAjuizar();
+          }, 4000);
+        }
+      } else if (this._ajuizarTimer) {
+        clearInterval(this._ajuizarTimer); this._ajuizarTimer = null;
+      }
+    },
+    async carregarAjuizarProgresso() {
+      try {
+        const r = await fetch('/api/executor/avaliacao/progresso');
+        if (r.ok) {
+          const d = await r.json();
+          this.ajuizarPct = d.pct || 0;
+          this.ajuizarAtual = d.pasta ? ('📁 ' + d.pasta + (d.atual ? ' — ' + d.atual : '')) : (d.msg || '');
+          if (d.pct >= 100 && this.ajuizarRodando) {
+            this.ajuizarRodando = false;
+            this.ajuizarMsg = '✅ Ajuizamento concluído! Bandeiras ✓ atualizadas.';
+            this.carregarPastasAjuizar();
+          }
+        }
+      } catch(e) {}
+      // Detecta conclusão via EXECUTOR (cobre pastas rápidas que terminam
+      // antes do primeiro poll de progresso — ex.: debates com 2 arquivos).
+      if (this.ajuizarRodando) {
+        try {
+          const re = await fetch('/api/executor/status');
+          if (re.ok) {
+            const de = await re.json();
+            const minhas = (de.atividades || []).filter(a => (a.nome || '').includes('Ajuizar'));
+            const ativa = minhas.find(a => a.status === 'rodando' || a.status === 'rodando_externo');
+            if (!ativa) {
+              const concluida = minhas.find(a => a.status === 'concluido');
+              this.ajuizarRodando = false;
+              this.ajuizarPct = 100;
+              if (concluida) {
+                const res = concluida.resultado || null;
+                const t = (concluida.nome || '').replace('⚖️ Ajuizar: ', '').replace('⚖️ Ajuizar', '').trim();
+                this.ajuizarMsg = '✅ Concluído' + (t ? ' — ' + t : '') + '! Bandeiras ✓ atualizadas.';
+                this.mostrarToast('✅ ' + (t ? 'Ajuizar: ' + t : 'Ajuizamento') + ' concluído!', 'ok');
+              } else {
+                const err = minhas.find(a => a.status === 'erro');
+                this.ajuizarMsg = '❌ Falhou' + (err && err.erro ? ': ' + err.erro : '');
+              }
+              this.carregarPastasAjuizar();
+            } else {
+              // ainda rodando: mostra a atividade atual no Executor
+              this.ajuizarAtual = '⚙️ Executor: ' + (ativa.nome || '');
+            }
+          }
+        } catch(e) {}
+      }
+    },
+    async ajuizarTodas() {
+      if (this.ajuizarRodando) return;
+      const pasta = this.ajuizarPastaSel || '';
+      const tudo = !pasta;
+      if (tudo && !this.ajuizarPendentes) { this.mostrarToast('Nenhuma pasta pendente — todas já com bandeira ✓', 'ok'); return; }
+      this.ajuizarRodando = true; this.ajuizarPct = 0; this.ajuizarMsg = 'Iniciando no Executor...';
+      try {
+        const r = await fetch('/api/executor/iniciar', {
           method: 'POST', headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
-            modelo: this.massaModelo,
-            repeticoes: Math.max(1, this.massaRepeticoes || 1),
-            meta: Math.max(0, this.massaMeta || 0),
-            templates: 'todos', estilos: 'todos',
-            formato: this.massaFormato,
-            nome: 'Geração em massa'
+            comando: 'avaliar_qualidade',
+            origem: pasta,  // '' = todas pendentes | 'nome' = só essa pasta
+            args: this.ajuizarJuiz ? ['--juiz'] : [],
+            nome: pasta ? ('⚖️ Ajuizar: ' + pasta) : '⚖️ Ajuizar qualidade'
+          })
+        });
+        const d = await r.json();
+        if (!d.ok) { this.ajuizarRodando = false; this.mostrarToast('❌ ' + (d.erro||'erro'), 'erro'); return; }
+        this.ajuizarMsg = 'Rodando no Executor (acompanhe a barra abaixo)';
+        this.mostrarToast(pasta ? ('⚖️ Ajuizando pasta: ' + pasta) : '⚖️ Ajuizamento iniciado no Executor', 'ok');
+        if (!this._ajuizarTimer) {
+          this._ajuizarTimer = setInterval(() => {
+            this.carregarAjuizarProgresso();
+            this.carregarPastasAjuizar();
+          }, 4000);
+        }
+      } catch(e) {
+        this.ajuizarRodando = false;
+        this.mostrarToast('❌ ' + e.message, 'erro');
+      }
+    },
+    async desmarcarAjuizar(nome) {
+      try {
+        const r = await fetch('/api/executor/avaliacao/desmarcar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({pasta: nome})
+        });
+        const d = await r.json();
+        this.mostrarToast(d.ok ? ('🧹 ' + d.mensagem) : ('❌ ' + (d.erro||'')), d.ok ? 'ok' : 'erro');
+        this.carregarPastasAjuizar();
+      } catch(e) { this.mostrarToast('❌ ' + e.message, 'erro'); }
+    },
+
+    // ═══════ 🧾 FILA DE GERAÇÃO (pipeline em série — nunca paralelo) ═══════
+    async carregarFila() {
+      this.filaCarregando = true;
+      try {
+        const r = await fetch('/api/local-generate/fila');
+        if (r.ok) {
+          const d = await r.json();
+          this.filaOrdens = d.ordens || [];
+          this.filaResumo = d.resumo || {};
+          this.filaPausada = !!d.pausado;
+          this.filaEstimativa = d.estimativa_seg || 0;
+        }
+      } catch(e) {}
+      this.filaCarregando = false;
+      this.carregarFilaProgresso();
+    },
+    async adicionarOrdem() {
+      if (!this.filaModelo) { this.filaAddMsg = '❌ Escolha o modelo.'; return; }
+      const meta = Math.max(1, Math.min(2000, this.filaMeta || 1));
+      this.filaAddMsg = 'Adicionando...';
+      try {
+        const r = await fetch('/api/local-generate/fila/adicionar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            modelo: this.filaModelo,
+            templates: [this.filaTemplate],
+            estilos: [this.filaEstilo],
+            fonte: this.filaFonte,
+            categorias: this.filaCategoria,
+            rss_limite: Math.max(0, this.filaRssLimite || 0),
+            meta: meta,
+            formato: this.filaFormato,
+            ajuizar: this.filaAjuizar
           })
         });
         const d = await r.json();
         if (d.ok) {
-          this.massaMsg = 'Iniciada no backend! (veja o percentual abaixo)';
-          if (this._massaTimer) clearInterval(this._massaTimer);
-          this._massaTimer = setInterval(() => this.carregarMassaProgresso(), 2500);
-          this.carregarMassaProgresso();
+          this.filaAddMsg = '✅ Ordem #' + d.ordem.id + ' adicionada à fila (' + meta + ' itens, ' + (this.filaTemplate === 'todos' ? '🎲 templates variados' : this.filaTemplate) + ').';
+          this.carregarFila();
         } else {
-          this.massaMsg = '❌ ' + (d.erro || 'erro');
-          this.massaRodando = false;
+          this.filaAddMsg = '❌ ' + (d.erro || 'erro');
         }
-      } catch(e) {
-        this.massaMsg = '❌ ' + e.message;
-        this.massaRodando = false;
-      }
+      } catch(e) { this.filaAddMsg = '❌ ' + e.message; }
     },
-    async carregarMassaProgresso() {
+    async iniciarFila() {
+      if (this.filaRodando) return;
+      this.filaMsg = 'Iniciando...';
       try {
-        const r = await fetch('/api/local-generate/massa-progresso');
+        const r = await fetch('/api/local-generate/fila/iniciar', {method: 'POST'});
         const d = await r.json();
-        this.massaPct = d.pct || 0;
-        this.massaAtual = d.atual || '';
-        this.massaGerados = d.gerados || 0;
-        this.massaErros = d.erros || 0;
-        this.massaMeta = d.meta || 0;
-        if (d.fim || d.pct >= 100) {
-          this.massaRodando = false;
-          if (this._massaTimer) { clearInterval(this._massaTimer); this._massaTimer = null; }
-          if (d.pct >= 100) {
-            this.massaMsg = 'Concluído! Gerados: ' + (d.gerados||0) + ' · Erros: ' + (d.erros||0);
-            this.carregarDados();
-          }
-          return;
+        if (d.ok) {
+          this.filaMsg = '▶️ Fila iniciada no Executor — uma ordem por vez.';
+          this.carregarFila();
+          if (this._filaTimer) clearInterval(this._filaTimer);
+          this._filaTimer = setInterval(() => this.carregarFilaProgresso(), 2500);
+        } else {
+          this.filaMsg = '❌ ' + (d.erro || 'erro');
         }
-        // Status da atividade no executor: se está rodando, mostra a barra
-        // mesmo sem clique nesta sessão (recarregou a página no meio). Se
-        // morreu/terminou, para o "Gerando..." e mostra o motivo.
+      } catch(e) { this.filaMsg = '❌ ' + e.message; }
+    },
+    async pararFila() {
+      try {
+        const r = await fetch('/api/local-generate/fila/parar', {method: 'POST'});
+        const d = await r.json();
+        this.filaMsg = d.ok ? '⏹️ Fila parada — ordens não processadas continuam aguardando (outro dia, é só iniciar de novo).' : ('❌ ' + (d.erro || 'erro'));
+        if (this._filaTimer) { clearInterval(this._filaTimer); this._filaTimer = null; }
+        this.filaRodando = false;
+        this.carregarFila();
+      } catch(e) {}
+    },
+    async pausarFila() {
+      try {
+        const r = await fetch('/api/local-generate/fila/pausar', {method: 'POST'});
+        const d = await r.json();
+        this.filaMsg = d.ok ? '⏸️ Fila pausada — ordens salvas. Pode desligar o PC; retome amanhã com Continuar.' : ('❌ ' + (d.erro || 'erro'));
+        if (this._filaTimer) { clearInterval(this._filaTimer); this._filaTimer = null; }
+        this.filaRodando = false;
+        this.filaPausada = true;
+        this.carregarFila();
+      } catch(e) {}
+    },
+    async limparTudoFila() {
+      if (!confirm('🗑️ Limpar TODA a fila? As ordens aguardando serão removidas (a que está rodando é mantida).')) return;
+      try {
+        await fetch('/api/local-generate/fila/limpar-tudo', {method: 'POST'});
+        this.filaMsg = '🗑️ Fila limpa.';
+        this.carregarFila();
+      } catch(e) {}
+    },
+    async toggleOrdemLog(id) {
+      if (this.ordemLogAberta === id) {
+        this.ordemLogAberta = null;
+        this.ordemLog = [];
+        return;
+      }
+      try {
+        const r = await fetch('/api/local-generate/fila/ordem/' + id);
+        if (r.ok) {
+          const d = await r.json();
+          this.ordemLog = (d.log || []).slice().reverse();
+          this.ordemLogAberta = id;
+        }
+      } catch(e) {}
+    },
+    async removerOrdem(id) {
+      try {
+        await fetch('/api/local-generate/fila/remover', {
+          method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: id})
+        });
+        this.carregarFila();
+      } catch(e) {}
+    },
+    async limparFila() {
+      try {
+        await fetch('/api/local-generate/fila/limpar', {method: 'POST'});
+        this.carregarFila();
+      } catch(e) {}
+    },
+    async carregarFilaProgresso() {
+      try {
+        const r = await fetch('/api/local-generate/fila/progresso');
+        const d = await r.json();
+        this.filaPct = d.pct || 0;
+        this.filaAtual = d.atual || '';
+        this.filaOrdemAtual = d.ordem_atual || 0;
+        this.filaTotalOrdens = d.total_ordens || 0;
+        this.filaGerados = d.gerados || 0;
+        this.filaMetaOrdem = d.meta_ordem || 0;
+        this.filaCategoriaAtual = d.categoria ? ('🗂️ ' + d.categoria) : '';
+        this.filaDecorrido = (d.decorrido_s != null) ? this.fmtTempo(d.decorrido_s) : '';
+        this.filaPrevisao = (d.previsao_s != null) ? this.fmtTempo(d.previsao_s) : '';
+        this.filaMedia = d.media_s || 0;
+        if (d.pausado && !d.rodando) {
+          this.filaPausada = true;
+          this.filaRodando = false;
+          if (this._filaTimer) { clearInterval(this._filaTimer); this._filaTimer = null; }
+        }
+        // Status via Executor (sobrevive a recarregar a página no meio)
         const er = await fetch('/api/executor/status');
         if (er.ok) {
           const ed = await er.json();
-          const atv = (ed.atividades || []).find(a => (a.nome || '').includes('Geração em massa'));
-          if (atv) {
-            if (['rodando','rodando_externo'].includes(atv.status)) {
-              this.massaRodando = true;
-            } else if (this.massaRodando) {
-              this.massaRodando = false;
-              if (this._massaTimer) { clearInterval(this._massaTimer); this._massaTimer = null; }
-              this.massaMsg = (atv.status === 'concluido' ? 'Concluído! ' : 'Parado: ') +
-                              (atv.erro || ('status ' + atv.status));
+          const atv = (ed.atividades || []).find(a => (a.comando || '').includes('executar_fila_geracao') || (a.nome || '').includes('Fila de geração'));
+          if (atv && ['rodando', 'rodando_externo'].includes(atv.status)) {
+            this.filaRodando = true;
+          } else if (atv || d.status !== 'rodando') {
+            this.filaRodando = false;
+            if (this._filaTimer) { clearInterval(this._filaTimer); this._filaTimer = null; }
+            if (atv && atv.status === 'concluido') {
+              this.filaMsg = '✅ Fila concluída!';
+              this.carregarFila();
               this.carregarDados();
             }
           }
         }
       } catch(e) {}
+    },
+    statusOrdemIcone(s) { return {aguardando: '⏳', rodando: '🔄', concluido: '✅', erro: '❌'}[s] || '❓'; },
+    statusOrdemLabel(s) { return {aguardando: 'Aguardando', rodando: 'Rodando agora', concluido: 'Concluído', erro: 'Erro'}[s] || s; },
+    statusOrdemClasse(s) {
+      return {aguardando: 'border-zinc-700 text-zinc-400', rodando: 'border-amber-600/40 text-amber-300 bg-amber-600/5', concluido: 'border-emerald-600/40 text-emerald-300', erro: 'border-red-600/40 text-red-300'}[s] || 'border-zinc-700 text-zinc-400';
+    },
+    resumoOrdem(o) {
+      const t = o.templates && o.templates[0] === 'todos' ? '🎲 todos' : (o.templates || []).join(',');
+      const e = o.estilos && o.estilos[0] === 'todos' ? '🎲 estilos' : (o.estilos || []).join(',');
+      return '🧩 ' + t + ' · 🎨 ' + e + ' · 🗂️ ' + (o.fonte || '') + (o.fonte === 'rss' ? ' (' + (o.rss_limite || 0) + ')' : '') + (o.ajuizar ? ' · ⚖️' : '');
+    },
+
+    // 🗂️ FONTE DE TEMAS: categories.py (categorias + amostra) e RSS
+    async carregarCategorias() {
+      try {
+        const r = await fetch('/api/local-generate/categorias');
+        if (r.ok) { const d = await r.json(); this.categoriasMeta = d.categorias || []; this.categoriasTotal = d.total || 0; }
+      } catch(e) {}
+    },
+    async carregarRss() {
+      this.rssCarregando = true;
+      try {
+        const r = await fetch('/api/local-generate/rss-titulos?limite=50');
+        if (r.ok) { const d = await r.json(); this.rssTitulos = d.titulos || []; this.rssTotal = d.total || 0; }
+      } catch(e) {}
+      this.rssCarregando = false;
+    },
+    async sortearPrevia() {
+      this.massaPreviaCarregando = true;
+      try {
+        const cat = (this.filaFonte === 'categorias' || this.filaFonte === 'misto') ? (this.filaCategoria || '') : '';
+        const r = await fetch('/api/local-generate/categorias/amostra?categoria=' + encodeURIComponent(cat) + '&n=5');
+        if (r.ok) { const d = await r.json(); this.massaPrevia = d.perguntas || []; }
+      } catch(e) { this.massaPrevia = []; }
+      this.massaPreviaCarregando = false;
+    },
+    fmtTempo(s) {
+      s = Math.max(0, Math.round(s || 0));
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+      if (h > 0) return h + 'h ' + String(m).padStart(2, '0') + 'm';
+      return m + 'm ' + String(ss).padStart(2, '0') + 's';
     },
 
     async gerar() {
@@ -434,6 +981,25 @@ function gerarLocalState() {
         if(r.ok) setTimeout(()=>this.carregarDados(),3000);
       }catch(e){this.procMsg='❌ '+e.message;this.mostrarToast(this.procMsg, 'erro');}
       this.procExecutando=false;
+    },
+    // ⚠️ Confirmação obrigatória (digitar CONFIRMO) para geração via API
+    pedirConfirmacao(tipo){
+      this.confirmarAcao = tipo;
+      this.confirmarTexto = '';
+    },
+    fecharConfirmacao(){
+      this.confirmarAcao = null;
+      this.confirmarTexto = '';
+    },
+    confirmarGerar(){
+      if (this.confirmarTexto !== 'CONFIRMO') {
+        this.mostrarToast('⚠️ Digite CONFIRMO para liberar.', 'erro');
+        return;
+      }
+      const tipo = this.confirmarAcao;
+      this.fecharConfirmacao();
+      if (tipo === 'dialogos1') this.executarScript('dialogos.py');
+      else if (tipo === 'dialogos2') this.executarDialogos2();
     },
     async executarDowndata(){this.procExecutando=true;this.procMsg='⏳ Downdata...';try{const r=await fetch('/api/generate/downdata',{method:'POST'});this.procMsg=r.ok?'✅ Downdata iniciado!':'❌ Erro';this.mostrarToast(this.procMsg, r.ok?'ok':'erro');if(r.ok)setTimeout(()=>this.carregarDados(),3000);}catch(e){this.procMsg='❌ '+e.message;this.mostrarToast(this.procMsg, 'erro');}this.procExecutando=false;},
     async executarDatasets(){this.procExecutando=true;this.procMsg='⏳ Datasets...';try{const r=await fetch('/api/generate/download_datasets',{method:'POST'});this.procMsg=r.ok?'✅ Download iniciado!':'❌ Erro';this.mostrarToast(this.procMsg, r.ok?'ok':'erro');if(r.ok)setTimeout(()=>this.carregarDados(),3000);}catch(e){this.procMsg='❌ '+e.message;this.mostrarToast(this.procMsg, 'erro');}this.procExecutando=false;}

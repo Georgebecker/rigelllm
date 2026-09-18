@@ -184,7 +184,16 @@
     <p class="text-xs text-zinc-300">Corrige mojibake, remove caracteres fora do ABNT2, <b>descarta o que não é português brasileiro</b> e grava em <code class="text-teal-300">dados/sanitizados/rigelsanitizadoNN.jsonl</code>. Regra de ouro: só conteúdo limpo e validado vai para o treino.</p>
 
     <div class="mt-3 flex flex-wrap gap-2 items-center">
-      <button x-show="!sanitizar?.rodando" @click="sanitizarAcao('iniciar')" :disabled="sanitizarAcaoBusy"
+      <!-- Origem escolhível: não depende do painel Analisar -->
+      <select x-model="sanitizarOrigem" :disabled="sanitizar?.rodando"
+              title="Escolha o dataset/pasta de origem para sanitizar (em dados/gerados/jsonl)"
+              class="bg-zinc-800 text-zinc-100 rounded-xl px-3 py-2 text-xs border border-zinc-700 outline-none max-w-full">
+        <option value="">— Escolher origem (dataset explodido) —</option>
+        <template x-for="o in (locais?.datasets||[])" :key="o.nome">
+          <option :value="'dados/gerados/jsonl/' + o.nome" x-text="o.nome + ' (' + o.arquivos + ' arq)'"></option>
+        </template>
+      </select>
+      <button x-show="!sanitizar?.rodando" @click="sanitizarAcao('iniciar')" :disabled="sanitizarAcaoBusy || (!sanitizarOrigem && !analisePrincipalCaminho && !estado?.repo)"
               class="bg-teal-600/20 hover:bg-teal-600/30 text-teal-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40">
         <i class="fa-solid fa-broom mr-1"></i>
         <span x-text="sanitizarAcaoBusy ? '...' : '🧼 Sanitizar (gerar limpos)'"></span>
@@ -254,7 +263,7 @@
     <div class="mt-3 flex flex-wrap gap-2">
       <button @click="apagarFalho()" :disabled="apagando"
               class="bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 px-4 py-2 rounded-xl text-xs font-medium disabled:opacity-40"
-              title="Apaga a pasta explodida deste dataset (sem messages, inútil para SFT)">
+              title="Move a pasta deste dataset para 'apaguemedepois' (recuperável) — você apaga de lá com calma">
         <i class="fa-solid" :class="apagando ? 'fa-spinner fa-spin' : 'fa-trash'"></i>
         <span class="ml-1" x-text="apagando ? 'Apagando...' : '🗑️ Apagar dados'"></span>
       </button>
@@ -340,16 +349,29 @@
 
   <!-- Datasets locais -->
   <div x-show="locais?.datasets?.length > 0" class="bg-zinc-900 rounded-2xl p-4 md:p-5">
-    <h3 class="text-sm font-semibold mb-2">🗂️ Datasets já explodidos (prontos para treino)</h3>
-    <p class="text-[11px] text-zinc-500 mb-3 leading-relaxed">Estes datasets ficam em <code class="text-zinc-400">dados/gerados/jsonl/</code> e já aparecem na aba <a href="/treino_local" class="text-sky-400 underline">Treino Local → 📦 Provisórios</a> — lá você <b class="text-zinc-300">valida e promove</b> para <code class="text-zinc-400">processed</code> (com flags de treinado) antes de treinar. Aqui é só a listagem de referência.</p>
+    <h3 class="text-sm font-semibold mb-2">🗂️ Datasets explodidos (aguardando validação)</h3>
+    <p class="text-[11px] text-zinc-500 mb-3 leading-relaxed">Estes datasets estão em <code class="text-zinc-400">dados/gerados/jsonl/</code> — <b class="text-amber-300">ainda NÃO estão prontos para treino</b>.
+      Use <b class="text-emerald-300">✅ Promover</b> (valida o formato, move para <code>dados/processed</code> e <b class="text-sky-300">verifica conteúdo repetido</b> — evita treinar o mesmo material duas vezes) ou <b class="text-teal-300">🧼 Sanitizar</b> (limpeza PT-BR).</p>
     <div class="space-y-2">
       <template x-for="d in locais?.datasets" :key="d.nome">
-        <div class="bg-zinc-800/50 p-3 rounded-xl flex items-center justify-between">
+        <div class="bg-zinc-800/50 p-3 rounded-xl flex flex-col md:flex-row md:items-center gap-2">
           <div class="min-w-0 flex-1">
             <p class="text-xs font-medium truncate" x-text="d.nome"></p>
-            <p class="text-[10px] text-zinc-600" x-text="d.caminho"></p>
+            <p class="text-[10px] text-zinc-600" x-text="d.caminho + ' · ' + d.arquivos + ' arquivo(s)'"></p>
+            <p class="text-[10px] mt-0.5" :class="flagCor(d.nome)" x-text="flagLabel(d.nome)"></p>
           </div>
-          <p class="text-xs text-zinc-400 shrink-0 ml-2" x-text="d.arquivos + ' arquivos'"></p>
+          <div class="flex items-center gap-2 shrink-0">
+            <button @click="sanitizarExplodido(d.nome)" :disabled="sanitizarAcaoBusy"
+                    :title="'🧼 Sanitização PT-BR (limpeza de encoding/mojibake + só PT-BR) de ' + d.nome"
+                    class="bg-teal-600/20 hover:bg-teal-600/30 text-teal-300 px-3 py-1.5 rounded-lg text-[10px] font-bold disabled:opacity-50">
+              <i class="fa-solid" :class="sanitizarAcaoBusy?'fa-spinner fa-spin':'fa-broom'"></i> 🧼 Sanitizar
+            </button>
+            <button @click="promoverExplodido(d.nome)" :disabled="promoverBusy"
+                    :title="'✅ Valida o formato, move para dados/processed e verifica conteúdo repetido'"
+                    class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-3 py-1.5 rounded-lg text-[10px] font-bold disabled:opacity-50">
+              <i class="fa-solid" :class="promoverBusy?'fa-spinner fa-spin':'fa-check'"></i> ✅ Promover
+            </button>
+          </div>
         </div>
       </template>
     </div>
@@ -375,6 +397,7 @@ function datasetsState() {
     tratamento: 'auto', // 🧼 tratar após baixar: auto | sanitizar | limpeza_leve | nenhum
     cancelarBusy: false,
     mostrarSanitizar: false, sanitizar: null, sanitizarAcaoBusy: false,
+    sanitizarOrigem: '', promoverBusy: false, qualidadeMap: {},
     termosSugeridos: ['portuguese instruction', 'pt-br', 'alpaca pt', 'instruct pt-br'],
 
     get totalArquivosLocais() {
@@ -384,11 +407,69 @@ function datasetsState() {
     init() {
       console.log("[DATASETS] Inicializando...");
       this.carregarStatus(); this.carregarLocais(); this.carregarBaixados(); this.carregarExplosao();
-      this.carregarSanitizar();
+      this.carregarSanitizar(); this.carregarQualidade();
       setInterval(()=>this.carregarStatus(), 2000);
       setInterval(()=>this.carregarLocais(), 10000);
       setInterval(()=>this.carregarExplosao(), 2000);
       setInterval(()=>this.carregarSanitizar(), 2000);
+    },
+
+    // 💉 Carteira de qualidade (flags por dataset)
+    async carregarQualidade() {
+      try {
+        const r = await fetch('/api/qualidade');
+        const d = await r.json();
+        if (d && d.ok) {
+          const m = {};
+          (d.itens||[]).forEach(q => { m[q.pasta] = q; });
+          this.qualidadeMap = m;
+        }
+      } catch(e) { console.warn("[DATASETS] qualidade:", e); }
+    },
+    flagLabel(nome) {
+      const q = this.qualidadeMap?.[nome];
+      if (!q) return '';
+      if (q.situacao === 'pronta') return '💉 ' + q.label + ' · todas as vacinas ✅';
+      if (q.situacao === 'crua') return '🥩 ' + q.label;
+      return '💉 ' + q.label + ' · falta: ' + (q.faltam||[]).join(', ');
+    },
+    flagCor(nome) {
+      const q = this.qualidadeMap?.[nome];
+      if (!q) return 'text-zinc-600';
+      return q.situacao==='pronta' ? 'text-emerald-300' : (q.situacao==='crua' ? 'text-red-300' : 'text-amber-300');
+    },
+
+    // ✅ Promover um dataset explodido (valida + move + verifica conteúdo repetido)
+    async promoverExplodido(nome) {
+      if (this.promoverBusy) return;
+      this.promoverBusy = true;
+      try {
+        const r = await fetch('/api/treino_local/promover', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({dataset: nome})
+        });
+        const d = await r.json();
+        this.mostrarToast(d.ok ? ('✅ ' + (d.mensagem||'Promovido')) : ('❌ ' + (d.erro||'erro')), d.ok ? 'ok':'erro');
+        this.carregarLocais(); this.carregarQualidade();
+      } catch(e) { this.mostrarToast('❌ ' + e.message, 'erro'); }
+      finally { this.promoverBusy = false; }
+    },
+
+    // 🧼 Sanitizar um dataset explodido (origem = dados/gerados/jsonl/<nome>)
+    async sanitizarExplodido(nome) {
+      if (this.sanitizarAcaoBusy) return;
+      this.sanitizarAcaoBusy = true;
+      try {
+        const r = await fetch('/api/datasets/sanitizar', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({acao:'iniciar', origem:'dados/gerados/jsonl/' + nome})
+        });
+        const d = await r.json();
+        this.mostrarToast(d.ok ? ('🧼 ' + (d.mensagem||'Iniciado')) : ('❌ ' + (d.erro||'erro')), d.ok ? 'ok':'erro');
+        this.mostrarSanitizar = true;
+        this.carregarSanitizar();
+      } catch(e) { this.mostrarToast('❌ ' + e.message, 'erro'); }
+      finally { this.sanitizarAcaoBusy = false; }
     },
 
     async carregarExplosao() {
@@ -445,7 +526,8 @@ function datasetsState() {
       try {
         const corpo = {acao: acao};
         if (acao === 'iniciar') {
-          let origem = this.analisePrincipalCaminho || '';
+          let origem = this.sanitizarOrigem || '';  // origem escolhida no select (prioridade)
+          if (!origem) origem = this.analisePrincipalCaminho || '';
           if (!origem && this.analisePrincipalRepo) {
             origem = '/api/datasets/baixados'; // repo sem caminho não resolve aqui — tenta via estado
           }
@@ -628,14 +710,15 @@ function datasetsState() {
       }
     },
 
-    // Falha de explosão: diagnóstico claro + pergunta se o usuário quer apagar
+    // Falha de explosão / aviso de pré-treino: move para apaguemedepois
     async apagarFalho() {
       const diag = this.estado?.diagnostico || {};
       const motivo = diag.motivo || this.estado?.erro || 'falha desconhecida';
-      const msg = 'Apagar os arquivos deste dataset que FALHOU?\n\n' +
+      const msg = 'Apagar os arquivos deste dataset?\n\n' +
         '• Repositório: ' + (this.estado?.repo || '?') + '\n' +
         '• Motivo: ' + motivo + '\n\n' +
-        'Isso apaga os arquivos baixados (raw) e a pasta explodida vazia. NÃO recuperável.\n' +
+        'Os arquivos serão MOVIDOS para a pasta "apaguemedepois" (recuperável). ' +
+        'Você apaga de lá com calma.\n' +
         'Digite APAGAR (maiúsculo) para confirmar.';
       const confirma = prompt(msg);
       if (confirma !== 'APAGAR') { this.mostrarToast('❌ Cancelado — digite APAGAR para confirmar.'); return; }
@@ -644,11 +727,15 @@ function datasetsState() {
         const r = await fetch('/api/datasets/apagar', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({repo_id: this.estado?.repo || '', dataset: diag.dataset || ''})
+          body: JSON.stringify({
+            repo_id: this.estado?.repo || '',
+            dataset: diag.dataset || '',
+            saida_dir: this.estado?.saida_dir || ''
+          })
         });
         const dados = await r.json();
         this.mostrarToast(dados.ok
-          ? ('🗑️ Apagado: ' + ((dados.removidos||[]).join(', ') || 'nada encontrado'))
+          ? ('🗑️ Movido para apaguemedepois: ' + ((dados.removidos||[]).join(', ') || 'nada encontrado'))
           : ('❌ ' + (dados.erro||'erro')));
         this.carregarStatus(); this.carregarLocais();
       } catch(e) {

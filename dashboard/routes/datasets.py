@@ -36,6 +36,7 @@ class CancelarRequest(BaseModel):
 class ApagarRequest(BaseModel):
     repo_id: str = ""
     dataset: str = ""
+    saida_dir: str = ""   # caminho da pasta explodida (ex.: dados/gerados/jsonl/<nome>)
 
 
 class ExplodirRequest(BaseModel):
@@ -123,20 +124,33 @@ async def listar():
 
 @router.get("/baixados")
 async def baixados():
-    """Lista os datasets baixados (dados/raw)."""
+    """Lista os datasets baixados (dados/raw) — SÓ datasets de verdade.
+
+    Exclui pastas que NÃO são datasets HF baixados: 'livros' (PDFs),
+    'scrap' (textos copiados), 'importados' etc. — essas têm seu próprio
+    fluxo e não devem aparecer com botão "Explodir".
+    """
     base = BASE_DIR / "dados" / "raw"
+    # pastas que pertencem a outros fluxos (não são datasets HF p/ explodir)
+    nao_datasets = {"livros", "scrap", "importados", "uploads", "manual"}
     itens = []
     if base.exists():
         for item in sorted(base.iterdir()):
             if not item.is_dir():
                 continue
-            tamanho_mb = None
-            try:
-                tamanho_mb = round(
-                    sum(f.stat().st_size for f in item.rglob("*") if f.is_file()) / 1024 / 1024, 1)
-            except Exception:
-                pass
-            tem_jsonl = (item / "dataset.jsonl").exists()
+            if item.name.lower() in nao_datasets:
+                continue
+            # Só considera dataset se tem conteúdo de dataset (jsonl/csv/parquet/
+            # txt dentro) — se a pasta for vazia ou só metadados, ignora.
+            arquivos = [f for f in item.rglob("*") if f.is_file()]
+            if not arquivos:
+                continue
+            exts = {f.suffix.lower().lstrip(".") for f in arquivos}
+            if not (exts & {".jsonl", ".json", ".csv", ".parquet", ".txt"}):
+                continue
+            tamanho_mb = round(sum(f.stat().st_size for f in arquivos) / 1024 / 1024, 1)
+            tem_jsonl = (item / "dataset.jsonl").exists() or any(
+                f.suffix.lower() == ".jsonl" for f in arquivos)
             itens.append({
                 "nome": item.name,
                 "tamanho_mb": tamanho_mb,
@@ -227,33 +241,59 @@ async def sanitizar_status():
     return sanitizacao.status()
 
 
+def _mover_para_apaguemedepois(caminho) -> bool:
+    """Regra de ouro: NUNCA apagar direto — move para D:\\Projetos\\apaguemedepois\\
+    (o usuário apaga de lá com calma). Retorna True se moveu."""
+    try:
+        import shutil
+        destino_base = Path("D:/Projetos/apaguemedepois")
+        destino_base.mkdir(parents=True, exist_ok=True)
+        destino = destino_base / Path(caminho).name
+        i = 1
+        while destino.exists():
+            destino = destino_base / f"{Path(caminho).name}_{i}"
+            i += 1
+        shutil.move(str(caminho), str(destino))
+        return True
+    except Exception:
+        return False
+
+
 @router.post("/apagar")
 async def apagar(req: ApagarRequest):
-    """Apaga os arquivos de um dataset que FALHOU na explosão (não serve p/ treino).
+    """Remove (move p/ apaguemedepois) os arquivos de um dataset que FALHOU na
+    explosão ou que é PRÉ-TREINO (não serve p/ SFT).
 
-    Procedimento lógico: apaga dados/raw/<repo> (parquet + dataset.jsonl) e a pasta
-    explodida vazia em dados/gerados/jsonl/<dataset>. Depois limpa o estado persistido.
+    Procedimento: move dados/raw/<repo> e/ou a pasta explodida
+    (dados/gerados/jsonl/<dataset> ou saida_dir) para D:\\Projetos\\apaguemedepois\\
+    — regra de ouro: nunca apagar direto. Depois limpa o estado persistido.
     O usuário confirma digitando APAGAR no frontend.
     """
-    import shutil
     repo_id = (req.repo_id or "").strip()
     dataset = (req.dataset or "").strip()
+    saida_dir = (req.saida_dir or "").strip()
     removidos = []
     if repo_id:
         nome_pasta = repo_id.replace("/", "_")
         p_raw = BASE_DIR / "dados" / "raw" / nome_pasta
-        if p_raw.exists():
-            shutil.rmtree(p_raw, ignore_errors=True)
+        if p_raw.exists() and _mover_para_apaguemedepois(p_raw):
             removidos.append(f"dados/raw/{nome_pasta}")
     if dataset:
         p_ger = BASE_DIR / "dados" / "gerados" / "jsonl" / dataset
-        if p_ger.exists():
-            shutil.rmtree(p_ger, ignore_errors=True)
+        if p_ger.exists() and _mover_para_apaguemedepois(p_ger):
             removidos.append(f"dados/gerados/jsonl/{dataset}")
+    if saida_dir:
+        # Segurança: só mexe em caminhos dentro de dados/ (nunca fora do projeto)
+        dados_res = (BASE_DIR / "dados").resolve()
+        p_dir = Path(saida_dir).resolve()
+        if p_dir.exists() and str(p_dir).startswith(str(dados_res)):
+            if _mover_para_apaguemedepois(p_dir):
+                removidos.append(saida_dir)
     # Limpa o estado persistido se for o mesmo repositório
     if hf_datasets.get_estado().get("repo") == repo_id:
         hf_datasets._atualizar_estado(
             rodando=False, repo=None, etapa="idle", mensagem="", percentual=None,
             inicio=None, fim=None, total_exemplos=0, total_arquivos=0,
             total_pastas=0, erro=None, diagnostico=None)
-    return {"ok": True, "removidos": removidos, "detalhe": "Arquivos temporários (raw) e pasta explodida removidos do PC."}
+    return {"ok": True, "removidos": removidos,
+            "detalhe": "Movido para a pasta 'apaguemedepois' (recuperável)."}

@@ -266,12 +266,21 @@ def salvar_limites(limites: dict, hw: dict | None = None) -> Path:
     return CONFIG_RECURSOS
 
 
+_CACHE_LIMITES: dict | None = None  # cache em memória: loga limites 1x por processo
+
+
 def carregar_limites() -> dict:
     """Limites efetivos do guardião.
 
     Precedência: config_recursos.json (instalação) → variáveis de ambiente
     → cálculo proporcional em runtime (rápido; sem sondar disco via PowerShell).
+
+    O resultado é CACHEADO em memória (loga 1x por processo — antes logava a
+    cada chamada e poluía o terminal com dezenas de linhas por segundo).
     """
+    global _CACHE_LIMITES
+    if _CACHE_LIMITES is not None:
+        return _CACHE_LIMITES
     base = None
     origem = "calculado-em-runtime (rápido)"
     if CONFIG_RECURSOS.exists():
@@ -292,6 +301,7 @@ def carregar_limites() -> dict:
                 final[chave] = cast(val)
             except ValueError:
                 _log(f"{chave}={val!r} inválido no ambiente — ignorado", nivel="AVISO")
+    _CACHE_LIMITES = final
     _log(f"Limites carregados de: {origem} | "
          + ", ".join(f"{k}={v}" for k, v in final.items()))
     return final

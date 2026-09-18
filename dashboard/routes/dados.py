@@ -29,3 +29,10 @@ async def painel():
 async def varredura():
     """Força uma nova varredura (background, com barra de %)."""
     return painel_dados.iniciar_varredura()
+
+
+@router.get("/sft-prontos")
+async def sft_prontos(forcar: int = 0):
+    """Onde está o material p/ treinar conversas (SFT): pastas PRONTAS vs que não servem (com motivo).
+    `?forcar=1` refaz a varredura (botão de atualizar); sem isso usa cache de ~5 min."""
+    return painel_dados.classificar_pastas_sft(forcar=bool(forcar))

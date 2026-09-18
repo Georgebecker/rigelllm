@@ -15,12 +15,123 @@
     </p>
   </div>
 
+  <!-- Tratamento seguro: nunca altera processed nem apaga a origem -->
+  <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-sky-600/30">
+    <h3 class="text-sm font-semibold mb-1">Tratamento seguro do acervo</h3>
+    <p class="text-xs text-zinc-400 mb-3">Escolha uma pasta para analisar. O resultado tratado fica separado e a origem permanece intacta.</p>
+    <div class="flex flex-wrap items-end gap-3">
+      <label class="text-xs text-zinc-400 min-w-[260px] flex-1" title="Escolha a pasta que será analisada">
+        Origem
+        <select x-model="acervoOrigem" class="mt-1 w-full bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-2 text-xs text-zinc-200">
+          <option value="">Escolha uma pasta...</option>
+          <template x-for="o in acervoOrigens" :key="o.caminho">
+            <option :value="o.caminho" x-text="o.nome + ' (' + o.arquivos + ' arquivo(s))'"></option>
+          </template>
+        </select>
+      </label>
+      <label class="flex items-center gap-2 text-xs text-zinc-300 pb-2" title="Faz uma prévia sem criar arquivos">
+        <input type="checkbox" x-model="acervoSimular" class="accent-sky-500">
+        Apenas simular
+      </label>
+      <button @click="iniciarAcervo()" :disabled="!acervoOrigem || acervoBusy || acervoEstado?.rodando"
+              title="Analisa e trata a pasta escolhida sem alterar a origem"
+              class="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-40">
+        <i class="fa-solid" :class="acervoBusy || acervoEstado?.rodando ? 'fa-spinner fa-spin' : 'fa-shield-halved'"></i>
+        <span x-text="acervoSimular ? 'Simular tratamento' : 'Tratar e guardar resultado'"></span>
+      </button>
+      <button @click="carregarAcervoOrigens()" :disabled="acervoCarregando"
+              title="Atualiza a lista de origens disponíveis"
+              class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-xl text-xs disabled:opacity-40">
+        <i class="fa-solid fa-rotate" :class="acervoCarregando ? 'fa-spin' : ''"></i>
+      </button>
+      <button x-show="acervoEstado?.rodando" @click="pausarAcervo()" :disabled="acervoBusy"
+          title="Pausa depois do ponto seguro atual; os arquivos concluídos ficam preservados"
+          class="bg-amber-600/25 hover:bg-amber-600/40 text-amber-300 px-3 py-2 rounded-xl text-xs disabled:opacity-40">
+        <i class="fa-solid fa-pause"></i> Pausar
+      </button>
+      <button x-show="acervoEstado?.rodando" @click="pararAcervo()" :disabled="acervoBusy"
+          title="Para o tratamento e preserva a origem; o resultado parcial fica identificado"
+          class="bg-red-600/25 hover:bg-red-600/40 text-red-300 px-3 py-2 rounded-xl text-xs disabled:opacity-40">
+        <i class="fa-solid fa-stop"></i> Parar
+      </button>
+      <button x-show="!acervoEstado?.rodando && (acervoEstado?.etapa === 'pausado' || acervoEstado?.etapa === 'parado')"
+          @click="retomarAcervo()" :disabled="acervoBusy"
+          title="Retoma do último arquivo que ainda não foi concluído"
+          class="bg-emerald-600/25 hover:bg-emerald-600/40 text-emerald-300 px-3 py-2 rounded-xl text-xs disabled:opacity-40">
+        <i class="fa-solid fa-play"></i> Retomar
+      </button>
+    </div>
+    <div x-show="acervoEstado?.rodando || acervoEstado?.etapa === 'concluido' || acervoEstado?.etapa === 'erro'" class="mt-4">
+      <div class="flex justify-between text-[11px] text-zinc-400">
+        <span x-text="acervoEstado?.mensagem || 'Aguardando...'" class="truncate mr-3"></span>
+        <b x-text="(acervoEstado?.percentual || 0) + '%'" class="text-sky-400"></b>
+      </div>
+      <div class="h-2 bg-zinc-800 rounded-full overflow-hidden mt-1">
+        <div class="h-full bg-sky-500 transition-all" :style="'width:' + (acervoEstado?.percentual || 0) + '%' "></div>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-[10px] text-zinc-400">
+        <span>Linhas: <b x-text="acervoEstado?.linhas || 0"></b></span>
+        <span>Aprovados: <b class="text-emerald-400" x-text="acervoEstado?.aprovados || 0"></b></span>
+        <span>Corrigidos: <b class="text-amber-400" x-text="acervoEstado?.corrigidos || 0"></b></span>
+        <span>Descartados: <b class="text-red-400" x-text="acervoEstado?.descartados || 0"></b></span>
+      </div>
+      <div x-show="acervoEstado?.carteira" class="flex flex-wrap gap-2 mt-2 text-[10px]">
+        <template x-for="v in vacinas" :key="v.chave">
+          <span class="px-2 py-1 rounded-full"
+                :class="acervoEstado?.carteira?.etapas?.[v.chave] ? 'bg-emerald-600/20 text-emerald-300' : 'bg-zinc-800 text-zinc-500'"
+                x-text="(acervoEstado?.carteira?.etapas?.[v.chave] ? 'OK ' : 'Falta ') + v.nome"></span>
+        </template>
+      </div>
+      <div x-show="acervoEstado?.carteira" class="flex flex-wrap gap-2 mt-3">
+        <button x-show="!acervoEstado?.carteira?.etapas?.ajuizado"
+                @click="revisarAcervo()" :disabled="acervoBusy || acervoEstado?.rodando"
+                title="Analisa todas as linhas tratadas e libera a promoção se a qualidade passar"
+                class="bg-amber-600/25 hover:bg-amber-600/40 text-amber-300 px-3 py-1.5 rounded-lg text-[10px] font-semibold disabled:opacity-40">
+          <i class="fa-solid" :class="acervoBusy ? 'fa-spinner fa-spin' : 'fa-scale-balanced'"></i> Revisar qualidade
+        </button>
+        <button x-show="acervoEstado?.carteira?.etapas?.ajuizado && !acervoEstado?.carteira?.etapas?.promovido"
+                @click="promoverAcervo()" :disabled="acervoBusy || acervoEstado?.rodando"
+                title="Copia o resultado aprovado para a pasta de treino sem apagar o tratado"
+                class="bg-emerald-600/25 hover:bg-emerald-600/40 text-emerald-300 px-3 py-1.5 rounded-lg text-[10px] font-semibold disabled:opacity-40">
+          <i class="fa-solid" :class="acervoBusy ? 'fa-spinner fa-spin' : 'fa-arrow-up-right-from-square'"></i> Promover para treino
+        </button>
+      </div>
+      <div x-show="acervoEstado?.revisao_progresso?.rodando" class="mt-3 bg-zinc-800/60 rounded-lg p-2">
+        <div class="flex justify-between text-[10px] text-zinc-400">
+          <span>Revisão de qualidade em andamento</span>
+          <b class="text-amber-300" x-text="(acervoEstado?.revisao_progresso?.percentual || 0) + '%' "></b>
+        </div>
+        <div class="h-1.5 bg-zinc-700 rounded-full overflow-hidden mt-1">
+          <div class="h-full bg-amber-500 transition-all" :style="'width:' + (acervoEstado?.revisao_progresso?.percentual || 0) + '%' "></div>
+        </div>
+        <p class="text-[10px] text-zinc-500 mt-1" x-text="(acervoEstado?.revisao_progresso?.linhas || 0) + ' linhas verificadas' "></p>
+      </div>
+      <details class="mt-2 text-[10px] text-zinc-500" title="Mostra os detalhes técnicos do processo">
+        <summary>Ver detalhes técnicos</summary>
+        <pre class="mt-1 max-h-32 overflow-auto whitespace-pre-wrap" x-text="(acervoEstado?.log || []).join('\n')"></pre>
+      </details>
+    </div>
+  </div>
+
   <!-- Ações -->
   <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-teal-600/30 flex flex-wrap items-center gap-3">
     <label class="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer" title="☑️ Marca ou desmarca todas as pastas de uma vez">
       <input type="checkbox" x-model="marcarTodos" @change="alternarTodos()" class="accent-teal-500">
-      <b>Marcar todos</b>
+      <b>Selecionar todas as pastas</b>
     </label>
+    <button @click="limparSelecao()" :disabled="marcados.length === 0"
+            title="Desmarca todas as pastas selecionadas"
+            class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-xl text-xs disabled:opacity-50">
+      <i class="fa-solid fa-xmark"></i>
+      Limpar seleção
+    </button>
+    <span class="text-xs text-zinc-500" x-text="marcados.length + ' pasta(s) selecionada(s)'" aria-live="polite"></span>
+    <button @click="prever()" :disabled="marcados.length === 0 || estado?.rodando || preverBusy"
+            title="🔍 Mostra antes o que será feito com cada pasta marcada (e o que não pode, com o motivo)"
+            class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50">
+      <i class="fa-solid" :class="preverBusy ? 'fa-spinner fa-spin' : 'fa-magnifying-glass'"></i>
+      <span class="ml-1" x-text="'Ver o que será feito (' + marcados.length + ')'"></span>
+    </button>
     <button @click="tratar()" :disabled="marcados.length === 0 || estado?.rodando || tratarBusy"
             title="🧹 Tratar marcados — aplica o tratamento certo (jsonl→sanitizar, parquet→limpeza leve, txt→limpeza) e promove p/ dados/processed/"
             class="bg-teal-600/20 hover:bg-teal-600/30 text-teal-400 px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50">
@@ -35,9 +146,57 @@
     <span class="text-xs text-zinc-500" x-text="ramLivre ? ('🛡️ RAM livre: ' + ramLivre + ' GB') : ''"></span>
   </div>
 
+  <!-- Painel de PRÉVIA — o sistema explica o que fará com cada pasta -->
+  <div x-show="previa && previa.itens && previa.itens.length" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-sky-600/30">
+    <h3 class="text-sm font-semibold mb-1">🔍 Plano de tratamento</h3>
+    <p class="text-xs text-zinc-400 mb-3" x-text="previa?.mensagem"></p>
+    <div class="space-y-2">
+      <template x-for="p in (previa?.itens||[])" :key="p.nome">
+        <div class="rounded-xl border p-3 flex flex-col md:flex-row md:items-start gap-2"
+             :class="p.ok ? 'border-emerald-600/40 bg-emerald-950/10' : 'border-amber-600/40 bg-amber-950/10'">
+          <span class="text-sm shrink-0" x-text="p.ok ? '✅' : '⛔'"></span>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-semibold" :class="p.ok ? 'text-emerald-300' : 'text-amber-300'" x-text="p.nome"></p>
+            <p class="text-[11px] text-zinc-400 mt-0.5 leading-relaxed" x-text="p.explicacao"></p>
+            <p class="text-[10px] text-zinc-600 mt-0.5" x-text="'📦 ' + (p.arquivos||0) + ' arquivo(s) · ' + (p.tamanho_mb||0) + ' MB · formato: ' + (p.formato||'?')"></p>
+          </div>
+          <div class="shrink-0 flex flex-col md:flex-row items-stretch md:items-center gap-2">
+            <!-- ✨ RESOLVE AQUI: pasta com PDF → extrai na própria aba (não joga p/ outra página) -->
+            <button x-show="p.tem_pdf" @click="extrairPdfs(p.nome)" :disabled="estado?.rodando || extrairBusy"
+                    :title="'✨ Extrai TODOS os PDFs desta pasta aqui mesmo (gera TXT + JSONL + promove p/ processed)'"
+                    class="bg-amber-500/25 hover:bg-amber-500/40 text-amber-200 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all disabled:opacity-50">
+              <i class="fa-solid" :class="extrairBusy && extrairPasta==p.nome ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'"></i>
+              <span class="ml-1" x-text="(extrairBusy && extrairPasta==p.nome) ? 'Extraindo...' : '✨ Extrair PDFs aqui'"></span>
+            </button>
+            <a x-show="p.acao_url" :href="p.acao_url" :title="p.acao_label || 'Ir para a página certa'"
+               class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 px-3 py-1.5 rounded-lg text-[10px] font-bold">
+              <i class="fa-solid fa-arrow-right mr-1"></i><span x-text="p.acao_label || 'Ir'"></span>
+            </a>
+          </div>
+        </div>
+      </template>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 mt-3" x-show="(previa?.trataveis||0) > 0">
+      <button @click="tratarSomenteTrataveis()" :disabled="tratarBusy || estado?.rodando"
+              title="🧹 Inicia agora o tratamento das pastas que podem ser tratadas (as que aparecem com ✅)"
+              class="bg-teal-600/30 hover:bg-teal-600/50 text-teal-200 px-4 py-2 rounded-xl text-xs font-bold">
+        <i class="fa-solid" :class="tratarBusy ? 'fa-spinner fa-spin' : 'fa-play'"></i>
+        <span class="ml-1" x-text="(previa?.nao_trataveis||0) > 0 ? ('▶ Tratar só as ' + (previa?.trataveis||0) + ' que podem') : ('▶ Tratar as ' + (previa?.trataveis||0) + ' (todas podem)')"></span>
+      </button>
+      <span class="text-[10px] text-zinc-500" x-show="(previa?.nao_trataveis||0) > 0">
+        As outras não podem agora — veja o motivo acima.
+      </span>
+    </div>
+  </div>
+
   <!-- Painel de progresso -->
   <div x-show="estado?.rodando || (estado?.etapa && estado.etapa!=='idle')" class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-5 border border-emerald-600/30">
-    <h3 class="text-sm font-semibold mb-2">⚙️ Tratamento <span class="text-emerald-400" x-text="estado?.atual || ''"></span></h3>
+    <h3 class="text-sm font-semibold mb-2">⚙️ Tratamento <span class="text-emerald-400" x-text="estado?.atual || ''"></span>
+      <span class="ml-2 text-xs font-normal text-zinc-400">
+        <span x-text="(estado?.percentual||0) + '%'"></span>
+        <span x-show="estado?.inicio" x-text="' · ⏱️ ' + decorrido(estado?.inicio)"></span>
+      </span>
+    </h3>
     <p class="text-xs text-zinc-400" x-text="estado?.mensagem"></p>
     <div class="mt-2 h-2 bg-zinc-800 rounded-full overflow-hidden">
       <div class="h-full bg-emerald-500 transition-all" :style="'width:' + (estado?.percentual||0) + '%'"></div>
@@ -49,12 +208,39 @@
         </p>
       </template>
     </div>
-    <button x-show="estado?.rodando" @click="cancelar()" :disabled="cancelarBusy"
-            title="⏹️ Parar — interrompe o lote (o que já foi tratado fica salvo)"
-            class="mt-3 bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3 py-1.5 rounded-xl text-xs font-medium">
-      <i class="fa-solid" :class="cancelarBusy ? 'fa-spinner fa-spin' : 'fa-stop'"></i>
-      <span class="ml-1">Parar</span>
-    </button>
+    <!-- 📋 Log em tempo real (regra: nada fica escondido) -->
+    <div x-show="(estado?.log||[]).length" class="mt-3 bg-black/40 rounded-xl p-3 max-h-56 overflow-y-auto font-mono text-[11px] leading-relaxed"
+         x-ref="logBox">
+      <template x-for="(linha, li) in estado?.log" :key="li">
+        <p class="text-zinc-300 whitespace-pre-wrap" x-text="linha"></p>
+      </template>
+    </div>
+    <div class="mt-3 flex flex-wrap gap-2">
+      <button x-show="estado?.rodando" @click="cancelar()" :disabled="cancelarBusy"
+              title="⏹️ Parar — interrompe o lote (o que já foi feito fica salvo)"
+              class="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3 py-1.5 rounded-xl text-xs font-medium">
+        <i class="fa-solid" :class="cancelarBusy ? 'fa-spinner fa-spin' : 'fa-stop'"></i>
+        <span class="ml-1">Parar</span>
+      </button>
+      <!-- ▶️ CONTINUAR: quando o processo caiu (interrompido/erro), retoma sem
+           re-extrair o que já foi feito — o script pula PDFs que já têm TXT+JSONL -->
+      <button x-show="!estado?.rodando && (estado?.etapa === 'interrompido' || estado?.etapa === 'erro')"
+              @click="continuarExtracao()" :disabled="extrairBusy"
+              title="▶️ Continuar — retoma a extração de onde parou (pula o que já foi feito)"
+              class="bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 px-3 py-1.5 rounded-xl text-xs font-medium">
+        <i class="fa-solid" :class="extrairBusy ? 'fa-spinner fa-spin' : 'fa-play'"></i>
+        <span class="ml-1">Continuar</span>
+      </button>
+      <!-- 🧹 LIMPAR AVISO: descarta o aviso de extração caída e zera o log
+           SEM rodar nada de novo (o que já foi tratado fica salvo) -->
+      <button x-show="!estado?.rodando && (estado?.etapa === 'interrompido' || estado?.etapa === 'erro')"
+              @click="limparEstado()" :disabled="extrairBusy"
+              title="Limpar aviso — apaga esta mensagem e zera o histórico sem rodar nada de novo (o que já foi tratado fica salvo)"
+              class="bg-zinc-700/60 hover:bg-zinc-600/70 text-zinc-300 px-3 py-1.5 rounded-xl text-xs font-medium">
+        <i class="fa-solid fa-broom"></i>
+        <span class="ml-1">Limpar aviso</span>
+      </button>
+    </div>
   </div>
 
   <!-- Lista de pastas -->
@@ -63,7 +249,8 @@
     <div class="space-y-2">
       <template x-for="item in itens" :key="item.nome">
         <div class="bg-zinc-800/50 p-3 rounded-xl flex items-center gap-3">
-          <input type="checkbox" :value="item.nome" x-model="marcados"
+             <input type="checkbox" :value="item.nome" x-model="marcados"
+               @change="marcarTodos = itens.length > 0 && marcados.length === itens.length"
                  :title="'☑️ Marcar ' + item.nome + ' para tratamento'" class="accent-teal-500 shrink-0">
           <div class="min-w-0 flex-1">
             <p class="text-xs font-medium truncate" x-text="item.nome"></p>
@@ -82,6 +269,102 @@
   </div>
   <p x-show="!itens.length && !carregando" class="text-xs text-zinc-500 mt-4">Nenhuma pasta em <code class="text-zinc-400">dados/raw/</code>. Coloque dados de qualquer fonte lá (jsonl/parquet/txt/csv).</p>
 
+  <!-- 📁 PROVISÓRIOS em dados/gerados — verificação (não tratar aqui) -->
+  <div x-show="gerados.length && !carregando" class="mt-4 bg-zinc-900 rounded-2xl p-4 md:p-5 border border-amber-600/25">
+    <h3 class="text-sm font-semibold mb-1">📁 Provisórios em dados/gerados <span class="text-zinc-500 text-xs font-normal">(verificação)</span></h3>
+    <p class="text-[11px] text-zinc-500 mb-2">Estas pastas estão em <code class="text-amber-400">dados/gerados/jsonl/</code> (provisórias). Cada uma mostra o <b class="text-zinc-400">cartão de vacina</b> (✓ feito · faltando) e tem botão para a próxima etapa: <b class="text-sky-400">Converter</b> (vira conversa) ou <b class="text-teal-400">Extrair p/ TXT</b> (pré-treino).</p>
+    <div class="space-y-1.5 max-h-64 overflow-auto scrollbar-thin">
+      <template x-for="g in gerados" :key="g.nome">
+        <div class="bg-zinc-800/40 p-2.5 rounded-xl flex items-center gap-3 flex-wrap" :title="g.caminho">
+          <i class="fa-regular fa-folder-open text-amber-400/70 shrink-0"></i>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-medium truncate" x-text="g.nome"></p>
+            <p class="text-[10px] text-zinc-500 truncate" x-text="g.arquivos + ' arquivo(s) · ' + g.tamanho_mb + ' MB'"></p>
+          </div>
+          <span class="text-[10px] px-2 py-1 rounded-full shrink-0 bg-amber-600/15 text-amber-400"
+                :title="'Tratamento recomendado: ' + g.tratamento">🧩 <span x-text="g.formato"></span></span>
+          <!-- 💉 Cartão de vacina: o que já passou (4 etapas) -->
+          <div class="flex items-center gap-1 shrink-0" title="Cartão de vacina — etapas já feitas (✓) e faltantes (·)">
+            <template x-for="v in vacinas" :key="v.chave">
+              <span class="text-[10px] w-4 h-4 inline-flex items-center justify-center rounded"
+                    :class="etapaCarteira(g, v.chave) ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-600'"
+                    :title="(etapaCarteira(g, v.chave) ? 'Feito: ' : 'Falta: ') + v.nome">
+                <span x-text="etapaCarteira(g, v.chave) ? '✓' : '·'"></span>
+              </span>
+            </template>
+          </div>
+          <button x-show="g.acoes && g.acoes.includes('converter')" @click="converterJsonl(g.nome)" :disabled="estado?.rodando || tratarBusy"
+                  title="Converter para o formato de mensagens (pergunta/resposta) — salva em processed/jsonl/<nome>_sanitizado"
+                  class="shrink-0 bg-sky-600/20 hover:bg-sky-600/30 text-sky-400 px-3 py-1 rounded-lg text-[11px] font-medium">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Converter
+          </button>
+          <button x-show="g.acoes && g.acoes.includes('extrair_txt')" @click="extrairTxt(g.nome)" :disabled="estado?.rodando || tratarBusy"
+                  title="Extrair o texto para o pré-treino (.txt) — salva em processed/txt/<nome>"
+                  class="shrink-0 bg-teal-600/20 hover:bg-teal-600/30 text-teal-400 px-3 py-1 rounded-lg text-[11px] font-medium">
+            <i class="fa-solid fa-file-lines"></i> Extrair p/ TXT
+          </button>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- 📭 Pastas vazias — nota informativa (não aparecem p/ marcar; nada p/ tratar) -->
+  <div x-show="vazias.length && !carregando" class="mt-4 bg-zinc-800/40 border border-zinc-700/50 rounded-xl px-3.5 py-2.5 text-[11px] text-zinc-500 flex items-start gap-2">
+    <i class="fa-solid fa-circle-info mt-0.5 text-zinc-600"></i>
+    <p class="leading-relaxed">
+      📭 <b class="text-zinc-400">Pasta(s) vazia(s)</b> — não têm nada para tratar:
+      <span class="text-zinc-400" x-text="vazias.map(v=>v.nome).join(', ')"></span>.
+      <span x-show="vazias.some(v=>v.nome==='scrap')" class="text-zinc-500"> (a pasta 'scrap' fica vazia quando o copiador de sites não encontra conteúdo — pode apagá-la, não atrapalha)</span>
+    </p>
+  </div>
+
+  <!-- ✅ JÁ TRATADOS — a 'carteira de vacinação': o que já passou pelo tratamento -->
+  <div x-show="(tratados||[]).length" class="mt-5 bg-zinc-900 rounded-2xl p-4 md:p-5 border border-emerald-600/30">
+    <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+      <h3 class="text-sm font-semibold">✅ Já tratados (carteira de qualidade)</h3>
+      <a href="/carteira" class="text-[11px] text-sky-300 hover:text-sky-200 underline inline-flex items-center gap-1"
+         title="Ver as pastas prontas com caminho e botão para abrir no Explorer (copiar para o Google Drive)">
+        <i class="fa-solid fa-folder-open"></i> ver pastas prontas
+      </a>
+    </div>
+    <p class="text-[11px] text-zinc-500 mb-2">Estas pastas já passaram pelo tratamento e estão em <code class="text-emerald-400">dados/processed/</code> — nada delas fica esperando aqui.</p>
+    <div class="space-y-1.5 max-h-64 overflow-auto scrollbar-thin">
+      <template x-for="q in tratados" :key="q.pasta">
+        <div class="bg-zinc-800/40 p-2.5 rounded-xl flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <p class="text-xs font-medium truncate" x-text="q.pasta"></p>
+            <p class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+              <template x-for="e in etapasUI" :key="e.chave">
+                <span class="text-[10px] inline-flex items-center gap-0.5"
+                      :title="etapaOk(q, e.chave) ? ('✅ Já feita: ' + e.nome) : ('⏳ Falta: ' + e.nome)"
+                      :class="etapaOk(q, e.chave) ? 'text-emerald-400' : 'text-zinc-600'">
+                  <span x-text="etapaOk(q, e.chave) ? '✅' : '⏳'"></span><span x-text="e.icone"></span>
+                </span>
+              </template>
+            </p>
+          </div>
+          <span class="shrink-0 text-[10px]"
+                :class="q.situacao==='pronta' ? 'text-emerald-300' : (q.situacao==='crua' ? 'text-red-300' : 'text-amber-300')"
+                x-text="q.label"></span>
+          <!-- 🔘 Ação p/ 'parcial': completar a etapa que falta (não só mostrar) -->
+          <div class="flex items-center gap-1.5 shrink-0" x-show="q.situacao==='parcial'">
+            <button x-show="(q.faltam||[]).includes('ajuizado')" @click="irRevisar()"
+                    title="Revisar a qualidade deste material (etapa que falta: revisão do juiz)"
+                    class="bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 px-2.5 py-1 rounded-lg text-[10px] font-medium">
+              <i class="fa-solid fa-scale-balanced"></i> Revisar
+            </button>
+            <button x-show="!(q.faltam||[]).includes('ajuizado')" @click="tratarParcial(q.pasta)"
+                    :disabled="estado?.rodando || tratarBusy"
+                    title="Aplicar o tratamento (sanitizar/promover) para esta pasta ficar pronta"
+                    class="bg-teal-600/20 hover:bg-teal-600/30 text-teal-400 px-2.5 py-1 rounded-lg text-[10px] font-medium">
+              <i class="fa-solid fa-broom"></i> Tratar
+            </button>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div x-show="toast" class="fixed bottom-6 right-6 z-50 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm shadow-xl">
     <span x-text="toast"></span>
@@ -92,15 +375,149 @@
 console.log("[TRATAMENTO] Página carregada");
 function tratamentoState() {
   return {
-    itens: [], marcados: [], marcarTodos: false, pasta: '',
-    estado: null, tratarBusy: false, cancelarBusy: false, carregando: false,
+    itens: [], vazias: [], gerados: [], marcados: [], marcarTodos: false, pasta: '',
+    estado: null, previa: null, preverBusy: false, tratarBusy: false,
+    cancelarBusy: false, carregando: false,
+    extrairBusy: false, extrairPasta: '',
     ramLivre: '', toast: '', toastTimer: null,
+    tratados: [],
+    acervoOrigens: [], acervoOrigem: '', acervoSimular: true,
+    acervoEstado: null, acervoBusy: false, acervoCarregando: false,
+    acervoTimer: null,
+    vacinas: [
+      { chave: 'sanitizado', icone: '🧼', nome: 'Limpeza PT-BR' },
+      { chave: 'verificado_encoding', icone: '🔤', nome: 'Encoding verificado' },
+      { chave: 'ajuizado', icone: '⚖️', nome: 'Revisão de qualidade' },
+      { chave: 'promovido', icone: '🚀', nome: 'Promovido p/ treino' },
+    ],
+    etapasUI: [
+      { chave: 'sanitizado', icone: '🧼', nome: 'Limpeza PT-BR' },
+      { chave: 'verificado_encoding', icone: '🔤', nome: 'Encoding verificado' },
+      { chave: 'ajuizado', icone: '⚖️', nome: 'Revisão de qualidade' },
+      { chave: 'promovido', icone: '🚀', nome: 'Promovido p/ treino' },
+    ],
 
     init() {
       console.log("[TRATAMENTO] Inicializando...");
       this.carregar();
       this.carregarStatus();
+      this.carregarTratados();
+      this.carregarAcervoOrigens();
       setInterval(()=>this.carregarStatus(), 2000);
+      this.acervoTimer = setInterval(()=>this.carregarAcervoProgresso(), 2000);
+      // Auto-scroll do log (regra: nada fica escondido)
+      this.$watch('estado', () => this._scrollLog());
+    },
+
+    // ✅ Carteira de qualidade: o que já foi tratado (para o painel não parecer vazio)
+    async carregarTratados() {
+      try {
+        const r = await fetch('/api/qualidade');
+        const d = await r.json();
+        this.tratados = (d && d.ok) ? (d.itens || []) : [];
+      } catch(e) { console.warn("[TRATAMENTO] tratados:", e); }
+    },
+
+    async carregarAcervoOrigens() {
+      this.acervoCarregando = true;
+      try {
+        const r = await fetch('/api/tratamento/acervo/origens');
+        this.acervoOrigens = await r.json();
+      } catch(e) { this.mostrarToast('Não foi possível carregar as origens.'); }
+      finally { this.acervoCarregando = false; }
+    },
+
+    async carregarAcervoProgresso() {
+      try {
+        const r = await fetch('/api/tratamento/acervo/progresso');
+        this.acervoEstado = await r.json();
+      } catch(e) { console.warn('[TRATAMENTO] acervo:', e); }
+    },
+
+    async iniciarAcervo() {
+      if (!this.acervoOrigem || this.acervoBusy || this.acervoEstado?.rodando) return;
+      this.acervoBusy = true;
+      try {
+        const r = await fetch('/api/tratamento/acervo/iniciar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({origem: this.acervoOrigem, simular: this.acervoSimular})
+        });
+        const d = await r.json();
+        if (!r.ok || !d.ok) this.mostrarToast('Não foi possível iniciar: ' + (d.erro || 'erro desconhecido'));
+        else this.mostrarToast(this.acervoSimular ? 'Simulação iniciada.' : 'Tratamento iniciado. A origem continua preservada.');
+        await this.carregarAcervoProgresso();
+      } catch(e) { this.mostrarToast('Não foi possível iniciar o tratamento.'); }
+      finally { this.acervoBusy = false; }
+    },
+
+    async _controleAcervo(acao) {
+      this.acervoBusy = true;
+      try {
+        const r = await fetch('/api/tratamento/acervo/' + acao, {method: 'POST'});
+        const d = await r.json();
+        this.mostrarToast(d.ok ? d.mensagem : (d.erro || 'Não foi possível executar a ação.'));
+        await this.carregarAcervoProgresso();
+      } catch(e) { this.mostrarToast('Não foi possível executar a ação.'); }
+      finally { this.acervoBusy = false; }
+    },
+
+    async pausarAcervo() { await this._controleAcervo('pausar'); },
+    async pararAcervo() { await this._controleAcervo('parar'); },
+
+    async retomarAcervo() {
+      if (this.acervoBusy || this.acervoEstado?.rodando) return;
+      this.acervoBusy = true;
+      try {
+        const r = await fetch('/api/tratamento/acervo/retomar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({origem: this.acervoOrigem, simular: this.acervoSimular})
+        });
+        const d = await r.json();
+        this.mostrarToast(r.ok && d.ok ? 'Tratamento retomado.' : (d.erro || 'Não foi possível retomar.'));
+        await this.carregarAcervoProgresso();
+      } catch(e) { this.mostrarToast('Não foi possível retomar o tratamento.'); }
+      finally { this.acervoBusy = false; }
+    },
+
+    async revisarAcervo() {
+      if (this.acervoBusy || this.acervoEstado?.rodando) return;
+      this.acervoBusy = true;
+      try {
+        const r = await fetch('/api/tratamento/acervo/revisar', {method: 'POST'});
+        const d = await r.json();
+        this.mostrarToast(r.ok && d.ok ? 'Revisão aprovada.' : (d.erro || 'Revisão reprovada.'));
+        await this.carregarAcervoProgresso();
+        this.carregarTratados();
+      } catch(e) { this.mostrarToast('Não foi possível revisar o resultado.'); }
+      finally { this.acervoBusy = false; }
+    },
+
+    async promoverAcervo() {
+      if (this.acervoBusy || this.acervoEstado?.rodando) return;
+      if (!confirm('Promover este material para a pasta de treino? O resultado tratado será preservado.')) return;
+      this.acervoBusy = true;
+      try {
+        const r = await fetch('/api/tratamento/acervo/promover', {method: 'POST'});
+        const d = await r.json();
+        this.mostrarToast(r.ok && d.ok ? 'Material promovido para treino.' : (d.erro || 'Não foi possível promover.'));
+        await this.carregarAcervoProgresso();
+        this.carregarTratados();
+      } catch(e) { this.mostrarToast('Não foi possível promover o resultado.'); }
+      finally { this.acervoBusy = false; }
+    },
+    etapaOk(q, chave) { return !!((q && q.etapas) ? q.etapas[chave] : false); },
+    etapaCarteira(g, chave) { return !!((g && g.carteira && g.carteira.etapas) ? g.carteira.etapas[chave] : false); },
+
+    decorrido(iso) {
+      if (!iso) return '0s';
+      const t = (Date.now() - new Date(iso).getTime()) / 1000;
+      const m = Math.floor(t/60), s = Math.floor(t%60);
+      return m > 0 ? m+'m'+String(s).padStart(2,'0')+'s' : s+'s';
+    },
+
+    _scrollLog() {
+      const box = this.$refs?.logBox;
+      if (box) box.scrollTop = box.scrollHeight;
     },
 
     mostrarToast(msg) {
@@ -114,7 +531,12 @@ function tratamentoState() {
       try {
         const r = await (await fetch('/api/tratamento/listar')).json();
         this.itens = r.itens || [];
+        this.vazias = r.vazias || [];
+        this.gerados = r.gerados || [];
         this.pasta = r.pasta || 'dados/raw/';
+        const disponiveis = new Set(this.itens.map(i => i.nome));
+        this.marcados = this.marcados.filter(nome => disponiveis.has(nome));
+        this.marcarTodos = this.itens.length > 0 && this.marcados.length === this.itens.length;
         // ram livre (do último tratamento ou null)
       } catch(e) { console.warn("[TRATAMENTO] listar:", e); }
       finally { this.carregando = false; }
@@ -122,11 +544,15 @@ function tratamentoState() {
 
     async carregarStatus() {
       try {
+        const etapaAnterior = this.estado?.etapa;
         const e = await (await fetch('/api/tratamento/status')).json();
         this.estado = e;
         if (e?.ram_livre_gb) this.ramLivre = e.ram_livre_gb;
-        if (e?.etapa === 'concluido' && !this.tratarBusy && e?.concluidos?.length) {
+        if (e?.etapa === 'concluido' && etapaAnterior !== 'concluido' && e?.concluidos?.length) {
           this.mostrarToast(e.mensagem);
+          this.previa = null;
+          await this.carregar();
+          this.carregarTratados();
         }
       } catch(e) { console.warn("[TRATAMENTO] status:", e); }
     },
@@ -135,15 +561,65 @@ function tratamentoState() {
       this.marcados = this.marcarTodos ? this.itens.map(i => i.nome) : [];
     },
 
+    limparSelecao() {
+      this.marcados = [];
+      this.marcarTodos = false;
+    },
+
+    // 🔍 PRÉVIA: o sistema explica o que fará com cada pasta marcada
+    async prever() {
+      if (this.marcados.length === 0) { this.mostrarToast('⚠️ Marque pelo menos uma pasta.'); return; }
+      if (this.estado?.rodando) { this.mostrarToast('⏳ Há um tratamento em andamento.'); return; }
+      this.preverBusy = true;
+      try {
+        const r = await fetch('/api/tratamento/prever', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({nomes: this.marcados})
+        });
+        const d = await r.json();
+        this.previa = d.ok ? d : null;
+        if (!d.ok) this.mostrarToast('❌ ' + (d.erro||'erro'));
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.preverBusy = false; }
+    },
+
+    // ▶️ Trata SÓ as pastas que podem (após a prévia mostrar o motivo)
+    async tratarSomenteTrataveis() {
+      if (!this.previa) return;
+      const soTrataveis = this.previa.itens.filter(p => p.ok).map(p => p.nome);
+      if (!soTrataveis.length) { this.mostrarToast('⚠️ Nenhuma das pastas marcadas pode ser tratada.'); return; }
+      if (!confirm('Tratar ' + soTrataveis.length + ' pasta(s) que podem?\n\n🧹 As pastas que não podem (⛔) ficam de fora. Após o tratamento, as origens são apagadas para liberar espaço.')) return;
+      await this._executarTratar(soTrataveis);
+    },
+
     async tratar() {
       if (this.marcados.length === 0) { this.mostrarToast('⚠️ Marque pelo menos uma pasta.'); return; }
       if (this.estado?.rodando) { this.mostrarToast('⏳ Já existe um tratamento em andamento.'); return; }
-      if (!confirm('Tratar ' + this.marcados.length + ' pasta(s) marcada(s)?\n\n🧹 O tratamento certo é aplicado automaticamente (jsonl→sanitizar, parquet→limpeza leve, txt→limpeza). As origens são apagadas após promover.')) return;
+      // 🔍 ITERATIVO: antes de confirmar, mostra o plano (o que pode e o que
+      // não pode ser tratado, com o motivo) — ninguém adivinha nada.
+      this.preverBusy = true;
+      try {
+        const r = await fetch('/api/tratamento/prever', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({nomes: this.marcados})
+        });
+        const d = await r.json();
+        this.previa = d.ok ? d : null;
+        if (!d.ok) { this.mostrarToast('❌ ' + (d.erro||'erro')); return; }
+        // Mostra o plano na tela (painel de prévia) — a ação fica lá embaixo
+        const alvo = document.querySelector('[x-data="tratamentoState()"] .rounded-2xl h3');
+        try { document.querySelector('[x-show="previa && previa.itens && previa.itens.length"]')?.scrollIntoView({behavior:'smooth', block:'nearest'}); } catch(e) {}
+        this.mostrarToast('🔍 Veja o plano abaixo — o que pode ser tratado e o motivo das que não podem.');
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.preverBusy = false; }
+    },
+
+    async _executarTratar(nomes) {
       this.tratarBusy = true;
       try {
         const r = await fetch('/api/tratamento/tratar', {
           method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({nomes: this.marcados})
+          body: JSON.stringify({nomes})
         });
         const d = await r.json();
         if (d.ok) this.mostrarToast('⚙️ ' + d.mensagem);
@@ -151,6 +627,37 @@ function tratamentoState() {
         this.carregarStatus();
       } catch(e) { this.mostrarToast('❌ ' + e.message); }
       finally { this.tratarBusy = false; }
+    },
+
+    // ✨ Extrai os PDFs de uma pasta AQUI MESMO (PDF → TXT → JSONL → promoted)
+    async extrairPdfs(nome) {
+      if (this.estado?.rodando || this.extrairBusy) { this.mostrarToast('⏳ Há um processo em andamento.'); return; }
+      if (!confirm('✨ Extrair TODOS os PDFs de "' + nome + '" aqui mesmo?\n\nO sistema vai: PDF → texto → JSONL → promover p/ processed (pronto para treino).')) return;
+      await this._lancarExtrair(nome);
+    },
+
+    // ▶️ CONTINUAR: retoma a extração que caiu (interrompido/erro). Sem
+    // pergunta — o próprio script pula os PDFs que já têm TXT + JSONL.
+    async continuarExtracao() {
+      if (this.estado?.rodando || this.extrairBusy) { this.mostrarToast('⏳ Há um processo em andamento.'); return; }
+      const nome = (this.estado?.fila && this.estado.fila[0]) || this.estado?.atual || 'livros';
+      this.mostrarToast('▶️ Continuando a extração de "' + nome + '"...');
+      await this._lancarExtrair(nome);
+    },
+
+    async _lancarExtrair(nome) {
+      this.extrairBusy = true; this.extrairPasta = nome;
+      try {
+        const r = await fetch('/api/tratamento/extrair-pdfs', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({nome})
+        });
+        const d = await r.json();
+        if (d.ok) this.mostrarToast('✨ ' + d.mensagem);
+        else this.mostrarToast('❌ ' + (d.erro||'erro'));
+        this.carregarStatus();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.extrairBusy = false; }
     },
 
     async cancelar() {
@@ -161,6 +668,63 @@ function tratamentoState() {
         this.carregarStatus();
       } catch(e) { this.mostrarToast('❌ ' + e.message); }
       finally { this.cancelarBusy = false; }
+    },
+    // 🧹 Limpar aviso: zera o estado/log SEM rodar nada de novo
+    async limparEstado() {
+      try {
+        await fetch('/api/tratamento/limpar', {method:'POST'});
+        this.mostrarToast('🧹 Aviso limpo — nada foi apagado dos dados.');
+        this.carregarStatus();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+    },
+    // 🔄 Converter uma pasta provisória (gerados) para o formato messages
+    async converterJsonl(nome) {
+      if (this.estado?.rodando || this.tratarBusy) { this.mostrarToast('⏳ Há um processo em andamento.'); return; }
+      this.tratarBusy = true;
+      try {
+        const r = await fetch('/api/tratamento/converter-jsonl', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({nome})
+        });
+        const d = await r.json();
+        if (d.ok) this.mostrarToast('✨ ' + d.mensagem);
+        else this.mostrarToast('❌ ' + (d.erro||'erro'));
+        this.carregarStatus();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.tratarBusy = false; }
+    },
+    irRevisar() { window.location = '/revisar'; },
+    // 📄 Extrair texto (pré-treino) de uma pasta provisória para .txt
+    async extrairTxt(nome) {
+      if (this.estado?.rodando || this.tratarBusy) { this.mostrarToast('⏳ Há um processo em andamento.'); return; }
+      this.tratarBusy = true;
+      try {
+        const r = await fetch('/api/tratamento/extrair-txt', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({nome})
+        });
+        const d = await r.json();
+        if (d.ok) this.mostrarToast('✨ ' + d.mensagem);
+        else this.mostrarToast('❌ ' + (d.erro||'erro'));
+        this.carregarStatus();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.tratarBusy = false; }
+    },
+    // 🧼 Completar o tratamento de uma pasta 'parcial' (sanitizar/promover)
+    async tratarParcial(pasta) {
+      if (this.estado?.rodando || this.tratarBusy) { this.mostrarToast('⏳ Há um processo em andamento.'); return; }
+      this.tratarBusy = true;
+      try {
+        const r = await fetch('/api/tratamento/tratar', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({nomes:[pasta]})
+        });
+        const d = await r.json();
+        if (d.ok) { this.mostrarToast('✨ ' + d.mensagem); this.carregarTratados(); }
+        else this.mostrarToast('❌ ' + (d.erro||'erro'));
+        this.carregarStatus();
+      } catch(e) { this.mostrarToast('❌ ' + e.message); }
+      finally { this.tratarBusy = false; }
     }
   };
 }

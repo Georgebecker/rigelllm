@@ -1,15 +1,7 @@
 {
   "pastas": {
-    ".tmp.driveupload": {
-      "caminho": "dados/processed\\.tmp.driveupload",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
     "Artigo": {
-      "caminho": "dados/processed\\Artigo",
+      "caminho": "dados/processed/txt/Artigo",
       "subpastas": [],
       "arquivos": 19,
       "tamanho_total_mb": 0.09,
@@ -40,16 +32,8 @@
       "vezes_treinada": 0,
       "ultimo_treino": ""
     },
-    "canarim": {
-      "caminho": "dados/processed\\canarim",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
     "canarim_1": {
-      "caminho": "dados/processed\\canarim_1",
+      "caminho": "dados/processed/txt/canarim_1",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 1.67,
@@ -57,7 +41,7 @@
       "ultimo_treino": ""
     },
     "canarim_10": {
-      "caminho": "dados/processed\\canarim_10",
+      "caminho": "dados/processed/txt/canarim_10",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 1.77,
@@ -65,7 +49,7 @@
       "ultimo_treino": ""
     },
     "canarim_2": {
-      "caminho": "dados/processed\\canarim_2",
+      "caminho": "dados/processed/txt/canarim_2",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 1.74,
@@ -73,7 +57,7 @@
       "ultimo_treino": ""
     },
     "canarim_3": {
-      "caminho": "dados/processed\\canarim_3",
+      "caminho": "dados/processed/txt/canarim_3",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 1.77,
@@ -81,7 +65,7 @@
       "ultimo_treino": ""
     },
     "canarim_4": {
-      "caminho": "dados/processed\\canarim_4",
+      "caminho": "dados/processed/txt/canarim_4",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 1.76,
@@ -89,7 +73,7 @@
       "ultimo_treino": ""
     },
     "canarim_5": {
-      "caminho": "dados/processed\\canarim_5",
+      "caminho": "dados/processed/txt/canarim_5",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 1.73,
@@ -97,7 +81,7 @@
       "ultimo_treino": ""
     },
     "canarim_6": {
-      "caminho": "dados/processed\\canarim_6",
+      "caminho": "dados/processed/txt/canarim_6",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 1.79,
@@ -105,7 +89,7 @@
       "ultimo_treino": ""
     },
     "canarim_7": {
-      "caminho": "dados/processed\\canarim_7",
+      "caminho": "dados/processed/txt/canarim_7",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 1.73,
@@ -113,7 +97,7 @@
       "ultimo_treino": ""
     },
     "canarim_8": {
-      "caminho": "dados/processed\\canarim_8",
+      "caminho": "dados/processed/txt/canarim_8",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 1.74,
@@ -121,7 +105,7 @@
       "ultimo_treino": ""
     },
     "canarim_9": {
-      "caminho": "dados/processed\\canarim_9",
+      "caminho": "dados/processed/txt/canarim_9",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 1.79,
@@ -137,7 +121,7 @@
       "ultimo_treino": ""
     },
     "completos": {
-      "caminho": "dados/processed\\completos",
+      "caminho": "dados/processed/txt/completos",
       "subpastas": [],
       "arquivos": 33,
       "tamanho_total_mb": 0.41,
@@ -169,7 +153,7 @@
       "ultimo_treino": ""
     },
     "Cronicas": {
-      "caminho": "dados/processed\\Cronicas",
+      "caminho": "dados/processed/txt/Cronicas",
       "subpastas": [],
       "arquivos": 1,
       "tamanho_total_mb": 0.0,
@@ -177,7 +161,7 @@
       "ultimo_treino": ""
     },
     "curtos": {
-      "caminho": "dados/processed\\curtos",
+      "caminho": "dados/processed/txt/curtos",
       "subpastas": [
         ".tmp.driveupload"
       ],
@@ -186,34 +170,16 @@
       "vezes_treinada": 0,
       "ultimo_treino": ""
     },
-    "curtos2": {
-      "caminho": "dados/processed\\curtos2",
-      "subpastas": [
-        ".tmp.driveupload"
-      ],
-      "arquivos": 49964,
-      "tamanho_total_mb": 85.41,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
     "datasets": {
-      "caminho": "dados/processed\\datasets",
+      "caminho": "dados/processed/txt/datasets",
       "subpastas": [],
       "arquivos": 1259,
       "tamanho_total_mb": 0.71,
       "vezes_treinada": 0,
       "ultimo_treino": ""
     },
-    "datasets2": {
-      "caminho": "dados/processed\\datasets2",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
     "datasets2_1": {
-      "caminho": "dados/processed\\datasets2_1",
+      "caminho": "dados/processed/txt/datasets2_1",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.93,
@@ -221,7 +187,7 @@
       "ultimo_treino": ""
     },
     "datasets2_10": {
-      "caminho": "dados/processed\\datasets2_10",
+      "caminho": "dados/processed/txt/datasets2_10",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.83,
@@ -229,7 +195,7 @@
       "ultimo_treino": ""
     },
     "datasets2_100": {
-      "caminho": "dados/processed\\datasets2_100",
+      "caminho": "dados/processed/txt/datasets2_100",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.6,
@@ -237,7 +203,7 @@
       "ultimo_treino": ""
     },
     "datasets2_101": {
-      "caminho": "dados/processed\\datasets2_101",
+      "caminho": "dados/processed/txt/datasets2_101",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.64,
@@ -245,7 +211,7 @@
       "ultimo_treino": ""
     },
     "datasets2_102": {
-      "caminho": "dados/processed\\datasets2_102",
+      "caminho": "dados/processed/txt/datasets2_102",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.75,
@@ -253,7 +219,7 @@
       "ultimo_treino": ""
     },
     "datasets2_103": {
-      "caminho": "dados/processed\\datasets2_103",
+      "caminho": "dados/processed/txt/datasets2_103",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.8,
@@ -261,7 +227,7 @@
       "ultimo_treino": ""
     },
     "datasets2_104": {
-      "caminho": "dados/processed\\datasets2_104",
+      "caminho": "dados/processed/txt/datasets2_104",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.89,
@@ -269,7 +235,7 @@
       "ultimo_treino": ""
     },
     "datasets2_105": {
-      "caminho": "dados/processed\\datasets2_105",
+      "caminho": "dados/processed/txt/datasets2_105",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.8,
@@ -277,7 +243,7 @@
       "ultimo_treino": ""
     },
     "datasets2_106": {
-      "caminho": "dados/processed\\datasets2_106",
+      "caminho": "dados/processed/txt/datasets2_106",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.89,
@@ -285,7 +251,7 @@
       "ultimo_treino": ""
     },
     "datasets2_107": {
-      "caminho": "dados/processed\\datasets2_107",
+      "caminho": "dados/processed/txt/datasets2_107",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.74,
@@ -293,7 +259,7 @@
       "ultimo_treino": ""
     },
     "datasets2_108": {
-      "caminho": "dados/processed\\datasets2_108",
+      "caminho": "dados/processed/txt/datasets2_108",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.73,
@@ -301,7 +267,7 @@
       "ultimo_treino": ""
     },
     "datasets2_109": {
-      "caminho": "dados/processed\\datasets2_109",
+      "caminho": "dados/processed/txt/datasets2_109",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.81,
@@ -309,7 +275,7 @@
       "ultimo_treino": ""
     },
     "datasets2_11": {
-      "caminho": "dados/processed\\datasets2_11",
+      "caminho": "dados/processed/txt/datasets2_11",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.9,
@@ -317,7 +283,7 @@
       "ultimo_treino": ""
     },
     "datasets2_110": {
-      "caminho": "dados/processed\\datasets2_110",
+      "caminho": "dados/processed/txt/datasets2_110",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.72,
@@ -325,7 +291,7 @@
       "ultimo_treino": ""
     },
     "datasets2_111": {
-      "caminho": "dados/processed\\datasets2_111",
+      "caminho": "dados/processed/txt/datasets2_111",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.67,
@@ -333,7 +299,7 @@
       "ultimo_treino": ""
     },
     "datasets2_112": {
-      "caminho": "dados/processed\\datasets2_112",
+      "caminho": "dados/processed/txt/datasets2_112",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.66,
@@ -341,7 +307,7 @@
       "ultimo_treino": ""
     },
     "datasets2_113": {
-      "caminho": "dados/processed\\datasets2_113",
+      "caminho": "dados/processed/txt/datasets2_113",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.63,
@@ -349,7 +315,7 @@
       "ultimo_treino": ""
     },
     "datasets2_114": {
-      "caminho": "dados/processed\\datasets2_114",
+      "caminho": "dados/processed/txt/datasets2_114",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.9,
@@ -357,7 +323,7 @@
       "ultimo_treino": ""
     },
     "datasets2_115": {
-      "caminho": "dados/processed\\datasets2_115",
+      "caminho": "dados/processed/txt/datasets2_115",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.89,
@@ -365,7 +331,7 @@
       "ultimo_treino": ""
     },
     "datasets2_116": {
-      "caminho": "dados/processed\\datasets2_116",
+      "caminho": "dados/processed/txt/datasets2_116",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.87,
@@ -373,7 +339,7 @@
       "ultimo_treino": ""
     },
     "datasets2_117": {
-      "caminho": "dados/processed\\datasets2_117",
+      "caminho": "dados/processed/txt/datasets2_117",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.75,
@@ -381,7 +347,7 @@
       "ultimo_treino": ""
     },
     "datasets2_118": {
-      "caminho": "dados/processed\\datasets2_118",
+      "caminho": "dados/processed/txt/datasets2_118",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.85,
@@ -389,7 +355,7 @@
       "ultimo_treino": ""
     },
     "datasets2_119": {
-      "caminho": "dados/processed\\datasets2_119",
+      "caminho": "dados/processed/txt/datasets2_119",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.87,
@@ -397,7 +363,7 @@
       "ultimo_treino": ""
     },
     "datasets2_12": {
-      "caminho": "dados/processed\\datasets2_12",
+      "caminho": "dados/processed/txt/datasets2_12",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.71,
@@ -405,7 +371,7 @@
       "ultimo_treino": ""
     },
     "datasets2_120": {
-      "caminho": "dados/processed\\datasets2_120",
+      "caminho": "dados/processed/txt/datasets2_120",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.8,
@@ -413,7 +379,7 @@
       "ultimo_treino": ""
     },
     "datasets2_121": {
-      "caminho": "dados/processed\\datasets2_121",
+      "caminho": "dados/processed/txt/datasets2_121",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.67,
@@ -421,7 +387,7 @@
       "ultimo_treino": ""
     },
     "datasets2_122": {
-      "caminho": "dados/processed\\datasets2_122",
+      "caminho": "dados/processed/txt/datasets2_122",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.69,
@@ -429,7 +395,7 @@
       "ultimo_treino": ""
     },
     "datasets2_123": {
-      "caminho": "dados/processed\\datasets2_123",
+      "caminho": "dados/processed/txt/datasets2_123",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.71,
@@ -437,7 +403,7 @@
       "ultimo_treino": ""
     },
     "datasets2_124": {
-      "caminho": "dados/processed\\datasets2_124",
+      "caminho": "dados/processed/txt/datasets2_124",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.65,
@@ -445,7 +411,7 @@
       "ultimo_treino": ""
     },
     "datasets2_125": {
-      "caminho": "dados/processed\\datasets2_125",
+      "caminho": "dados/processed/txt/datasets2_125",
       "subpastas": [],
       "arquivos": 2508,
       "tamanho_total_mb": 1.92,
@@ -453,7 +419,7 @@
       "ultimo_treino": ""
     },
     "datasets2_13": {
-      "caminho": "dados/processed\\datasets2_13",
+      "caminho": "dados/processed/txt/datasets2_13",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.67,
@@ -461,7 +427,7 @@
       "ultimo_treino": ""
     },
     "datasets2_14": {
-      "caminho": "dados/processed\\datasets2_14",
+      "caminho": "dados/processed/txt/datasets2_14",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.72,
@@ -469,7 +435,7 @@
       "ultimo_treino": ""
     },
     "datasets2_15": {
-      "caminho": "dados/processed\\datasets2_15",
+      "caminho": "dados/processed/txt/datasets2_15",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.92,
@@ -477,7 +443,7 @@
       "ultimo_treino": ""
     },
     "datasets2_16": {
-      "caminho": "dados/processed\\datasets2_16",
+      "caminho": "dados/processed/txt/datasets2_16",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.9,
@@ -485,7 +451,7 @@
       "ultimo_treino": ""
     },
     "datasets2_17": {
-      "caminho": "dados/processed\\datasets2_17",
+      "caminho": "dados/processed/txt/datasets2_17",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.78,
@@ -493,7 +459,7 @@
       "ultimo_treino": ""
     },
     "datasets2_18": {
-      "caminho": "dados/processed\\datasets2_18",
+      "caminho": "dados/processed/txt/datasets2_18",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.9,
@@ -501,7 +467,7 @@
       "ultimo_treino": ""
     },
     "datasets2_19": {
-      "caminho": "dados/processed\\datasets2_19",
+      "caminho": "dados/processed/txt/datasets2_19",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.67,
@@ -509,7 +475,7 @@
       "ultimo_treino": ""
     },
     "datasets2_2": {
-      "caminho": "dados/processed\\datasets2_2",
+      "caminho": "dados/processed/txt/datasets2_2",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.72,
@@ -517,7 +483,7 @@
       "ultimo_treino": ""
     },
     "datasets2_20": {
-      "caminho": "dados/processed\\datasets2_20",
+      "caminho": "dados/processed/txt/datasets2_20",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.8,
@@ -525,7 +491,7 @@
       "ultimo_treino": ""
     },
     "datasets2_21": {
-      "caminho": "dados/processed\\datasets2_21",
+      "caminho": "dados/processed/txt/datasets2_21",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.63,
@@ -533,7 +499,7 @@
       "ultimo_treino": ""
     },
     "datasets2_22": {
-      "caminho": "dados/processed\\datasets2_22",
+      "caminho": "dados/processed/txt/datasets2_22",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.9,
@@ -541,7 +507,7 @@
       "ultimo_treino": ""
     },
     "datasets2_23": {
-      "caminho": "dados/processed\\datasets2_23",
+      "caminho": "dados/processed/txt/datasets2_23",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.91,
@@ -549,7 +515,7 @@
       "ultimo_treino": ""
     },
     "datasets2_24": {
-      "caminho": "dados/processed\\datasets2_24",
+      "caminho": "dados/processed/txt/datasets2_24",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.73,
@@ -557,7 +523,7 @@
       "ultimo_treino": ""
     },
     "datasets2_25": {
-      "caminho": "dados/processed\\datasets2_25",
+      "caminho": "dados/processed/txt/datasets2_25",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.81,
@@ -565,7 +531,7 @@
       "ultimo_treino": ""
     },
     "datasets2_26": {
-      "caminho": "dados/processed\\datasets2_26",
+      "caminho": "dados/processed/txt/datasets2_26",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.75,
@@ -573,7 +539,7 @@
       "ultimo_treino": ""
     },
     "datasets2_27": {
-      "caminho": "dados/processed\\datasets2_27",
+      "caminho": "dados/processed/txt/datasets2_27",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.83,
@@ -581,7 +547,7 @@
       "ultimo_treino": ""
     },
     "datasets2_28": {
-      "caminho": "dados/processed\\datasets2_28",
+      "caminho": "dados/processed/txt/datasets2_28",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.68,
@@ -589,7 +555,7 @@
       "ultimo_treino": ""
     },
     "datasets2_29": {
-      "caminho": "dados/processed\\datasets2_29",
+      "caminho": "dados/processed/txt/datasets2_29",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.71,
@@ -597,7 +563,7 @@
       "ultimo_treino": ""
     },
     "datasets2_3": {
-      "caminho": "dados/processed\\datasets2_3",
+      "caminho": "dados/processed/txt/datasets2_3",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.89,
@@ -605,7 +571,7 @@
       "ultimo_treino": ""
     },
     "datasets2_30": {
-      "caminho": "dados/processed\\datasets2_30",
+      "caminho": "dados/processed/txt/datasets2_30",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.82,
@@ -613,7 +579,7 @@
       "ultimo_treino": ""
     },
     "datasets2_31": {
-      "caminho": "dados/processed\\datasets2_31",
+      "caminho": "dados/processed/txt/datasets2_31",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.79,
@@ -621,7 +587,7 @@
       "ultimo_treino": ""
     },
     "datasets2_32": {
-      "caminho": "dados/processed\\datasets2_32",
+      "caminho": "dados/processed/txt/datasets2_32",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.92,
@@ -629,7 +595,7 @@
       "ultimo_treino": ""
     },
     "datasets2_33": {
-      "caminho": "dados/processed\\datasets2_33",
+      "caminho": "dados/processed/txt/datasets2_33",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.67,
@@ -637,7 +603,7 @@
       "ultimo_treino": ""
     },
     "datasets2_34": {
-      "caminho": "dados/processed\\datasets2_34",
+      "caminho": "dados/processed/txt/datasets2_34",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.74,
@@ -645,7 +611,7 @@
       "ultimo_treino": ""
     },
     "datasets2_35": {
-      "caminho": "dados/processed\\datasets2_35",
+      "caminho": "dados/processed/txt/datasets2_35",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.66,
@@ -653,7 +619,7 @@
       "ultimo_treino": ""
     },
     "datasets2_36": {
-      "caminho": "dados/processed\\datasets2_36",
+      "caminho": "dados/processed/txt/datasets2_36",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.84,
@@ -661,7 +627,7 @@
       "ultimo_treino": ""
     },
     "datasets2_37": {
-      "caminho": "dados/processed\\datasets2_37",
+      "caminho": "dados/processed/txt/datasets2_37",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.89,
@@ -669,7 +635,7 @@
       "ultimo_treino": ""
     },
     "datasets2_38": {
-      "caminho": "dados/processed\\datasets2_38",
+      "caminho": "dados/processed/txt/datasets2_38",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.8,
@@ -677,7 +643,7 @@
       "ultimo_treino": ""
     },
     "datasets2_39": {
-      "caminho": "dados/processed\\datasets2_39",
+      "caminho": "dados/processed/txt/datasets2_39",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.79,
@@ -685,7 +651,7 @@
       "ultimo_treino": ""
     },
     "datasets2_4": {
-      "caminho": "dados/processed\\datasets2_4",
+      "caminho": "dados/processed/txt/datasets2_4",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.74,
@@ -693,7 +659,7 @@
       "ultimo_treino": ""
     },
     "datasets2_40": {
-      "caminho": "dados/processed\\datasets2_40",
+      "caminho": "dados/processed/txt/datasets2_40",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.74,
@@ -701,7 +667,7 @@
       "ultimo_treino": ""
     },
     "datasets2_41": {
-      "caminho": "dados/processed\\datasets2_41",
+      "caminho": "dados/processed/txt/datasets2_41",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.86,
@@ -709,7 +675,7 @@
       "ultimo_treino": ""
     },
     "datasets2_42": {
-      "caminho": "dados/processed\\datasets2_42",
+      "caminho": "dados/processed/txt/datasets2_42",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.68,
@@ -717,7 +683,7 @@
       "ultimo_treino": ""
     },
     "datasets2_43": {
-      "caminho": "dados/processed\\datasets2_43",
+      "caminho": "dados/processed/txt/datasets2_43",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.67,
@@ -725,7 +691,7 @@
       "ultimo_treino": ""
     },
     "datasets2_44": {
-      "caminho": "dados/processed\\datasets2_44",
+      "caminho": "dados/processed/txt/datasets2_44",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.63,
@@ -733,7 +699,7 @@
       "ultimo_treino": ""
     },
     "datasets2_45": {
-      "caminho": "dados/processed\\datasets2_45",
+      "caminho": "dados/processed/txt/datasets2_45",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.71,
@@ -741,7 +707,7 @@
       "ultimo_treino": ""
     },
     "datasets2_46": {
-      "caminho": "dados/processed\\datasets2_46",
+      "caminho": "dados/processed/txt/datasets2_46",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.83,
@@ -749,7 +715,7 @@
       "ultimo_treino": ""
     },
     "datasets2_47": {
-      "caminho": "dados/processed\\datasets2_47",
+      "caminho": "dados/processed/txt/datasets2_47",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.87,
@@ -757,7 +723,7 @@
       "ultimo_treino": ""
     },
     "datasets2_48": {
-      "caminho": "dados/processed\\datasets2_48",
+      "caminho": "dados/processed/txt/datasets2_48",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.79,
@@ -765,7 +731,7 @@
       "ultimo_treino": ""
     },
     "datasets2_49": {
-      "caminho": "dados/processed\\datasets2_49",
+      "caminho": "dados/processed/txt/datasets2_49",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.8,
@@ -773,7 +739,7 @@
       "ultimo_treino": ""
     },
     "datasets2_5": {
-      "caminho": "dados/processed\\datasets2_5",
+      "caminho": "dados/processed/txt/datasets2_5",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.72,
@@ -781,7 +747,7 @@
       "ultimo_treino": ""
     },
     "datasets2_50": {
-      "caminho": "dados/processed\\datasets2_50",
+      "caminho": "dados/processed/txt/datasets2_50",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.62,
@@ -789,7 +755,7 @@
       "ultimo_treino": ""
     },
     "datasets2_51": {
-      "caminho": "dados/processed\\datasets2_51",
+      "caminho": "dados/processed/txt/datasets2_51",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.66,
@@ -797,7 +763,7 @@
       "ultimo_treino": ""
     },
     "datasets2_52": {
-      "caminho": "dados/processed\\datasets2_52",
+      "caminho": "dados/processed/txt/datasets2_52",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.62,
@@ -805,7 +771,7 @@
       "ultimo_treino": ""
     },
     "datasets2_53": {
-      "caminho": "dados/processed\\datasets2_53",
+      "caminho": "dados/processed/txt/datasets2_53",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.64,
@@ -813,7 +779,7 @@
       "ultimo_treino": ""
     },
     "datasets2_54": {
-      "caminho": "dados/processed\\datasets2_54",
+      "caminho": "dados/processed/txt/datasets2_54",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.56,
@@ -821,7 +787,7 @@
       "ultimo_treino": ""
     },
     "datasets2_55": {
-      "caminho": "dados/processed\\datasets2_55",
+      "caminho": "dados/processed/txt/datasets2_55",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.87,
@@ -829,7 +795,7 @@
       "ultimo_treino": ""
     },
     "datasets2_56": {
-      "caminho": "dados/processed\\datasets2_56",
+      "caminho": "dados/processed/txt/datasets2_56",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.85,
@@ -837,7 +803,7 @@
       "ultimo_treino": ""
     },
     "datasets2_57": {
-      "caminho": "dados/processed\\datasets2_57",
+      "caminho": "dados/processed/txt/datasets2_57",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.87,
@@ -845,7 +811,7 @@
       "ultimo_treino": ""
     },
     "datasets2_58": {
-      "caminho": "dados/processed\\datasets2_58",
+      "caminho": "dados/processed/txt/datasets2_58",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.74,
@@ -853,7 +819,7 @@
       "ultimo_treino": ""
     },
     "datasets2_59": {
-      "caminho": "dados/processed\\datasets2_59",
+      "caminho": "dados/processed/txt/datasets2_59",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.79,
@@ -861,7 +827,7 @@
       "ultimo_treino": ""
     },
     "datasets2_6": {
-      "caminho": "dados/processed\\datasets2_6",
+      "caminho": "dados/processed/txt/datasets2_6",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.64,
@@ -869,7 +835,7 @@
       "ultimo_treino": ""
     },
     "datasets2_60": {
-      "caminho": "dados/processed\\datasets2_60",
+      "caminho": "dados/processed/txt/datasets2_60",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.86,
@@ -877,7 +843,7 @@
       "ultimo_treino": ""
     },
     "datasets2_61": {
-      "caminho": "dados/processed\\datasets2_61",
+      "caminho": "dados/processed/txt/datasets2_61",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.72,
@@ -885,7 +851,7 @@
       "ultimo_treino": ""
     },
     "datasets2_62": {
-      "caminho": "dados/processed\\datasets2_62",
+      "caminho": "dados/processed/txt/datasets2_62",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.69,
@@ -893,7 +859,7 @@
       "ultimo_treino": ""
     },
     "datasets2_63": {
-      "caminho": "dados/processed\\datasets2_63",
+      "caminho": "dados/processed/txt/datasets2_63",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.93,
@@ -901,7 +867,7 @@
       "ultimo_treino": ""
     },
     "datasets2_64": {
-      "caminho": "dados/processed\\datasets2_64",
+      "caminho": "dados/processed/txt/datasets2_64",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.66,
@@ -909,7 +875,7 @@
       "ultimo_treino": ""
     },
     "datasets2_65": {
-      "caminho": "dados/processed\\datasets2_65",
+      "caminho": "dados/processed/txt/datasets2_65",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.68,
@@ -917,7 +883,7 @@
       "ultimo_treino": ""
     },
     "datasets2_66": {
-      "caminho": "dados/processed\\datasets2_66",
+      "caminho": "dados/processed/txt/datasets2_66",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.83,
@@ -925,7 +891,7 @@
       "ultimo_treino": ""
     },
     "datasets2_67": {
-      "caminho": "dados/processed\\datasets2_67",
+      "caminho": "dados/processed/txt/datasets2_67",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.87,
@@ -933,7 +899,7 @@
       "ultimo_treino": ""
     },
     "datasets2_68": {
-      "caminho": "dados/processed\\datasets2_68",
+      "caminho": "dados/processed/txt/datasets2_68",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.77,
@@ -941,7 +907,7 @@
       "ultimo_treino": ""
     },
     "datasets2_69": {
-      "caminho": "dados/processed\\datasets2_69",
+      "caminho": "dados/processed/txt/datasets2_69",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.85,
@@ -949,7 +915,7 @@
       "ultimo_treino": ""
     },
     "datasets2_7": {
-      "caminho": "dados/processed\\datasets2_7",
+      "caminho": "dados/processed/txt/datasets2_7",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.64,
@@ -957,7 +923,7 @@
       "ultimo_treino": ""
     },
     "datasets2_70": {
-      "caminho": "dados/processed\\datasets2_70",
+      "caminho": "dados/processed/txt/datasets2_70",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.79,
@@ -965,7 +931,7 @@
       "ultimo_treino": ""
     },
     "datasets2_71": {
-      "caminho": "dados/processed\\datasets2_71",
+      "caminho": "dados/processed/txt/datasets2_71",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.81,
@@ -973,7 +939,7 @@
       "ultimo_treino": ""
     },
     "datasets2_72": {
-      "caminho": "dados/processed\\datasets2_72",
+      "caminho": "dados/processed/txt/datasets2_72",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.84,
@@ -981,7 +947,7 @@
       "ultimo_treino": ""
     },
     "datasets2_73": {
-      "caminho": "dados/processed\\datasets2_73",
+      "caminho": "dados/processed/txt/datasets2_73",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.76,
@@ -989,7 +955,7 @@
       "ultimo_treino": ""
     },
     "datasets2_74": {
-      "caminho": "dados/processed\\datasets2_74",
+      "caminho": "dados/processed/txt/datasets2_74",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.76,
@@ -997,7 +963,7 @@
       "ultimo_treino": ""
     },
     "datasets2_75": {
-      "caminho": "dados/processed\\datasets2_75",
+      "caminho": "dados/processed/txt/datasets2_75",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.78,
@@ -1005,7 +971,7 @@
       "ultimo_treino": ""
     },
     "datasets2_76": {
-      "caminho": "dados/processed\\datasets2_76",
+      "caminho": "dados/processed/txt/datasets2_76",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.82,
@@ -1013,7 +979,7 @@
       "ultimo_treino": ""
     },
     "datasets2_77": {
-      "caminho": "dados/processed\\datasets2_77",
+      "caminho": "dados/processed/txt/datasets2_77",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.81,
@@ -1021,7 +987,7 @@
       "ultimo_treino": ""
     },
     "datasets2_78": {
-      "caminho": "dados/processed\\datasets2_78",
+      "caminho": "dados/processed/txt/datasets2_78",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.72,
@@ -1029,7 +995,7 @@
       "ultimo_treino": ""
     },
     "datasets2_79": {
-      "caminho": "dados/processed\\datasets2_79",
+      "caminho": "dados/processed/txt/datasets2_79",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.65,
@@ -1037,7 +1003,7 @@
       "ultimo_treino": ""
     },
     "datasets2_8": {
-      "caminho": "dados/processed\\datasets2_8",
+      "caminho": "dados/processed/txt/datasets2_8",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.67,
@@ -1045,7 +1011,7 @@
       "ultimo_treino": ""
     },
     "datasets2_80": {
-      "caminho": "dados/processed\\datasets2_80",
+      "caminho": "dados/processed/txt/datasets2_80",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.75,
@@ -1053,7 +1019,7 @@
       "ultimo_treino": ""
     },
     "datasets2_81": {
-      "caminho": "dados/processed\\datasets2_81",
+      "caminho": "dados/processed/txt/datasets2_81",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.8,
@@ -1061,7 +1027,7 @@
       "ultimo_treino": ""
     },
     "datasets2_82": {
-      "caminho": "dados/processed\\datasets2_82",
+      "caminho": "dados/processed/txt/datasets2_82",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.83,
@@ -1069,7 +1035,7 @@
       "ultimo_treino": ""
     },
     "datasets2_83": {
-      "caminho": "dados/processed\\datasets2_83",
+      "caminho": "dados/processed/txt/datasets2_83",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.87,
@@ -1077,7 +1043,7 @@
       "ultimo_treino": ""
     },
     "datasets2_84": {
-      "caminho": "dados/processed\\datasets2_84",
+      "caminho": "dados/processed/txt/datasets2_84",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.73,
@@ -1085,7 +1051,7 @@
       "ultimo_treino": ""
     },
     "datasets2_85": {
-      "caminho": "dados/processed\\datasets2_85",
+      "caminho": "dados/processed/txt/datasets2_85",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.6,
@@ -1093,7 +1059,7 @@
       "ultimo_treino": ""
     },
     "datasets2_86": {
-      "caminho": "dados/processed\\datasets2_86",
+      "caminho": "dados/processed/txt/datasets2_86",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.78,
@@ -1101,7 +1067,7 @@
       "ultimo_treino": ""
     },
     "datasets2_87": {
-      "caminho": "dados/processed\\datasets2_87",
+      "caminho": "dados/processed/txt/datasets2_87",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.69,
@@ -1109,7 +1075,7 @@
       "ultimo_treino": ""
     },
     "datasets2_88": {
-      "caminho": "dados/processed\\datasets2_88",
+      "caminho": "dados/processed/txt/datasets2_88",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.74,
@@ -1117,7 +1083,7 @@
       "ultimo_treino": ""
     },
     "datasets2_89": {
-      "caminho": "dados/processed\\datasets2_89",
+      "caminho": "dados/processed/txt/datasets2_89",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.5,
@@ -1125,7 +1091,7 @@
       "ultimo_treino": ""
     },
     "datasets2_9": {
-      "caminho": "dados/processed\\datasets2_9",
+      "caminho": "dados/processed/txt/datasets2_9",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.92,
@@ -1133,7 +1099,7 @@
       "ultimo_treino": ""
     },
     "datasets2_90": {
-      "caminho": "dados/processed\\datasets2_90",
+      "caminho": "dados/processed/txt/datasets2_90",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.49,
@@ -1141,7 +1107,7 @@
       "ultimo_treino": ""
     },
     "datasets2_91": {
-      "caminho": "dados/processed\\datasets2_91",
+      "caminho": "dados/processed/txt/datasets2_91",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.77,
@@ -1149,7 +1115,7 @@
       "ultimo_treino": ""
     },
     "datasets2_92": {
-      "caminho": "dados/processed\\datasets2_92",
+      "caminho": "dados/processed/txt/datasets2_92",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.73,
@@ -1157,7 +1123,7 @@
       "ultimo_treino": ""
     },
     "datasets2_93": {
-      "caminho": "dados/processed\\datasets2_93",
+      "caminho": "dados/processed/txt/datasets2_93",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.78,
@@ -1165,7 +1131,7 @@
       "ultimo_treino": ""
     },
     "datasets2_94": {
-      "caminho": "dados/processed\\datasets2_94",
+      "caminho": "dados/processed/txt/datasets2_94",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.86,
@@ -1173,7 +1139,7 @@
       "ultimo_treino": ""
     },
     "datasets2_95": {
-      "caminho": "dados/processed\\datasets2_95",
+      "caminho": "dados/processed/txt/datasets2_95",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.82,
@@ -1181,7 +1147,7 @@
       "ultimo_treino": ""
     },
     "datasets2_96": {
-      "caminho": "dados/processed\\datasets2_96",
+      "caminho": "dados/processed/txt/datasets2_96",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.81,
@@ -1189,7 +1155,7 @@
       "ultimo_treino": ""
     },
     "datasets2_97": {
-      "caminho": "dados/processed\\datasets2_97",
+      "caminho": "dados/processed/txt/datasets2_97",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.81,
@@ -1197,7 +1163,7 @@
       "ultimo_treino": ""
     },
     "datasets2_98": {
-      "caminho": "dados/processed\\datasets2_98",
+      "caminho": "dados/processed/txt/datasets2_98",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.74,
@@ -1205,7 +1171,7 @@
       "ultimo_treino": ""
     },
     "datasets2_99": {
-      "caminho": "dados/processed\\datasets2_99",
+      "caminho": "dados/processed/txt/datasets2_99",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.72,
@@ -1221,7 +1187,7 @@
       "ultimo_treino": ""
     },
     "datasets3_1": {
-      "caminho": "dados/processed\\datasets3_1",
+      "caminho": "dados/processed/txt/datasets3_1",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.45,
@@ -1229,7 +1195,7 @@
       "ultimo_treino": ""
     },
     "datasets3_10": {
-      "caminho": "dados/processed\\datasets3_10",
+      "caminho": "dados/processed/txt/datasets3_10",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.26,
@@ -1237,7 +1203,7 @@
       "ultimo_treino": ""
     },
     "datasets3_100": {
-      "caminho": "dados/processed\\datasets3_100",
+      "caminho": "dados/processed/txt/datasets3_100",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.33,
@@ -1245,7 +1211,7 @@
       "ultimo_treino": ""
     },
     "datasets3_101": {
-      "caminho": "dados/processed\\datasets3_101",
+      "caminho": "dados/processed/txt/datasets3_101",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.12,
@@ -1253,7 +1219,7 @@
       "ultimo_treino": ""
     },
     "datasets3_102": {
-      "caminho": "dados/processed\\datasets3_102",
+      "caminho": "dados/processed/txt/datasets3_102",
       "subpastas": [],
       "arquivos": 3020,
       "tamanho_total_mb": 2.68,
@@ -1261,7 +1227,7 @@
       "ultimo_treino": ""
     },
     "datasets3_11": {
-      "caminho": "dados/processed\\datasets3_11",
+      "caminho": "dados/processed/txt/datasets3_11",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.22,
@@ -1269,7 +1235,7 @@
       "ultimo_treino": ""
     },
     "datasets3_12": {
-      "caminho": "dados/processed\\datasets3_12",
+      "caminho": "dados/processed/txt/datasets3_12",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.32,
@@ -1277,7 +1243,7 @@
       "ultimo_treino": ""
     },
     "datasets3_13": {
-      "caminho": "dados/processed\\datasets3_13",
+      "caminho": "dados/processed/txt/datasets3_13",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.48,
@@ -1285,7 +1251,7 @@
       "ultimo_treino": ""
     },
     "datasets3_14": {
-      "caminho": "dados/processed\\datasets3_14",
+      "caminho": "dados/processed/txt/datasets3_14",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.41,
@@ -1293,7 +1259,7 @@
       "ultimo_treino": ""
     },
     "datasets3_15": {
-      "caminho": "dados/processed\\datasets3_15",
+      "caminho": "dados/processed/txt/datasets3_15",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.4,
@@ -1301,7 +1267,7 @@
       "ultimo_treino": ""
     },
     "datasets3_16": {
-      "caminho": "dados/processed\\datasets3_16",
+      "caminho": "dados/processed/txt/datasets3_16",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.19,
@@ -1309,7 +1275,7 @@
       "ultimo_treino": ""
     },
     "datasets3_17": {
-      "caminho": "dados/processed\\datasets3_17",
+      "caminho": "dados/processed/txt/datasets3_17",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.25,
@@ -1317,7 +1283,7 @@
       "ultimo_treino": ""
     },
     "datasets3_18": {
-      "caminho": "dados/processed\\datasets3_18",
+      "caminho": "dados/processed/txt/datasets3_18",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.47,
@@ -1325,7 +1291,7 @@
       "ultimo_treino": ""
     },
     "datasets3_19": {
-      "caminho": "dados/processed\\datasets3_19",
+      "caminho": "dados/processed/txt/datasets3_19",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.42,
@@ -1333,7 +1299,7 @@
       "ultimo_treino": ""
     },
     "datasets3_2": {
-      "caminho": "dados/processed\\datasets3_2",
+      "caminho": "dados/processed/txt/datasets3_2",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.36,
@@ -1341,7 +1307,7 @@
       "ultimo_treino": ""
     },
     "datasets3_20": {
-      "caminho": "dados/processed\\datasets3_20",
+      "caminho": "dados/processed/txt/datasets3_20",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.29,
@@ -1349,7 +1315,7 @@
       "ultimo_treino": ""
     },
     "datasets3_21": {
-      "caminho": "dados/processed\\datasets3_21",
+      "caminho": "dados/processed/txt/datasets3_21",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.35,
@@ -1357,7 +1323,7 @@
       "ultimo_treino": ""
     },
     "datasets3_22": {
-      "caminho": "dados/processed\\datasets3_22",
+      "caminho": "dados/processed/txt/datasets3_22",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.37,
@@ -1365,7 +1331,7 @@
       "ultimo_treino": ""
     },
     "datasets3_23": {
-      "caminho": "dados/processed\\datasets3_23",
+      "caminho": "dados/processed/txt/datasets3_23",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.27,
@@ -1373,7 +1339,7 @@
       "ultimo_treino": ""
     },
     "datasets3_24": {
-      "caminho": "dados/processed\\datasets3_24",
+      "caminho": "dados/processed/txt/datasets3_24",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.22,
@@ -1381,7 +1347,7 @@
       "ultimo_treino": ""
     },
     "datasets3_25": {
-      "caminho": "dados/processed\\datasets3_25",
+      "caminho": "dados/processed/txt/datasets3_25",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.35,
@@ -1389,7 +1355,7 @@
       "ultimo_treino": ""
     },
     "datasets3_26": {
-      "caminho": "dados/processed\\datasets3_26",
+      "caminho": "dados/processed/txt/datasets3_26",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.42,
@@ -1397,7 +1363,7 @@
       "ultimo_treino": ""
     },
     "datasets3_27": {
-      "caminho": "dados/processed\\datasets3_27",
+      "caminho": "dados/processed/txt/datasets3_27",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.23,
@@ -1405,7 +1371,7 @@
       "ultimo_treino": ""
     },
     "datasets3_28": {
-      "caminho": "dados/processed\\datasets3_28",
+      "caminho": "dados/processed/txt/datasets3_28",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.24,
@@ -1413,7 +1379,7 @@
       "ultimo_treino": ""
     },
     "datasets3_29": {
-      "caminho": "dados/processed\\datasets3_29",
+      "caminho": "dados/processed/txt/datasets3_29",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.26,
@@ -1421,7 +1387,7 @@
       "ultimo_treino": ""
     },
     "datasets3_3": {
-      "caminho": "dados/processed\\datasets3_3",
+      "caminho": "dados/processed/txt/datasets3_3",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.33,
@@ -1429,7 +1395,7 @@
       "ultimo_treino": ""
     },
     "datasets3_30": {
-      "caminho": "dados/processed\\datasets3_30",
+      "caminho": "dados/processed/txt/datasets3_30",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.5,
@@ -1437,7 +1403,7 @@
       "ultimo_treino": ""
     },
     "datasets3_31": {
-      "caminho": "dados/processed\\datasets3_31",
+      "caminho": "dados/processed/txt/datasets3_31",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.32,
@@ -1445,7 +1411,7 @@
       "ultimo_treino": ""
     },
     "datasets3_32": {
-      "caminho": "dados/processed\\datasets3_32",
+      "caminho": "dados/processed/txt/datasets3_32",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.34,
@@ -1453,7 +1419,7 @@
       "ultimo_treino": ""
     },
     "datasets3_33": {
-      "caminho": "dados/processed\\datasets3_33",
+      "caminho": "dados/processed/txt/datasets3_33",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.31,
@@ -1461,7 +1427,7 @@
       "ultimo_treino": ""
     },
     "datasets3_34": {
-      "caminho": "dados/processed\\datasets3_34",
+      "caminho": "dados/processed/txt/datasets3_34",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.31,
@@ -1469,7 +1435,7 @@
       "ultimo_treino": ""
     },
     "datasets3_35": {
-      "caminho": "dados/processed\\datasets3_35",
+      "caminho": "dados/processed/txt/datasets3_35",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.3,
@@ -1477,7 +1443,7 @@
       "ultimo_treino": ""
     },
     "datasets3_36": {
-      "caminho": "dados/processed\\datasets3_36",
+      "caminho": "dados/processed/txt/datasets3_36",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.17,
@@ -1485,7 +1451,7 @@
       "ultimo_treino": ""
     },
     "datasets3_37": {
-      "caminho": "dados/processed\\datasets3_37",
+      "caminho": "dados/processed/txt/datasets3_37",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.28,
@@ -1493,7 +1459,7 @@
       "ultimo_treino": ""
     },
     "datasets3_38": {
-      "caminho": "dados/processed\\datasets3_38",
+      "caminho": "dados/processed/txt/datasets3_38",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.36,
@@ -1501,7 +1467,7 @@
       "ultimo_treino": ""
     },
     "datasets3_39": {
-      "caminho": "dados/processed\\datasets3_39",
+      "caminho": "dados/processed/txt/datasets3_39",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.41,
@@ -1509,7 +1475,7 @@
       "ultimo_treino": ""
     },
     "datasets3_4": {
-      "caminho": "dados/processed\\datasets3_4",
+      "caminho": "dados/processed/txt/datasets3_4",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.32,
@@ -1517,7 +1483,7 @@
       "ultimo_treino": ""
     },
     "datasets3_40": {
-      "caminho": "dados/processed\\datasets3_40",
+      "caminho": "dados/processed/txt/datasets3_40",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.31,
@@ -1525,7 +1491,7 @@
       "ultimo_treino": ""
     },
     "datasets3_41": {
-      "caminho": "dados/processed\\datasets3_41",
+      "caminho": "dados/processed/txt/datasets3_41",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.15,
@@ -1533,7 +1499,7 @@
       "ultimo_treino": ""
     },
     "datasets3_42": {
-      "caminho": "dados/processed\\datasets3_42",
+      "caminho": "dados/processed/txt/datasets3_42",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.18,
@@ -1541,7 +1507,7 @@
       "ultimo_treino": ""
     },
     "datasets3_43": {
-      "caminho": "dados/processed\\datasets3_43",
+      "caminho": "dados/processed/txt/datasets3_43",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.32,
@@ -1549,7 +1515,7 @@
       "ultimo_treino": ""
     },
     "datasets3_44": {
-      "caminho": "dados/processed\\datasets3_44",
+      "caminho": "dados/processed/txt/datasets3_44",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 3.98,
@@ -1557,7 +1523,7 @@
       "ultimo_treino": ""
     },
     "datasets3_45": {
-      "caminho": "dados/processed\\datasets3_45",
+      "caminho": "dados/processed/txt/datasets3_45",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.42,
@@ -1565,7 +1531,7 @@
       "ultimo_treino": ""
     },
     "datasets3_46": {
-      "caminho": "dados/processed\\datasets3_46",
+      "caminho": "dados/processed/txt/datasets3_46",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.38,
@@ -1573,7 +1539,7 @@
       "ultimo_treino": ""
     },
     "datasets3_47": {
-      "caminho": "dados/processed\\datasets3_47",
+      "caminho": "dados/processed/txt/datasets3_47",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.33,
@@ -1581,7 +1547,7 @@
       "ultimo_treino": ""
     },
     "datasets3_48": {
-      "caminho": "dados/processed\\datasets3_48",
+      "caminho": "dados/processed/txt/datasets3_48",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.35,
@@ -1589,7 +1555,7 @@
       "ultimo_treino": ""
     },
     "datasets3_49": {
-      "caminho": "dados/processed\\datasets3_49",
+      "caminho": "dados/processed/txt/datasets3_49",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.38,
@@ -1597,7 +1563,7 @@
       "ultimo_treino": ""
     },
     "datasets3_5": {
-      "caminho": "dados/processed\\datasets3_5",
+      "caminho": "dados/processed/txt/datasets3_5",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.18,
@@ -1605,7 +1571,7 @@
       "ultimo_treino": ""
     },
     "datasets3_50": {
-      "caminho": "dados/processed\\datasets3_50",
+      "caminho": "dados/processed/txt/datasets3_50",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.26,
@@ -1613,7 +1579,7 @@
       "ultimo_treino": ""
     },
     "datasets3_51": {
-      "caminho": "dados/processed\\datasets3_51",
+      "caminho": "dados/processed/txt/datasets3_51",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.33,
@@ -1621,7 +1587,7 @@
       "ultimo_treino": ""
     },
     "datasets3_52": {
-      "caminho": "dados/processed\\datasets3_52",
+      "caminho": "dados/processed/txt/datasets3_52",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.39,
@@ -1629,7 +1595,7 @@
       "ultimo_treino": ""
     },
     "datasets3_53": {
-      "caminho": "dados/processed\\datasets3_53",
+      "caminho": "dados/processed/txt/datasets3_53",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.23,
@@ -1637,7 +1603,7 @@
       "ultimo_treino": ""
     },
     "datasets3_54": {
-      "caminho": "dados/processed\\datasets3_54",
+      "caminho": "dados/processed/txt/datasets3_54",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.32,
@@ -1645,7 +1611,7 @@
       "ultimo_treino": ""
     },
     "datasets3_55": {
-      "caminho": "dados/processed\\datasets3_55",
+      "caminho": "dados/processed/txt/datasets3_55",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.39,
@@ -1653,7 +1619,7 @@
       "ultimo_treino": ""
     },
     "datasets3_56": {
-      "caminho": "dados/processed\\datasets3_56",
+      "caminho": "dados/processed/txt/datasets3_56",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.35,
@@ -1661,7 +1627,7 @@
       "ultimo_treino": ""
     },
     "datasets3_57": {
-      "caminho": "dados/processed\\datasets3_57",
+      "caminho": "dados/processed/txt/datasets3_57",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.26,
@@ -1669,7 +1635,7 @@
       "ultimo_treino": ""
     },
     "datasets3_58": {
-      "caminho": "dados/processed\\datasets3_58",
+      "caminho": "dados/processed/txt/datasets3_58",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.4,
@@ -1677,7 +1643,7 @@
       "ultimo_treino": ""
     },
     "datasets3_59": {
-      "caminho": "dados/processed\\datasets3_59",
+      "caminho": "dados/processed/txt/datasets3_59",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.4,
@@ -1685,7 +1651,7 @@
       "ultimo_treino": ""
     },
     "datasets3_6": {
-      "caminho": "dados/processed\\datasets3_6",
+      "caminho": "dados/processed/txt/datasets3_6",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.1,
@@ -1693,7 +1659,7 @@
       "ultimo_treino": ""
     },
     "datasets3_60": {
-      "caminho": "dados/processed\\datasets3_60",
+      "caminho": "dados/processed/txt/datasets3_60",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.21,
@@ -1701,7 +1667,7 @@
       "ultimo_treino": ""
     },
     "datasets3_61": {
-      "caminho": "dados/processed\\datasets3_61",
+      "caminho": "dados/processed/txt/datasets3_61",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.43,
@@ -1709,7 +1675,7 @@
       "ultimo_treino": ""
     },
     "datasets3_62": {
-      "caminho": "dados/processed\\datasets3_62",
+      "caminho": "dados/processed/txt/datasets3_62",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.31,
@@ -1717,7 +1683,7 @@
       "ultimo_treino": ""
     },
     "datasets3_63": {
-      "caminho": "dados/processed\\datasets3_63",
+      "caminho": "dados/processed/txt/datasets3_63",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.29,
@@ -1725,7 +1691,7 @@
       "ultimo_treino": ""
     },
     "datasets3_64": {
-      "caminho": "dados/processed\\datasets3_64",
+      "caminho": "dados/processed/txt/datasets3_64",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.33,
@@ -1733,7 +1699,7 @@
       "ultimo_treino": ""
     },
     "datasets3_65": {
-      "caminho": "dados/processed\\datasets3_65",
+      "caminho": "dados/processed/txt/datasets3_65",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.22,
@@ -1741,7 +1707,7 @@
       "ultimo_treino": ""
     },
     "datasets3_66": {
-      "caminho": "dados/processed\\datasets3_66",
+      "caminho": "dados/processed/txt/datasets3_66",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.32,
@@ -1749,7 +1715,7 @@
       "ultimo_treino": ""
     },
     "datasets3_67": {
-      "caminho": "dados/processed\\datasets3_67",
+      "caminho": "dados/processed/txt/datasets3_67",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.36,
@@ -1757,7 +1723,7 @@
       "ultimo_treino": ""
     },
     "datasets3_68": {
-      "caminho": "dados/processed\\datasets3_68",
+      "caminho": "dados/processed/txt/datasets3_68",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.37,
@@ -1765,7 +1731,7 @@
       "ultimo_treino": ""
     },
     "datasets3_69": {
-      "caminho": "dados/processed\\datasets3_69",
+      "caminho": "dados/processed/txt/datasets3_69",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.19,
@@ -1773,7 +1739,7 @@
       "ultimo_treino": ""
     },
     "datasets3_7": {
-      "caminho": "dados/processed\\datasets3_7",
+      "caminho": "dados/processed/txt/datasets3_7",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.34,
@@ -1781,7 +1747,7 @@
       "ultimo_treino": ""
     },
     "datasets3_70": {
-      "caminho": "dados/processed\\datasets3_70",
+      "caminho": "dados/processed/txt/datasets3_70",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.26,
@@ -1789,7 +1755,7 @@
       "ultimo_treino": ""
     },
     "datasets3_71": {
-      "caminho": "dados/processed\\datasets3_71",
+      "caminho": "dados/processed/txt/datasets3_71",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.22,
@@ -1797,7 +1763,7 @@
       "ultimo_treino": ""
     },
     "datasets3_72": {
-      "caminho": "dados/processed\\datasets3_72",
+      "caminho": "dados/processed/txt/datasets3_72",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.3,
@@ -1805,7 +1771,7 @@
       "ultimo_treino": ""
     },
     "datasets3_73": {
-      "caminho": "dados/processed\\datasets3_73",
+      "caminho": "dados/processed/txt/datasets3_73",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.07,
@@ -1813,7 +1779,7 @@
       "ultimo_treino": ""
     },
     "datasets3_74": {
-      "caminho": "dados/processed\\datasets3_74",
+      "caminho": "dados/processed/txt/datasets3_74",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.15,
@@ -1821,7 +1787,7 @@
       "ultimo_treino": ""
     },
     "datasets3_75": {
-      "caminho": "dados/processed\\datasets3_75",
+      "caminho": "dados/processed/txt/datasets3_75",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.3,
@@ -1829,7 +1795,7 @@
       "ultimo_treino": ""
     },
     "datasets3_76": {
-      "caminho": "dados/processed\\datasets3_76",
+      "caminho": "dados/processed/txt/datasets3_76",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.33,
@@ -1837,7 +1803,7 @@
       "ultimo_treino": ""
     },
     "datasets3_77": {
-      "caminho": "dados/processed\\datasets3_77",
+      "caminho": "dados/processed/txt/datasets3_77",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.36,
@@ -1845,7 +1811,7 @@
       "ultimo_treino": ""
     },
     "datasets3_78": {
-      "caminho": "dados/processed\\datasets3_78",
+      "caminho": "dados/processed/txt/datasets3_78",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.43,
@@ -1853,7 +1819,7 @@
       "ultimo_treino": ""
     },
     "datasets3_79": {
-      "caminho": "dados/processed\\datasets3_79",
+      "caminho": "dados/processed/txt/datasets3_79",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.3,
@@ -1861,7 +1827,7 @@
       "ultimo_treino": ""
     },
     "datasets3_8": {
-      "caminho": "dados/processed\\datasets3_8",
+      "caminho": "dados/processed/txt/datasets3_8",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.45,
@@ -1869,7 +1835,7 @@
       "ultimo_treino": ""
     },
     "datasets3_80": {
-      "caminho": "dados/processed\\datasets3_80",
+      "caminho": "dados/processed/txt/datasets3_80",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.28,
@@ -1877,7 +1843,7 @@
       "ultimo_treino": ""
     },
     "datasets3_81": {
-      "caminho": "dados/processed\\datasets3_81",
+      "caminho": "dados/processed/txt/datasets3_81",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.22,
@@ -1885,7 +1851,7 @@
       "ultimo_treino": ""
     },
     "datasets3_82": {
-      "caminho": "dados/processed\\datasets3_82",
+      "caminho": "dados/processed/txt/datasets3_82",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.17,
@@ -1893,7 +1859,7 @@
       "ultimo_treino": ""
     },
     "datasets3_83": {
-      "caminho": "dados/processed\\datasets3_83",
+      "caminho": "dados/processed/txt/datasets3_83",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.29,
@@ -1901,7 +1867,7 @@
       "ultimo_treino": ""
     },
     "datasets3_84": {
-      "caminho": "dados/processed\\datasets3_84",
+      "caminho": "dados/processed/txt/datasets3_84",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.29,
@@ -1909,7 +1875,7 @@
       "ultimo_treino": ""
     },
     "datasets3_85": {
-      "caminho": "dados/processed\\datasets3_85",
+      "caminho": "dados/processed/txt/datasets3_85",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.41,
@@ -1917,7 +1883,7 @@
       "ultimo_treino": ""
     },
     "datasets3_86": {
-      "caminho": "dados/processed\\datasets3_86",
+      "caminho": "dados/processed/txt/datasets3_86",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.41,
@@ -1925,7 +1891,7 @@
       "ultimo_treino": ""
     },
     "datasets3_87": {
-      "caminho": "dados/processed\\datasets3_87",
+      "caminho": "dados/processed/txt/datasets3_87",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.4,
@@ -1933,7 +1899,7 @@
       "ultimo_treino": ""
     },
     "datasets3_88": {
-      "caminho": "dados/processed\\datasets3_88",
+      "caminho": "dados/processed/txt/datasets3_88",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.24,
@@ -1941,7 +1907,7 @@
       "ultimo_treino": ""
     },
     "datasets3_89": {
-      "caminho": "dados/processed\\datasets3_89",
+      "caminho": "dados/processed/txt/datasets3_89",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.36,
@@ -1949,7 +1915,7 @@
       "ultimo_treino": ""
     },
     "datasets3_9": {
-      "caminho": "dados/processed\\datasets3_9",
+      "caminho": "dados/processed/txt/datasets3_9",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.41,
@@ -1957,7 +1923,7 @@
       "ultimo_treino": ""
     },
     "datasets3_90": {
-      "caminho": "dados/processed\\datasets3_90",
+      "caminho": "dados/processed/txt/datasets3_90",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.17,
@@ -1965,7 +1931,7 @@
       "ultimo_treino": ""
     },
     "datasets3_91": {
-      "caminho": "dados/processed\\datasets3_91",
+      "caminho": "dados/processed/txt/datasets3_91",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.23,
@@ -1973,7 +1939,7 @@
       "ultimo_treino": ""
     },
     "datasets3_92": {
-      "caminho": "dados/processed\\datasets3_92",
+      "caminho": "dados/processed/txt/datasets3_92",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.25,
@@ -1981,7 +1947,7 @@
       "ultimo_treino": ""
     },
     "datasets3_93": {
-      "caminho": "dados/processed\\datasets3_93",
+      "caminho": "dados/processed/txt/datasets3_93",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.42,
@@ -1989,7 +1955,7 @@
       "ultimo_treino": ""
     },
     "datasets3_94": {
-      "caminho": "dados/processed\\datasets3_94",
+      "caminho": "dados/processed/txt/datasets3_94",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.44,
@@ -1997,7 +1963,7 @@
       "ultimo_treino": ""
     },
     "datasets3_95": {
-      "caminho": "dados/processed\\datasets3_95",
+      "caminho": "dados/processed/txt/datasets3_95",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.37,
@@ -2005,7 +1971,7 @@
       "ultimo_treino": ""
     },
     "datasets3_96": {
-      "caminho": "dados/processed\\datasets3_96",
+      "caminho": "dados/processed/txt/datasets3_96",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.34,
@@ -2013,7 +1979,7 @@
       "ultimo_treino": ""
     },
     "datasets3_97": {
-      "caminho": "dados/processed\\datasets3_97",
+      "caminho": "dados/processed/txt/datasets3_97",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.44,
@@ -2021,7 +1987,7 @@
       "ultimo_treino": ""
     },
     "datasets3_98": {
-      "caminho": "dados/processed\\datasets3_98",
+      "caminho": "dados/processed/txt/datasets3_98",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.34,
@@ -2029,7 +1995,7 @@
       "ultimo_treino": ""
     },
     "datasets3_99": {
-      "caminho": "dados/processed\\datasets3_99",
+      "caminho": "dados/processed/txt/datasets3_99",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 4.17,
@@ -2037,15 +2003,7 @@
       "ultimo_treino": ""
     },
     "Debates": {
-      "caminho": "dados/processed\\Debates",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "descartados": {
-      "caminho": "dados/processed\\descartados",
+      "caminho": "dados/processed/txt/Debates",
       "subpastas": [],
       "arquivos": 0,
       "tamanho_total_mb": 0,
@@ -2053,7 +2011,7 @@
       "ultimo_treino": ""
     },
     "Dicas": {
-      "caminho": "dados/processed\\Dicas",
+      "caminho": "dados/processed/txt/Dicas",
       "subpastas": [],
       "arquivos": 10,
       "tamanho_total_mb": 0.01,
@@ -2061,7 +2019,7 @@
       "ultimo_treino": ""
     },
     "Dicionário": {
-      "caminho": "dados/processed\\Dicionário",
+      "caminho": "dados/processed/txt/Dicionário",
       "subpastas": [],
       "arquivos": 12,
       "tamanho_total_mb": 0.01,
@@ -2112,2218 +2070,24 @@
       "vezes_treinada": 0,
       "ultimo_treino": ""
     },
-    "exploded": {
-      "caminho": "dados/processed\\exploded",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded2": {
-      "caminho": "dados/processed\\exploded2",
-      "subpastas": [
-        ".tmp.driveupload"
-      ],
-      "arquivos": 2356916,
-      "tamanho_total_mb": 3992.82,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_1": {
-      "caminho": "dados/processed\\exploded_1",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.58,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_10": {
-      "caminho": "dados/processed\\exploded_10",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.38,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_11": {
-      "caminho": "dados/processed\\exploded_11",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.48,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_12": {
-      "caminho": "dados/processed\\exploded_12",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.24,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_13": {
-      "caminho": "dados/processed\\exploded_13",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.61,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_14": {
-      "caminho": "dados/processed\\exploded_14",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.92,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_15": {
-      "caminho": "dados/processed\\exploded_15",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.3,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_16": {
-      "caminho": "dados/processed\\exploded_16",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.92,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_17": {
-      "caminho": "dados/processed\\exploded_17",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 9.16,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_18": {
-      "caminho": "dados/processed\\exploded_18",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 5.81,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_19": {
-      "caminho": "dados/processed\\exploded_19",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.74,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_2": {
-      "caminho": "dados/processed\\exploded_2",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.85,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_20": {
-      "caminho": "dados/processed\\exploded_20",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.22,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_21": {
-      "caminho": "dados/processed\\exploded_21",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.87,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_22": {
-      "caminho": "dados/processed\\exploded_22",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.99,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_23": {
-      "caminho": "dados/processed\\exploded_23",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 9.0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_24": {
-      "caminho": "dados/processed\\exploded_24",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.35,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_25": {
-      "caminho": "dados/processed\\exploded_25",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.79,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_26": {
-      "caminho": "dados/processed\\exploded_26",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.12,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_27": {
-      "caminho": "dados/processed\\exploded_27",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.69,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_28": {
-      "caminho": "dados/processed\\exploded_28",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.93,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_29": {
-      "caminho": "dados/processed\\exploded_29",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.3,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_3": {
-      "caminho": "dados/processed\\exploded_3",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.35,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_30": {
-      "caminho": "dados/processed\\exploded_30",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.17,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_31": {
-      "caminho": "dados/processed\\exploded_31",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.95,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_32": {
-      "caminho": "dados/processed\\exploded_32",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.67,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_33": {
-      "caminho": "dados/processed\\exploded_33",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.43,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_34": {
-      "caminho": "dados/processed\\exploded_34",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.67,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_35": {
-      "caminho": "dados/processed\\exploded_35",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.16,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_36": {
-      "caminho": "dados/processed\\exploded_36",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.13,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_37": {
-      "caminho": "dados/processed\\exploded_37",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.56,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_38": {
-      "caminho": "dados/processed\\exploded_38",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 9.16,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_39": {
-      "caminho": "dados/processed\\exploded_39",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.57,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_4": {
-      "caminho": "dados/processed\\exploded_4",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.27,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_40": {
-      "caminho": "dados/processed\\exploded_40",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.37,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_41": {
-      "caminho": "dados/processed\\exploded_41",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.74,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_42": {
-      "caminho": "dados/processed\\exploded_42",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 9.57,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_43": {
-      "caminho": "dados/processed\\exploded_43",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.8,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_44": {
-      "caminho": "dados/processed\\exploded_44",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.68,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_45": {
-      "caminho": "dados/processed\\exploded_45",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.32,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_46": {
-      "caminho": "dados/processed\\exploded_46",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.24,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_47": {
-      "caminho": "dados/processed\\exploded_47",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.62,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_48": {
-      "caminho": "dados/processed\\exploded_48",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.77,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_49": {
-      "caminho": "dados/processed\\exploded_49",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.38,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_5": {
-      "caminho": "dados/processed\\exploded_5",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.02,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_50": {
-      "caminho": "dados/processed\\exploded_50",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.26,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_51": {
-      "caminho": "dados/processed\\exploded_51",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.64,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_52": {
-      "caminho": "dados/processed\\exploded_52",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.16,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_53": {
-      "caminho": "dados/processed\\exploded_53",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.44,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_54": {
-      "caminho": "dados/processed\\exploded_54",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.81,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_55": {
-      "caminho": "dados/processed\\exploded_55",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.98,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_56": {
-      "caminho": "dados/processed\\exploded_56",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.02,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_57": {
-      "caminho": "dados/processed\\exploded_57",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.84,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_58": {
-      "caminho": "dados/processed\\exploded_58",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.77,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_59": {
-      "caminho": "dados/processed\\exploded_59",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.38,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_6": {
-      "caminho": "dados/processed\\exploded_6",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.3,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_60": {
-      "caminho": "dados/processed\\exploded_60",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.41,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_61": {
-      "caminho": "dados/processed\\exploded_61",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.38,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_62": {
-      "caminho": "dados/processed\\exploded_62",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 9.06,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_63": {
-      "caminho": "dados/processed\\exploded_63",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 9.12,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_64": {
-      "caminho": "dados/processed\\exploded_64",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.76,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_65": {
-      "caminho": "dados/processed\\exploded_65",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.54,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_66": {
-      "caminho": "dados/processed\\exploded_66",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.96,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_67": {
-      "caminho": "dados/processed\\exploded_67",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.04,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_68": {
-      "caminho": "dados/processed\\exploded_68",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.44,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_69": {
-      "caminho": "dados/processed\\exploded_69",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.3,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_7": {
-      "caminho": "dados/processed\\exploded_7",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.22,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_70": {
-      "caminho": "dados/processed\\exploded_70",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.39,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_71": {
-      "caminho": "dados/processed\\exploded_71",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.32,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_72": {
-      "caminho": "dados/processed\\exploded_72",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.89,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_73": {
-      "caminho": "dados/processed\\exploded_73",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.87,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_74": {
-      "caminho": "dados/processed\\exploded_74",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.61,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_75": {
-      "caminho": "dados/processed\\exploded_75",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.47,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_76": {
-      "caminho": "dados/processed\\exploded_76",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.31,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_77": {
-      "caminho": "dados/processed\\exploded_77",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 7.31,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_78": {
-      "caminho": "dados/processed\\exploded_78",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.81,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_79": {
-      "caminho": "dados/processed\\exploded_79",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.67,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_8": {
-      "caminho": "dados/processed\\exploded_8",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.48,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_80": {
-      "caminho": "dados/processed\\exploded_80",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.69,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_81": {
-      "caminho": "dados/processed\\exploded_81",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 9.0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_82": {
-      "caminho": "dados/processed\\exploded_82",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.33,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_83": {
-      "caminho": "dados/processed\\exploded_83",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 6.92,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_84": {
-      "caminho": "dados/processed\\exploded_84",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.94,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_85": {
-      "caminho": "dados/processed\\exploded_85",
-      "subpastas": [],
-      "arquivos": 1,
-      "tamanho_total_mb": 0.0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "exploded_9": {
-      "caminho": "dados/processed\\exploded_9",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 8.08,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "Fallbacks": {
-      "caminho": "dados/processed\\Fallbacks",
-      "subpastas": [],
-      "arquivos": 135,
-      "tamanho_total_mb": 0.04,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
     "Gerados_local": {
-      "caminho": "dados/processed\\Gerados_local",
+      "caminho": "dados/processed/txt/Gerados_local",
       "subpastas": [],
       "arquivos": 172,
       "tamanho_total_mb": 0.15,
       "vezes_treinada": 0,
       "ultimo_treino": ""
     },
-    "gigaverbo": {
-      "caminho": "dados/processed\\gigaverbo",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_1": {
-      "caminho": "dados/processed\\gigaverbo_1",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 4.34,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_10": {
-      "caminho": "dados/processed\\gigaverbo_10",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 4.61,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_100": {
-      "caminho": "dados/processed\\gigaverbo_100",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.59,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_101": {
-      "caminho": "dados/processed\\gigaverbo_101",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.28,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_102": {
-      "caminho": "dados/processed\\gigaverbo_102",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.75,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_103": {
-      "caminho": "dados/processed\\gigaverbo_103",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.53,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_104": {
-      "caminho": "dados/processed\\gigaverbo_104",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.55,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_105": {
-      "caminho": "dados/processed\\gigaverbo_105",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.56,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_106": {
-      "caminho": "dados/processed\\gigaverbo_106",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.55,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_107": {
-      "caminho": "dados/processed\\gigaverbo_107",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.45,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_108": {
-      "caminho": "dados/processed\\gigaverbo_108",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.57,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_109": {
-      "caminho": "dados/processed\\gigaverbo_109",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.32,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_11": {
-      "caminho": "dados/processed\\gigaverbo_11",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.14,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_110": {
-      "caminho": "dados/processed\\gigaverbo_110",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.86,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_111": {
-      "caminho": "dados/processed\\gigaverbo_111",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.47,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_112": {
-      "caminho": "dados/processed\\gigaverbo_112",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.29,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_113": {
-      "caminho": "dados/processed\\gigaverbo_113",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.48,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_114": {
-      "caminho": "dados/processed\\gigaverbo_114",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.67,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_115": {
-      "caminho": "dados/processed\\gigaverbo_115",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.37,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_116": {
-      "caminho": "dados/processed\\gigaverbo_116",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.66,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_117": {
-      "caminho": "dados/processed\\gigaverbo_117",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.64,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_118": {
-      "caminho": "dados/processed\\gigaverbo_118",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.54,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_119": {
-      "caminho": "dados/processed\\gigaverbo_119",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.47,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_12": {
-      "caminho": "dados/processed\\gigaverbo_12",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.55,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_120": {
-      "caminho": "dados/processed\\gigaverbo_120",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.41,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_121": {
-      "caminho": "dados/processed\\gigaverbo_121",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.5,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_122": {
-      "caminho": "dados/processed\\gigaverbo_122",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.55,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_123": {
-      "caminho": "dados/processed\\gigaverbo_123",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.69,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_124": {
-      "caminho": "dados/processed\\gigaverbo_124",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.66,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_125": {
-      "caminho": "dados/processed\\gigaverbo_125",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.8,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_126": {
-      "caminho": "dados/processed\\gigaverbo_126",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.37,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_127": {
-      "caminho": "dados/processed\\gigaverbo_127",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.38,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_128": {
-      "caminho": "dados/processed\\gigaverbo_128",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.45,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_129": {
-      "caminho": "dados/processed\\gigaverbo_129",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.53,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_13": {
-      "caminho": "dados/processed\\gigaverbo_13",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.61,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_130": {
-      "caminho": "dados/processed\\gigaverbo_130",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.35,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_131": {
-      "caminho": "dados/processed\\gigaverbo_131",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.56,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_132": {
-      "caminho": "dados/processed\\gigaverbo_132",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.52,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_133": {
-      "caminho": "dados/processed\\gigaverbo_133",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.6,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_134": {
-      "caminho": "dados/processed\\gigaverbo_134",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.65,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_135": {
-      "caminho": "dados/processed\\gigaverbo_135",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.43,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_136": {
-      "caminho": "dados/processed\\gigaverbo_136",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.7,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_137": {
-      "caminho": "dados/processed\\gigaverbo_137",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.64,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_138": {
-      "caminho": "dados/processed\\gigaverbo_138",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.65,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_139": {
-      "caminho": "dados/processed\\gigaverbo_139",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.33,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_14": {
-      "caminho": "dados/processed\\gigaverbo_14",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.53,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_140": {
-      "caminho": "dados/processed\\gigaverbo_140",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.52,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_141": {
-      "caminho": "dados/processed\\gigaverbo_141",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.54,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_142": {
-      "caminho": "dados/processed\\gigaverbo_142",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.42,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_143": {
-      "caminho": "dados/processed\\gigaverbo_143",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.49,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_144": {
-      "caminho": "dados/processed\\gigaverbo_144",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.57,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_145": {
-      "caminho": "dados/processed\\gigaverbo_145",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.52,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_146": {
-      "caminho": "dados/processed\\gigaverbo_146",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.66,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_147": {
-      "caminho": "dados/processed\\gigaverbo_147",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.48,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_148": {
-      "caminho": "dados/processed\\gigaverbo_148",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.57,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_149": {
-      "caminho": "dados/processed\\gigaverbo_149",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.57,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_15": {
-      "caminho": "dados/processed\\gigaverbo_15",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.6,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_150": {
-      "caminho": "dados/processed\\gigaverbo_150",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.26,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_151": {
-      "caminho": "dados/processed\\gigaverbo_151",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.45,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_152": {
-      "caminho": "dados/processed\\gigaverbo_152",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.49,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_153": {
-      "caminho": "dados/processed\\gigaverbo_153",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.5,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_154": {
-      "caminho": "dados/processed\\gigaverbo_154",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.44,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_155": {
-      "caminho": "dados/processed\\gigaverbo_155",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.36,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_156": {
-      "caminho": "dados/processed\\gigaverbo_156",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.4,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_157": {
-      "caminho": "dados/processed\\gigaverbo_157",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.65,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_158": {
-      "caminho": "dados/processed\\gigaverbo_158",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.71,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_159": {
-      "caminho": "dados/processed\\gigaverbo_159",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.51,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_16": {
-      "caminho": "dados/processed\\gigaverbo_16",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.53,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_160": {
-      "caminho": "dados/processed\\gigaverbo_160",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.5,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_161": {
-      "caminho": "dados/processed\\gigaverbo_161",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.73,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_162": {
-      "caminho": "dados/processed\\gigaverbo_162",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.42,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_163": {
-      "caminho": "dados/processed\\gigaverbo_163",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.28,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_164": {
-      "caminho": "dados/processed\\gigaverbo_164",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.52,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_165": {
-      "caminho": "dados/processed\\gigaverbo_165",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.51,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_166": {
-      "caminho": "dados/processed\\gigaverbo_166",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.56,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_167": {
-      "caminho": "dados/processed\\gigaverbo_167",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.73,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_168": {
-      "caminho": "dados/processed\\gigaverbo_168",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.62,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_169": {
-      "caminho": "dados/processed\\gigaverbo_169",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.55,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_17": {
-      "caminho": "dados/processed\\gigaverbo_17",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.57,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_170": {
-      "caminho": "dados/processed\\gigaverbo_170",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.53,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_171": {
-      "caminho": "dados/processed\\gigaverbo_171",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.42,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_172": {
-      "caminho": "dados/processed\\gigaverbo_172",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.49,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_173": {
-      "caminho": "dados/processed\\gigaverbo_173",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.44,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_174": {
-      "caminho": "dados/processed\\gigaverbo_174",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.56,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_175": {
-      "caminho": "dados/processed\\gigaverbo_175",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.6,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_176": {
-      "caminho": "dados/processed\\gigaverbo_176",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.47,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_177": {
-      "caminho": "dados/processed\\gigaverbo_177",
-      "subpastas": [],
-      "arquivos": 1687,
-      "tamanho_total_mb": 3.87,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_18": {
-      "caminho": "dados/processed\\gigaverbo_18",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.65,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_19": {
-      "caminho": "dados/processed\\gigaverbo_19",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.36,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_2": {
-      "caminho": "dados/processed\\gigaverbo_2",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 4.43,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_20": {
-      "caminho": "dados/processed\\gigaverbo_20",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.53,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_21": {
-      "caminho": "dados/processed\\gigaverbo_21",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.57,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_22": {
-      "caminho": "dados/processed\\gigaverbo_22",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.56,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_23": {
-      "caminho": "dados/processed\\gigaverbo_23",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.31,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_24": {
-      "caminho": "dados/processed\\gigaverbo_24",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.53,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_25": {
-      "caminho": "dados/processed\\gigaverbo_25",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.73,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_26": {
-      "caminho": "dados/processed\\gigaverbo_26",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.68,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_27": {
-      "caminho": "dados/processed\\gigaverbo_27",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.6,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_28": {
-      "caminho": "dados/processed\\gigaverbo_28",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.41,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_29": {
-      "caminho": "dados/processed\\gigaverbo_29",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.46,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_3": {
-      "caminho": "dados/processed\\gigaverbo_3",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 4.57,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_30": {
-      "caminho": "dados/processed\\gigaverbo_30",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.72,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_31": {
-      "caminho": "dados/processed\\gigaverbo_31",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.47,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_32": {
-      "caminho": "dados/processed\\gigaverbo_32",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.26,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_33": {
-      "caminho": "dados/processed\\gigaverbo_33",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.46,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_34": {
-      "caminho": "dados/processed\\gigaverbo_34",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.79,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_35": {
-      "caminho": "dados/processed\\gigaverbo_35",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.54,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_36": {
-      "caminho": "dados/processed\\gigaverbo_36",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.52,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_37": {
-      "caminho": "dados/processed\\gigaverbo_37",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.47,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_38": {
-      "caminho": "dados/processed\\gigaverbo_38",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.51,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_39": {
-      "caminho": "dados/processed\\gigaverbo_39",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.59,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_4": {
-      "caminho": "dados/processed\\gigaverbo_4",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 4.62,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_40": {
-      "caminho": "dados/processed\\gigaverbo_40",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.7,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_41": {
-      "caminho": "dados/processed\\gigaverbo_41",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.64,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_42": {
-      "caminho": "dados/processed\\gigaverbo_42",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.39,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_43": {
-      "caminho": "dados/processed\\gigaverbo_43",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.4,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_44": {
-      "caminho": "dados/processed\\gigaverbo_44",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.54,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_45": {
-      "caminho": "dados/processed\\gigaverbo_45",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.47,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_46": {
-      "caminho": "dados/processed\\gigaverbo_46",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.36,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_47": {
-      "caminho": "dados/processed\\gigaverbo_47",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.57,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_48": {
-      "caminho": "dados/processed\\gigaverbo_48",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.45,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_49": {
-      "caminho": "dados/processed\\gigaverbo_49",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.66,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_5": {
-      "caminho": "dados/processed\\gigaverbo_5",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 4.42,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_50": {
-      "caminho": "dados/processed\\gigaverbo_50",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.6,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_51": {
-      "caminho": "dados/processed\\gigaverbo_51",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.47,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_52": {
-      "caminho": "dados/processed\\gigaverbo_52",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.63,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_53": {
-      "caminho": "dados/processed\\gigaverbo_53",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.87,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_54": {
-      "caminho": "dados/processed\\gigaverbo_54",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.56,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_55": {
-      "caminho": "dados/processed\\gigaverbo_55",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.71,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_56": {
-      "caminho": "dados/processed\\gigaverbo_56",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.49,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_57": {
-      "caminho": "dados/processed\\gigaverbo_57",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.54,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_58": {
-      "caminho": "dados/processed\\gigaverbo_58",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.56,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_59": {
-      "caminho": "dados/processed\\gigaverbo_59",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.62,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_6": {
-      "caminho": "dados/processed\\gigaverbo_6",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 4.55,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_60": {
-      "caminho": "dados/processed\\gigaverbo_60",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.33,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_61": {
-      "caminho": "dados/processed\\gigaverbo_61",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.74,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_62": {
-      "caminho": "dados/processed\\gigaverbo_62",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.93,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_63": {
-      "caminho": "dados/processed\\gigaverbo_63",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.43,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_64": {
-      "caminho": "dados/processed\\gigaverbo_64",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.6,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_65": {
-      "caminho": "dados/processed\\gigaverbo_65",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.78,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_66": {
-      "caminho": "dados/processed\\gigaverbo_66",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.76,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_67": {
-      "caminho": "dados/processed\\gigaverbo_67",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.67,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_68": {
-      "caminho": "dados/processed\\gigaverbo_68",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.89,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_69": {
-      "caminho": "dados/processed\\gigaverbo_69",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.4,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_7": {
-      "caminho": "dados/processed\\gigaverbo_7",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 4.59,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_70": {
-      "caminho": "dados/processed\\gigaverbo_70",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.7,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_71": {
-      "caminho": "dados/processed\\gigaverbo_71",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.85,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_72": {
-      "caminho": "dados/processed\\gigaverbo_72",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.64,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_73": {
-      "caminho": "dados/processed\\gigaverbo_73",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.38,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_74": {
-      "caminho": "dados/processed\\gigaverbo_74",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.5,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_75": {
-      "caminho": "dados/processed\\gigaverbo_75",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.74,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_76": {
-      "caminho": "dados/processed\\gigaverbo_76",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.64,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_77": {
-      "caminho": "dados/processed\\gigaverbo_77",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.52,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_78": {
-      "caminho": "dados/processed\\gigaverbo_78",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.85,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_79": {
-      "caminho": "dados/processed\\gigaverbo_79",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 12.06,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_8": {
-      "caminho": "dados/processed\\gigaverbo_8",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 4.53,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_80": {
-      "caminho": "dados/processed\\gigaverbo_80",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.48,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_81": {
-      "caminho": "dados/processed\\gigaverbo_81",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.59,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_82": {
-      "caminho": "dados/processed\\gigaverbo_82",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.5,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_83": {
-      "caminho": "dados/processed\\gigaverbo_83",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.33,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_84": {
-      "caminho": "dados/processed\\gigaverbo_84",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.48,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_85": {
-      "caminho": "dados/processed\\gigaverbo_85",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.54,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_86": {
-      "caminho": "dados/processed\\gigaverbo_86",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.45,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_87": {
-      "caminho": "dados/processed\\gigaverbo_87",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.67,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_88": {
-      "caminho": "dados/processed\\gigaverbo_88",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.43,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_89": {
-      "caminho": "dados/processed\\gigaverbo_89",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.54,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_9": {
-      "caminho": "dados/processed\\gigaverbo_9",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 4.67,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_90": {
-      "caminho": "dados/processed\\gigaverbo_90",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.74,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_91": {
-      "caminho": "dados/processed\\gigaverbo_91",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.69,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_92": {
-      "caminho": "dados/processed\\gigaverbo_92",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.6,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_93": {
-      "caminho": "dados/processed\\gigaverbo_93",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.72,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_94": {
-      "caminho": "dados/processed\\gigaverbo_94",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.41,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_95": {
-      "caminho": "dados/processed\\gigaverbo_95",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.67,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_96": {
-      "caminho": "dados/processed\\gigaverbo_96",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.4,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_97": {
-      "caminho": "dados/processed\\gigaverbo_97",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.36,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_98": {
-      "caminho": "dados/processed\\gigaverbo_98",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.45,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "gigaverbo_99": {
-      "caminho": "dados/processed\\gigaverbo_99",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 11.39,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "guara": {
-      "caminho": "dados/processed\\guara",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "Iteração": {
-      "caminho": "dados/processed\\Iteração",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "legalnlp": {
-      "caminho": "dados/processed\\legalnlp",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "locais": {
-      "caminho": "dados/processed\\locais",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "logs": {
-      "caminho": "dados/processed\\logs",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
     "longos": {
-      "caminho": "dados/processed\\longos",
+      "caminho": "dados/processed/txt/longos",
       "subpastas": [],
       "arquivos": 3605,
       "tamanho_total_mb": 10.73,
       "vezes_treinada": 0,
       "ultimo_treino": ""
     },
-    "lotescorrigidos": {
-      "caminho": "dados/processed\\lotescorrigidos",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "lotescorrigidos_1": {
-      "caminho": "dados/processed\\lotescorrigidos_1",
-      "subpastas": [],
-      "arquivos": 5000,
-      "tamanho_total_mb": 3719.71,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "lotescorrigidos_2": {
-      "caminho": "dados/processed\\lotescorrigidos_2",
-      "subpastas": [],
-      "arquivos": 3324,
-      "tamanho_total_mb": 2956.69,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
     "medios": {
-      "caminho": "dados/processed\\medios",
+      "caminho": "dados/processed/txt/medios",
       "subpastas": [],
       "arquivos": 68,
       "tamanho_total_mb": 0.06,
@@ -4331,31 +2095,15 @@
       "ultimo_treino": ""
     },
     "PerguntaseRespostas": {
-      "caminho": "dados/processed\\PerguntaseRespostas",
+      "caminho": "dados/processed/txt/PerguntaseRespostas",
       "subpastas": [],
       "arquivos": 22,
       "tamanho_total_mb": 0.1,
       "vezes_treinada": 0,
       "ultimo_treino": ""
     },
-    "Poemas": {
-      "caminho": "dados/processed\\Poemas",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "processed_limpo": {
-      "caminho": "dados/processed\\processed_limpo",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
     "processed_limpo_1": {
-      "caminho": "dados/processed\\processed_limpo_1",
+      "caminho": "dados/processed/txt/processed_limpo_1",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 8.21,
@@ -4363,7 +2111,7 @@
       "ultimo_treino": ""
     },
     "processed_limpo_2": {
-      "caminho": "dados/processed\\processed_limpo_2",
+      "caminho": "dados/processed/txt/processed_limpo_2",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 8.68,
@@ -4371,7 +2119,7 @@
       "ultimo_treino": ""
     },
     "processed_limpo_3": {
-      "caminho": "dados/processed\\processed_limpo_3",
+      "caminho": "dados/processed/txt/processed_limpo_3",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 7.94,
@@ -4379,7 +2127,7 @@
       "ultimo_treino": ""
     },
     "processed_limpo_4": {
-      "caminho": "dados/processed\\processed_limpo_4",
+      "caminho": "dados/processed/txt/processed_limpo_4",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 7.08,
@@ -4387,7 +2135,7 @@
       "ultimo_treino": ""
     },
     "processed_limpo_5": {
-      "caminho": "dados/processed\\processed_limpo_5",
+      "caminho": "dados/processed/txt/processed_limpo_5",
       "subpastas": [],
       "arquivos": 977,
       "tamanho_total_mb": 1.72,
@@ -4395,7 +2143,7 @@
       "ultimo_treino": ""
     },
     "processed_lotes": {
-      "caminho": "dados/processed\\processed_lotes",
+      "caminho": "dados/processed/txt/processed_lotes",
       "subpastas": [],
       "arquivos": 784,
       "tamanho_total_mb": 269.99,
@@ -4403,7 +2151,7 @@
       "ultimo_treino": ""
     },
     "Profundo": {
-      "caminho": "dados/processed\\Profundo",
+      "caminho": "dados/processed/txt/Profundo",
       "subpastas": [],
       "arquivos": 9,
       "tamanho_total_mb": 0.04,
@@ -4411,23 +2159,15 @@
       "ultimo_treino": ""
     },
     "Receitas": {
-      "caminho": "dados/processed\\Receitas",
+      "caminho": "dados/processed/txt/Receitas",
       "subpastas": [],
       "arquivos": 8,
       "tamanho_total_mb": 0.01,
       "vezes_treinada": 0,
       "ultimo_treino": ""
     },
-    "Relatorios": {
-      "caminho": "dados/processed\\Relatorios",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
     "Resenhas": {
-      "caminho": "dados/processed\\Resenhas",
+      "caminho": "dados/processed/txt/Resenhas",
       "subpastas": [],
       "arquivos": 1,
       "tamanho_total_mb": 0.0,
@@ -4435,31 +2175,15 @@
       "ultimo_treino": ""
     },
     "resumidos": {
-      "caminho": "dados/processed\\resumidos",
+      "caminho": "dados/processed/txt/resumidos",
       "subpastas": [],
       "arquivos": 55,
       "tamanho_total_mb": 0.06,
       "vezes_treinada": 0,
       "ultimo_treino": ""
     },
-    "Saudacoes": {
-      "caminho": "dados/processed\\Saudacoes",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "tucano": {
-      "caminho": "dados/processed\\tucano",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
     "tucano_1": {
-      "caminho": "dados/processed\\tucano_1",
+      "caminho": "dados/processed/txt/tucano_1",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 7.1,
@@ -4467,7 +2191,7 @@
       "ultimo_treino": ""
     },
     "tucano_2": {
-      "caminho": "dados/processed\\tucano_2",
+      "caminho": "dados/processed/txt/tucano_2",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 7.01,
@@ -4475,7 +2199,7 @@
       "ultimo_treino": ""
     },
     "tucano_3": {
-      "caminho": "dados/processed\\tucano_3",
+      "caminho": "dados/processed/txt/tucano_3",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 7.12,
@@ -4483,7 +2207,7 @@
       "ultimo_treino": ""
     },
     "tucano_4": {
-      "caminho": "dados/processed\\tucano_4",
+      "caminho": "dados/processed/txt/tucano_4",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 7.12,
@@ -4491,7 +2215,7 @@
       "ultimo_treino": ""
     },
     "tucano_5": {
-      "caminho": "dados/processed\\tucano_5",
+      "caminho": "dados/processed/txt/tucano_5",
       "subpastas": [],
       "arquivos": 5000,
       "tamanho_total_mb": 6.99,
@@ -4499,64 +2223,20 @@
       "ultimo_treino": ""
     },
     "tucano_6": {
-      "caminho": "dados/processed\\tucano_6",
+      "caminho": "dados/processed/txt/tucano_6",
       "subpastas": [],
       "arquivos": 3700,
       "tamanho_total_mb": 5.26,
       "vezes_treinada": 0,
       "ultimo_treino": ""
     },
-    "Tutoriais": {
-      "caminho": "dados/processed\\Tutoriais",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
     "ultrachat": {
-      "caminho": "dados/processed\\ultrachat",
+      "caminho": "dados/processed/txt/ultrachat",
       "subpastas": [
         "lotescorrigidos"
       ],
       "arquivos": 8324,
       "tamanho_total_mb": 6676.4,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "ultrachat1": {
-      "caminho": "dados/processed\\ultrachat1",
-      "subpastas": [
-        "txt"
-      ],
-      "arquivos": 2352003,
-      "tamanho_total_mb": 16515.78,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "ultrachat2": {
-      "caminho": "dados/processed\\ultrachat2",
-      "subpastas": [
-        "txt"
-      ],
-      "arquivos": 1685431,
-      "tamanho_total_mb": 2621.8,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "ultratxt": {
-      "caminho": "dados/processed\\ultratxt",
-      "subpastas": [],
-      "arquivos": 7979871,
-      "tamanho_total_mb": 23146.5,
-      "vezes_treinada": 0,
-      "ultimo_treino": ""
-    },
-    "wiki": {
-      "caminho": "dados/processed\\wiki",
-      "subpastas": [],
-      "arquivos": 0,
-      "tamanho_total_mb": 0,
       "vezes_treinada": 0,
       "ultimo_treino": ""
     }

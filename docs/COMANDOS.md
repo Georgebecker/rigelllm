@@ -50,6 +50,10 @@
 | Quando precisar | Comando |
 |---|---|
 | **Sanitizar PT-BR (ABNT2)** — portão de qualidade | `python sanitizador_ptbr.py` |
+| **Tratar datasets BRUTOS automaticamente** (detecta formato messages/text/alpaca/qna, corrige mojibake, converte alpaca→messages) | `python scripts/tratar_datasets_brutos.py` (saída em `dados/tratados/`) |
+| **Validar o acervo JSONL** (JSON válido + relatório por pasta, antes de treinar) | `python scripts/validar_jsonl_acervo.py` |
+| **Gerar relatório de envio ao Google Drive** (limpas vs brutas + duplicatas) | `python scripts/gerar_relatorio_envio.py` |
+| Verificar fatos com busca (anti-fake news) | `python scripts/verificar_fatos.py` |
 | Corrigir encoding de `.txt` p/ UTF-8 | `python limpeza.py` |
 | Limpeza leve de datasets (parquet) | `python limpeza_leve_rigel_v2.py` |
 | Verificar as regras de organização | `python regras_ouro.py` |
@@ -158,5 +162,5 @@
 | O dashboard não recarrega mudanças | O `--reload` do uvicorn desta máquina não recarrega → **reinicie o servidor** |
 | Quero treinar no Colab | Copie `treino.py`, `treinar_com_jsonl.py`/`treinoparquet.py`, `tokenizer/`, `modelo/` e `dados/processed/jsonl/` para o Drive |
 | Os GGUF decodificam vazio no Ollama | Bug conhecido da lib gguf → use o **modelo PyTorch local** (`modelo.pt`) no chat |
-| Dados "sujos" vão para o treino? | Nunca — todo dado passa por sanitização (ABNT2) antes de `processed` |
+| Dados "sujos" vão para o treino? | Não. O SFT só aceita `messages` (descarta `text`/lixo) e o pré-treino só pega pastas com ≥10 `.txt` — o bruto (ex.: `brwac` com mojibake) fica PARADO e não alimenta o modelo. Antes de treinar, valide com `python scripts/validar_jsonl_acervo.py` e trate brutos com `python scripts/tratar_datasets_brutos.py` (18/08) |
 | Como ver o que cada script faz? | Leia o cabeçalho (docstring) do arquivo, ou veja o mapa no `README.md` |

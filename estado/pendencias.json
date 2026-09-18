@@ -1,0 +1,50 @@
+{
+  "atualizado_em": "2026-08-15T14:45:00",
+  "pendencias": [
+    {
+      "id": "ajuizar_fila",
+      "etapa": "tratar",
+      "prioridade": "ALTA",
+      "titulo": "✅ Textos revisados e prontos",
+      "detalhe": "Os textos gerados pela fila passaram pela revisão de qualidade: 494 aprovados e 299 com dúvida. Nada de texto duvidoso vai para o treino sem revisão.",
+      "acao_tipo": "executar",
+      "acao_comando": "avaliar_qualidade",
+      "acao_origem": "",
+      "acao_label": "⚖️ Revisar textos",
+      "feito": false
+    },
+    {
+      "id": "tratar_livros",
+      "etapa": "tratar",
+      "prioridade": "MEDIA",
+      "titulo": "✅ Material limpo e pronto",
+      "detalhe": "Nada aguardando limpeza: os livros já viraram TXT + JSONL e estão prontos para o treino. Os PDFs foram apagados (HD liberado).",
+      "acao_tipo": "navegar",
+      "acao_url": "/tratamento",
+      "acao_label": "🧹 Ver tratamento",
+      "feito": true
+    },
+    {
+      "id": "plano_treino",
+      "etapa": "treinar",
+      "prioridade": "ALTA",
+      "titulo": "🎯 Decidir como treinar",
+      "detalhe": "O treino rápido deve ser feito preferencialmente com GPU, na sua falta pode usar COLAB, caso queira deixar rodando o treinamento na CPU use o treino Local (mais demorado e custo de energia).",
+      "acao_tipo": "navegar",
+      "acao_url": "/treino_colab",
+      "acao_label": "☁️ Ver plano do treino",
+      "feito": false
+    },
+    {
+      "id": "spam_limites_log",
+      "etapa": "tratar",
+      "prioridade": "BAIXA",
+      "titulo": "✅ Registros do sistema limpos",
+      "detalhe": "Os arquivos de registro estavam repetindo a mesma informação sem parar. Agora o sistema anota uma única vez e os registros ficaram limpos.",
+      "acao_tipo": "navegar",
+      "acao_url": "/logs",
+      "acao_label": "📝 Ver registros",
+      "feito": true
+    }
+  ]
+}

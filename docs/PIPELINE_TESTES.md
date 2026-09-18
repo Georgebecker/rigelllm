@@ -78,6 +78,18 @@
 - ✅ **CORRIGIDO**: função `_sanitizar_json()` substitui `inf`/`nan` por `None` recursivamente no `get_full_status()`. Validado: `/api/system/details` → **200 em 209ms**.
 - 🛡️ **Anti-travamento de stdout**: `main.py` redireciona stdout/stderr para `logs/uvicorn_stdout.log` (worker `--reload` roda com pipe; print() sem drenagem travava) e desliga o access log do uvicorn (a visibilidade real segue no `logs/requests.log`).
 
+### NOVAS FUNCIONALIDADES (07/08 noite — Executor pipeline + geração em massa)
+- ✅ **Executor — opção "📦 TODAS as origens pendentes"**: o dropdown agora tem a opção "todos" (além das pastas individuais). O backend (`/api/executor/iniciar` com `origem="todos"`) lança `scripts/executor_pipeline.py` que roda a atividade em TODAS as origens, UMA POR VEZ, sem travar: erros pulam para a próxima, mostra % real e grava mural.
+- ✅ **Executor — "🚀 Executar todas as atividades"**: `POST /api/executor/todas-atividades` roda TODAS as atividades (sanitizar → limpeza → verificar → diagnóstico) sobre todas as origens pendentes, sequencial.
+- ✅ **Mural de resultados**: `logs/mural_pipeline.json` registra cada pipeline (nome, ok/erros/pulados, itens com comando/origem/status). Página Executor mostra o mural com botão "Limpar mural" (`/api/executor/mural`, `/api/executor/mural/limpar`).
+- ✅ **TESTADO**: pipeline `verificar_encoding --origens todos` rodou 80 origens, progresso 100%, mural gravado (erros eram do bug do verificar_encoding — corrigido abaixo).
+- ✅ **CORRIGIDO — `verificar_encoding_jsonl.py`**: agora aceita ARQUIVO .jsonl OU PASTA (antes tratava arquivo como pasta → "Pasta não encontrada"). Validado com arquivo individual: "UTF8 ok: True, U+FFFD: 0, mojibake: 0 → Amostra limpa".
+- ✅ **UNIFORMIZAÇÃO de templates/estilos (local = API)**: novo módulo `dashboard/services/templates_conteudo.py` = FONTE ÚNICA. **21 tipos** (dicionario, pergunta_resposta, iteracao, artigo, conto, dialogo_profundo, explicacao, resumo, conversa, saudacao, poema, carta, entrevista, debate, tutorial, resenha, relatorio, ensaio, cronica, receita, dica — mesmos IDs da API) e **8 estilos** (neutro, profissional, professor, especialista, casual_jovem, humoristico, poetico, informativo_jornalistico). Rotas `/api/local-generate/templates` e `/estilos` agora usam o módulo (dropdown com 21+8).
+- ✅ **GERAÇÃO EM MASSA local**: `scripts/gerar_massa_local.py` + `POST /api/local-generate/gerar-massa` + `GET /api/local-generate/massa-progresso`. Sorteia TODOS os tópicos × repetições × TODOS os templates × TODOS os estilos; faz UM, salva em `_massa/`, faz outro, salva... até a meta; depois **pós-processamento**: filtra qualidade → classifica por tipo → sanitiza → move para `dados/gerados/massa_final/<tipo>/` OU gera JSONL de treino. Progresso real em `logs/massa_progresso.json`.
+- ✅ **TESTADO (script)**: `--modelo llama3.2:1b --meta 2 --formato txt` → 2 gerados, 50%→100%, pós-processamento 2 aprovados, arquivos em `massa_final/{iteracao,receita,ensaio}/`.
+- ✅ **TESTADO (endpoint)**: `/api/local-generate/gerar-massa` lançou atividade no executor, progresso 100%, exit 0, mural registrado.
+- ✅ **UI gerar_local**: seção "⚙️ Geração em MASSA" com modelo/repetições/meta/formato + botão "🏭 Gerar em massa" + barra de percentual real.
+
 ### Dashboard (testes de botões pelo navegador, 07/08 tarde)
 - ✅ **BOM — Converter GGUF**: cliquei "Converter" (modelo_melhor.pt → Q4_K_M) → "✅ Conversão iniciada" → completou; "Criar no Ollama" → "✅ Modelo criado com sucesso!" (rigelslm, exit 0, manifest escrito).
 - ✅ **BOM — Treinamento**: página carrega com dados reais (Época 6/20, Loss 8.4517, Checkpoint ✅); "💾 Salvar configurações" → `config_recursos.json` atualizado (NUCLEOS_USO=16, WORKERS=2, BATCH=16).

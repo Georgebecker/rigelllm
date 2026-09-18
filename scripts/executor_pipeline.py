@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -55,6 +56,11 @@ COMANDOS = {
         "desc": "📊 Diagnóstico caracteres",
         "script": "scripts/diagnostico_chars.py",
         "tipo": "arquivo",
+    },
+    "converter_parquet": {
+        "desc": "📦 Converter jsonl→parquet",
+        "script": "scripts/converter_jsonl_parquet.py",
+        "tipo": "pasta",
     },
 }
 
@@ -87,11 +93,43 @@ def _carregar_historico_sanitizacao() -> list[dict]:
     return []
 
 
-def _descobrir_origens(tipo: str) -> list[Path]:
+def _pasta_nao_sft(pasta) -> bool:
+    """True se os .jsonl da pasta NÃO têm formato 'messages' (SFT) na amostra.
+    O sanitizador SFT descartaria 100% desse material → pular. Amostra até 3
+    arquivos / 2 linhas cada (barato). Cobre text, text aninhado, alpaca, etc.
+    Conservador: se não conseguir ler nenhum exemplo, retorna False (não pula)."""
+    achou_exemplo = False
+    achou_messages = False
+    try:
+        import json as _json
+        for arq in sorted(pasta.glob("*.jsonl"))[:3]:
+            with open(arq, encoding="utf-8", errors="replace") as f:
+                for _ in range(2):
+                    linha = f.readline().strip()
+                    if not linha:
+                        break
+                    try:
+                        ex = _json.loads(linha)
+                    except Exception:
+                        continue
+                    achou_exemplo = True
+                    if any(k in ex for k in ("messages", "conversations", "chat")):
+                        achou_messages = True
+                        break
+            if achou_messages:
+                break
+    except Exception:
+        pass
+    return achou_exemplo and not achou_messages
+
+
+def _descobrir_origens(tipo: str, pular_texto: bool = False) -> list[Path]:
     """Descobre origens pendentes (com .jsonl) para o tipo esperado.
 
     sanitizar/limpeza → pastas com .jsonl (pendentes = ainda não sanitizadas)
     verificar/diagnostico → arquivos .jsonl individuais (limitado aos novos)
+    pular_texto=True (sanitizar) → pula pastas de formato 'text' (pré-treino),
+    que o SFT descartaria 100% (evita tempo perdido descartando tudo).
     """
     feitas = set()
     for h in _carregar_historico_sanitizacao():
@@ -138,6 +176,25 @@ def _descobrir_origens(tipo: str) -> list[Path]:
     for chave, pasta in agrupadas.items():
         if os.path.abspath(chave) in feitas:
             continue
+        # 🔒 ANTI-RECURSÃO (correção 17/08): pastas *_sanitizado são SAÍDA da
+        # sanitização, nunca origem. Sem este filtro, cada rodada do pipeline
+        # "tudo" re-sanitizava a própria saída e criava pastas infinitas
+        # (_sanitizado_sanitizado_sanitizado... = 462 pastas duplicadas).
+        if "_sanitizado" in pasta.name:
+            continue
+        # 🔒 ANTI RE-SANITIZAÇÃO (18/08): se a origem JÁ TEM *_sanitizado
+        # correspondente em processed/jsonl, pula (já foi tratada antes).
+        # Sem isso, "sanitizar todos" reprocessava 98 origens já prontas.
+        if (PROJETO_ROOT / "dados" / "processed" / "jsonl"
+                / f"{pasta.name}_sanitizado").is_dir():
+            continue
+        # 18/08: pasta SEM formato 'messages' não serve para SFT — pular em
+        # vez de processar e descartar 100% (ex.: dominguesm_restore, brwac,
+        # ultra-alpaca). Decisão: limpeza leve p/ pré-treino ou arquivar.
+        if pular_texto and _pasta_nao_sft(pasta):
+            print(f"   [sanitizar] {pasta.name}: sem formato 'messages' "
+                  "(pre-treino/alpaca) — pulado (limpeza leve ou arquivar)")
+            continue
         pastas.append(pasta)
     pastas.sort(key=lambda x: x.name.lower())
     return pastas
@@ -149,16 +206,26 @@ def _montar_cmd(comando: str, origem: Path) -> list[str]:
     script = PROJETO_ROOT / info["script"]
     cmd = [sys.executable, "-u", str(script)]
     if info["tipo"] == "arquivo":
-        # arquivo individual: se for pasta, pega o 1º .jsonl
         alvo = origem
         if origem.is_dir():
-            jsons = sorted(origem.glob("*.jsonl"))
-            if not jsons:
-                return []
-            alvo = jsons[0]
+            if comando in ("verificar_encoding", "diagnostico_chars"):
+                pass  # scripts universais aceitam a PASTA (txt/json/parquet)
+            else:
+                jsons = sorted(origem.glob("*.jsonl"))
+                if not jsons:
+                    return []
+                alvo = jsons[0]
         cmd.append(str(alvo))
     else:
-        cmd.append(str(origem))
+        if comando == "limpeza_leve":
+            cmd += ["--origem", str(origem)]  # script exige --origem (não posicional)
+        else:
+            cmd.append(str(origem))
+    if comando == "sanitizar":
+        # staging POR ORIGEM (evita colisão de rigelsanitizadoNN entre origens
+        # e permite promover+limpar automaticamente ao final de cada uma)
+        staging = PROJETO_ROOT / "dados" / "sanitizados" / origem.name
+        cmd += ["--saida-dir", str(staging)]
     return cmd
 
 
@@ -176,6 +243,13 @@ def _rodar_um(comando: str, origem: Path, saida: dict) -> None:
     }
     saida["itens"].append(item)
     try:
+        # 🔒 ANTI-RECURSÃO (correção 17/08): nunca re-sanitizar saída de
+        # sanitização, mesmo quando a origem foi passada manualmente.
+        if comando == "sanitizar" and "_sanitizado" in Path(origem).name:
+            item["status"] = "pulado"
+            item["erro"] = "Pasta é saída de sanitização (*_sanitizado) — pulando para não duplicar."
+            print(f"⚠️ [PULADO] {comando}: {origem.name} — já é saída de sanitização")
+            return
         cmd = _montar_cmd(comando, origem)
         if not cmd:
             item["status"] = "pulado"
@@ -214,6 +288,32 @@ def _rodar_um(comando: str, origem: Path, saida: dict) -> None:
         item["erro"] = str(e)
         saida["erros"] += 1
         print(f"❌ [{comando}] {origem.name} EXCEÇÃO: {e} — pulando p/ próximo")
+
+
+def _promover_sanitizados(origem: Path) -> dict:
+    """Promove os limpos de dados/sanitizados/<origem> para
+    processed/jsonl/<origem>_sanitizado/ e apaga o staging (HD liberado —
+    regra do usuário: limpos viram treináveis e a pasta staging é limpa)."""
+    staging = PROJETO_ROOT / "dados" / "sanitizados" / origem.name
+    if not staging.exists():
+        return {"ok": False, "motivo": f"sem staging {staging.name}"}
+    gerados = sorted(staging.glob("rigelsanitizado*.jsonl"))
+    if not gerados:
+        return {"ok": False, "motivo": "nenhum rigelsanitizado gerado"}
+    destino = PROJETO_ROOT / "dados" / "processed" / "jsonl" / (origem.name + "_sanitizado")
+    destino.mkdir(parents=True, exist_ok=True)
+    movidos = 0
+    for f in gerados:
+        try:
+            shutil.move(str(f), str(destino / f.name))
+            movidos += 1
+        except Exception as e:
+            print(f"    ⚠️ erro ao mover {f.name}: {e}")
+    try:
+        shutil.rmtree(staging, ignore_errors=True)
+    except Exception:
+        pass
+    return {"ok": True, "movidos": movidos, "destino": str(destino)}
 
 
 def main() -> int:
@@ -265,7 +365,8 @@ def main() -> int:
             origens = origens_por_tipo["_fixas"]
         else:
             origens = origens_por_tipo.setdefault(
-                info["tipo"], _descobrir_origens(info["tipo"]))
+                info["tipo"], _descobrir_origens(
+                    info["tipo"], pular_texto=(comando == "sanitizar")))
         for _ in origens:
             total_planejado += 1
 
@@ -277,11 +378,22 @@ def main() -> int:
             origens = origens_por_tipo["_fixas"]
         else:
             origens = origens_por_tipo.setdefault(
-                info["tipo"], _descobrir_origens(info["tipo"]))
+                info["tipo"], _descobrir_origens(
+                    info["tipo"], pular_texto=(comando == "sanitizar")))
         print(f"\n═══════════ COMANDO: {info['desc']} ({len(origens)} origem(s)) ═══════════")
         for origem in origens:
             indice += 1
             _rodar_um(comando, origem, saida)
+            # 🚚 PROMOÇÃO AUTOMÁTICA: sanitizar → mover limpos p/ processed/jsonl
+            # e limpar o staging (HD liberado — regra do usuário)
+            if comando == "sanitizar" and saida["itens"] and \
+                    saida["itens"][-1].get("status") == "ok":
+                promo = _promover_sanitizados(origem)
+                if promo.get("ok"):
+                    print(f"   🚚 {promo['movidos']} limpos promovidos → "
+                          f"{promo['destino']} (staging limpo)")
+                else:
+                    print(f"   ⚠️ promoção: {promo.get('motivo')}")
             pct = round(indice / max(1, total_planejado) * 100)
             _gravar_progresso({
                 "pct": pct,

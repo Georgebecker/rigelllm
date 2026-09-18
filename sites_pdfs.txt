@@ -1,0 +1,101 @@
+# ============================================================================
+# SITES DE PDFs / LIVROS GRATUITOS – APENAS PORTUGUÊS DO BRASIL (PT-BR)
+# Adicione ou remova quantos quiser (um por linha). Linhas começando com # são ignoradas.
+# Uso: o scraper verifica cada site, extrai os links de PDF e baixa os livros
+#       (dica: use uma subpasta por site/categoria para não misturar acervos)
+# ⚠️ NÃO incluir fontes internacionais (acervo misto, português de Portugal).
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# BAIXELIVROS – ✅ JÁ VERIFICADO (funcionou: requests + BS4 direto)
+#   Estrutura: página de categoria lista livros; cada livro tem o botão
+#   #botaodownloadoriginal com a URL direta do PDF (parâmetro pdf=...).
+#   Exemplo de categoria: /literatura-brasileira, /dominio-publico, /acervo/<autor>
+# ----------------------------------------------------------------------------
+https://www.baixelivros.com.br/literatura-brasileira
+https://www.baixelivros.com.br/dominio-publico
+https://www.baixelivros.com.br/acervo/machado-de-assis
+https://www.baixelivros.com.br/acervo/jose-de-alencar
+https://www.baixelivros.com.br/acervo/monteiro-lobato
+
+# ----------------------------------------------------------------------------
+# DOMÍNIO PÚBLICO (MEC – governo federal) – clássicos da literatura brasileira
+#   em PDF/EPUB, 100% legal. Busca por autor/obra.
+# ----------------------------------------------------------------------------
+http://www.dominiopublico.gov.br/pesquisa/PesquisaObraForm.do
+
+# ----------------------------------------------------------------------------
+# BIBLIOTECA NACIONAL DIGITAL – obras raras e documentos históricos do Brasil
+# ----------------------------------------------------------------------------
+https://www.bn.gov.br/
+http://objdigital.bn.br/acervo_digital/
+
+# ----------------------------------------------------------------------------
+# BRASILIANA USP – obras raras digitalizadas da USP (PDF de alta qualidade)
+# ----------------------------------------------------------------------------
+https://digital.bbm.usp.br/
+https://www.brasiliana.com.br/
+
+# ----------------------------------------------------------------------------
+# LIVROS ABERTOS USP – portal de livros acadêmicos gratuitos da USP (PDF)
+# ----------------------------------------------------------------------------
+https://www.livrosabertos.sibi.usp.br/portaldelivrosUSP/
+
+# ----------------------------------------------------------------------------
+# SCIELO LIVROS – livros acadêmicos brasileiros em acesso aberto (PDF)
+# ----------------------------------------------------------------------------
+https://books.scielo.org/
+
+# ----------------------------------------------------------------------------
+# CULTURA ACADÊMICA (UNESP) – coleção de livros acadêmicos gratuitos em PDF
+# ----------------------------------------------------------------------------
+https://www.culturaacademica.com.br/
+
+# ----------------------------------------------------------------------------
+# LIVRARIA DA CÂMARA – eBooks gratuitos (PDF) da Câmara dos Deputados
+#   (os PDFs de livros do baixelivros vêm do servidor livraria-camara-leg)
+# ----------------------------------------------------------------------------
+https://livraria.camara.leg.br/
+
+# ----------------------------------------------------------------------------
+# BIBLIOTECA DIGITAL DO SENADO – publicações e obras clássicas brasileiras
+# ----------------------------------------------------------------------------
+https://www2.senado.leg.br/bdsf/
+
+# ----------------------------------------------------------------------------
+# BDTD – Biblioteca Digital Brasileira de Teses e Dissertações (PT-BR)
+# ----------------------------------------------------------------------------
+https://bdtd.ibict.br/vufind/
+
+# ----------------------------------------------------------------------------
+# BIBLIOTECA DIGITAL DA UNICAMP – teses, dissertações e obras em PDF
+# ----------------------------------------------------------------------------
+https://www.bibliotecadigital.unicamp.br/
+
+# ----------------------------------------------------------------------------
+# ENAP – publicações gratuitas da Escola Nacional de Administração Pública
+# ----------------------------------------------------------------------------
+https://repositorio.enap.gov.br/
+
+# ----------------------------------------------------------------------------
+# IPEA – livros e relatórios gratuitos do Instituto de Pesquisa Econômica Aplicada
+# ----------------------------------------------------------------------------
+https://www.ipea.gov.br/portal/publicacoes
+
+# ----------------------------------------------------------------------------
+# FIOCRUZ – livros de saúde pública em acesso aberto (PDF)
+#   Obs.: publica na plataforma SciELO Livros (já listada acima)
+# ----------------------------------------------------------------------------
+https://portal.fiocruz.br/
+
+# ----------------------------------------------------------------------------
+# BIBLIOTECA DO IBGE – publicações e periódicos do IBGE em PDF
+# ----------------------------------------------------------------------------
+https://biblioteca.ibge.gov.br/
+
+# ----------------------------------------------------------------------------
+# OUTROS CANDIDATOS BR (verificar estrutura antes de automatizar)
+#   Muitos têm anti-bot (Cloudflare) ou exigem cliques — avaliar um a um
+# ----------------------------------------------------------------------------
+https://www.planetapdf.com.br/
+https://www.livrosgratis.com.br/

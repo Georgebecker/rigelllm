@@ -31,7 +31,43 @@
     </div>
   </div>
 
-  <!-- 🗂️ Resumo dos datasets disponíveis -->
+  <!-- � ÚLTIMO TREINO (local ou Colab) — registro consolidado trazido com o modelo -->
+  <div x-show="registro" class="mb-4 bg-zinc-900 rounded-2xl p-4 md:p-5 border border-sky-600/20">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-sm font-semibold flex items-center gap-2">
+        📋 Último treino
+        <span class="text-[10px] px-2 py-0.5 rounded-full"
+              :class="registro?.origem==='colab' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-sky-500/20 text-sky-300'"
+              x-text="registro?.origem==='colab' ? '☁️ no Colab' : '💻 local'"></span>
+      </h3>
+      <span class="text-[10px] text-zinc-500" x-text="registro?.data ? new Date(registro.data).toLocaleString() : ''"></span>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="bg-zinc-800/60 rounded-xl p-3">
+        <p class="text-[10px] text-zinc-500">🧠 Nível do modelo</p>
+        <p class="text-lg font-bold" :class="(registro?.nivel_modelo_pct||0) >= 60 ? 'text-emerald-400' : 'text-amber-400'" x-text="(registro?.nivel_modelo_pct ?? '—') + '%'"></p>
+      </div>
+      <div class="bg-zinc-800/60 rounded-xl p-3">
+        <p class="text-[10px] text-zinc-500">📚 Arquivos treinados</p>
+        <p class="text-lg font-bold" x-text="registro?.total_arquivos ?? '—'"></p>
+        <p class="text-[10px] text-zinc-600" x-text="registro?.epochs ? registro.epochs + ' época(s)' : ''"></p>
+      </div>
+      <div class="bg-zinc-800/60 rounded-xl p-3">
+        <p class="text-[10px] text-zinc-500">📉 Melhor loss</p>
+        <p class="text-lg font-bold text-yellow-300" x-text="registro?.best_val_loss ?? '—'"></p>
+      </div>
+      <div class="bg-zinc-800/60 rounded-xl p-3">
+        <p class="text-[10px] text-zinc-500">📁 Dataset(s)</p>
+        <p class="text-lg font-bold" x-text="Object.keys(registro?.datasets || {}).length || '—'"></p>
+        <p class="text-[10px] text-zinc-600 truncate" x-text="Object.keys(registro?.datasets || {}).slice(0,2).join(', ')"></p>
+      </div>
+    </div>
+    <p class="text-[10px] text-zinc-600 mt-2">
+      💡 Este registro veio com o modelo (pasta <code class="text-sky-400">modelo/</code>). Se você treinou no Colab e trouxe o modelo para cá, os dados acima mostram o que já foi treinado — use junto com as bandeiras (⚫⚪🟡🔴) abaixo para escolher o que treinar de novo.
+    </p>
+  </div>
+
+  <!-- �🗂️ Resumo dos datasets disponíveis -->
   <div class="mb-4 bg-zinc-900 rounded-2xl p-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-zinc-400">
     <span>🗂️ <b class="text-zinc-200" x-text="datasets.length"></b> dataset(s)</span>
     <span>📄 <b class="text-zinc-200" x-text="totalArquivos"></b> arquivo(s) no total</span>
@@ -315,6 +351,7 @@ function treinoLocalState() {
     backups: [], backupFazendo: false,
     mostrarRecuperar: false, restaurarSel: '', confirmarTexto: '',
     scan: null, scanPoll: null,
+    registro: null,   // 📋 último treino (local/Colab) — modelo/registro_treino.json
     filaModo: 'arquivo', filaHoras: 8, filaEpocas: 5, fila: {}, pularTreinados: 0, forcar: false,
 
     get mensagensVisiveis() { return this.mensagens.slice(-300); },
@@ -341,7 +378,17 @@ function treinoLocalState() {
       console.log("[TREINO LOCAL] Inicializando...");
       this.carregarDatasets();
       this.carregarBackups();
+      this.carregarRegistro();
       setInterval(()=>this.carregarStatus(), 2000);
+    },
+
+    // 📋 Último treino (local ou Colab) — lido de modelo/registro_treino.json
+    async carregarRegistro() {
+      try {
+        const r = await fetch('/api/registro-treino');
+        const d = await r.json();
+        this.registro = d.existe ? (d.registro || null) : null;
+      } catch(e) { console.warn('[TREINO LOCAL] registro:', e); }
     },
 
     async lerEstrutura() {

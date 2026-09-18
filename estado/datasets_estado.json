@@ -1,19 +1,32 @@
 {
   "rodando": false,
-  "repo": "nelsondiasandre/portuguese-qa-instruct-500",
-  "etapa": "aviso",
-  "mensagem": "⚠️ Dataset PRÉ-TREINO (formato 'text', sem messages) — NÃO serve para treino SFT (treinar_com_jsonl). Use treino.py (causal) ou escolha um dataset de conversas com 'messages'/'conversations'.",
-  "percentual": 100,
-  "inicio": "2026-08-07T17:53:16.750971",
-  "fim": "2026-08-07T17:53:20.207503",
-  "total_exemplos": 400,
-  "total_arquivos": 1,
+  "repo": null,
+  "etapa": "erro",
+  "mensagem": "❌ Explosão gerou 0 exemplos",
+  "percentual": null,
+  "inicio": null,
+  "fim": "2026-08-18T15:25:54.479981",
+  "total_exemplos": 0,
+  "total_arquivos": 0,
   "total_pastas": 1,
-  "erro": null,
-  "diagnostico": null,
+  "erro": "limpeza leve v2 falhou (código 1):  100.0% | 45001 lidos | SFT=45000 | 1181.4s\n  ⏳ 100.0% | 45001 lidos | SFT=45000 Pretrain=0 desc=1 | flush\n⏳  98.9% | 45500 lidos | SFT=45000 | 1196.3s\n  ⏳  98.9% | 45500 lidos | SFT=45000 Pretrain=0\n",
+  "diagnostico": {
+    "tipo": "instrucao",
+    "motivo": "Dataset usa formato de instrução (prompt/instruction), não messages de conversa.",
+    "sugestao": "Ajuste o normalizador para este formato ou escolha dataset com messages.",
+    "chaves_amostra": [
+      "prompt",
+      "thought",
+      "answer"
+    ],
+    "linhas_amostradas": 50,
+    "distribuicao": {
+      "instrucao": 50
+    },
+    "dataset": "rigeljsonl_20260818_1416"
+  },
   "tratado_exemplos": 0,
   "limpos_origens": 0,
-  "tratamento": "nenhum",
-  "travado": false,
-  "saida_dir": "D:\\Projetos\\rigelllm\\dados\\gerados\\jsonl\\rigeljsonl_20260807_1753"
+  "tratamento": null,
+  "travado": false
 }

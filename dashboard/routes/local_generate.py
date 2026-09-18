@@ -33,6 +33,47 @@ def pesquisa_status():
     return {"disponivel": verificar_disponivel()}
 
 
+# ─── Fonte de temas: categories.py (categorias/amostra) + RSS ───
+
+@router.get("/categorias")
+def listar_categorias_gerador():
+    """Lista as categorias do categories.py com contagem de assuntos (seletor)."""
+    try:
+        from dashboard.services.gerador_categorias import listar_categorias, contar_assuntos
+        return {"categorias": listar_categorias(), "total": contar_assuntos()}
+    except Exception as e:
+        return JSONResponse({"erro": str(e)}, status_code=500)
+
+
+@router.get("/categorias/amostra")
+def amostra_categorias_gerador(categoria: str = "", n: int = 5):
+    """Amostra de perguntas de uma categoria (prévia no dashboard)."""
+    try:
+        from dashboard.services.gerador_categorias import amostra_perguntas, listar_categorias
+        n = max(1, min(int(n or 5), 20))
+        if categoria:
+            return {"categoria": categoria, "perguntas": amostra_perguntas(categoria, n)}
+        # sem categoria: amostra de várias categorias
+        out = []
+        for c in listar_categorias()[:8]:
+            for p in amostra_perguntas(c["id"], 2):
+                out.append(p)
+        return {"categoria": "", "perguntas": out}
+    except Exception as e:
+        return JSONResponse({"erro": str(e)}, status_code=500)
+
+
+@router.get("/rss-titulos")
+def listar_titulos_rss(limite: int = 50, forcar: bool = False):
+    """Títulos RSS disponíveis (cache 6h ou fetch ao vivo) p/ o modo 📰."""
+    try:
+        from dashboard.services.gerador_categorias import carregar_titulos_rss
+        titulos = carregar_titulos_rss(limite=None, forcar=bool(forcar))
+        return {"titulos": titulos[:limite] if limite else titulos, "total": len(titulos)}
+    except Exception as e:
+        return JSONResponse({"erro": str(e)}, status_code=500)
+
+
 # ─── Auto-Filtro de Qualidade ───
 
 PALAVRAS_INVENTADAS = [
@@ -324,16 +365,43 @@ def listar_templates():
     }
 
 
+# Modelos conversacionais gerais têm PRIORIDADE na lista de geração — o
+# padrão (primeiro) NUNCA é o modelo treinado do Rigel nem o DeepSeek
+# (o DeepSeek é para ajuizar/limpar; o Rigel é o resultado do treino).
+_MODELOS_PREFERIDOS = [
+    "llama3.2:3b", "gemma2:2b", "qwen2.5:3b", "llama3.2:1b",
+    "phi3:mini", "tinyllama:1.1b", "llama3.2", "gemma2",
+]
+
+
+def _ordenar_modelos_para_geracao(modelos: list) -> list:
+    """Ordena: gerais (preferidos) primeiro, outros no meio, rigel/deepseek
+    por último — o padrão da geração nunca é o modelo treinado do Rigel."""
+    def _chave(m: str):
+        nome = (m or "").lower()
+        base = nome.split(":")[0].strip()
+        if "rigel" in nome or "deepseek" in nome:
+            return (2, nome)  # fim da lista
+        for i, pref in enumerate(_MODELOS_PREFERIDOS):
+            pbase = pref.split(":")[0].lower()
+            if nome == pref or (base == pbase and nome.startswith(pref)):
+                return (0, i)  # gerais primeiro, na ordem preferida
+        return (1, nome)  # outros no meio
+    return sorted(modelos, key=_chave)
+
+
 @router.get("/modelos")
 async def listar_modelos():
-    """Lista modelos disponíveis no Ollama."""
+    """Lista modelos disponíveis no Ollama, ordenados para geração: os
+    conversacionais gerais vêm primeiro (padrão); rigel/deepseek ficam
+    por último (são para outras tarefas — ajuizar/limpar/treinar)."""
     try:
         async with httpx.AsyncClient(timeout=3.0) as client:
             resp = await client.get(f"{OLLAMA_URL}/api/tags")
             if resp.status_code == 200:
                 data = resp.json()
                 modelos = [m["name"] for m in data.get("models", [])]
-                return {"modelos": modelos, "online": True}
+                return {"modelos": _ordenar_modelos_para_geracao(modelos), "online": True}
     except Exception:
         pass
     return {"modelos": [], "online": False}

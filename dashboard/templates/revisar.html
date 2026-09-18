@@ -1,0 +1,566 @@
+{% extends "base.html" %}
+{% block title %}Revisão de textos suspeitos{% endblock %}
+{% block content %}
+<div x-data="revisaoState()" x-cloak>
+  <h2 class="text-2xl md:text-4xl font-bold mb-1">🔍 Revisão de textos</h2>
+  <p class="text-zinc-500 text-sm mb-4">
+    Aqui estão os textos que o sistema marcou como <b class="text-amber-400">suspeitos</b> na revisão de qualidade.
+    Leia cada um e decida: <b class="text-emerald-400">✅ aprovar</b> (vai para o treino) ou
+    <b class="text-red-400">❌ descartar</b> (fica guardado fora do treino — nada é apagado).
+  </p>
+
+  <!-- Resumo -->
+  <div class="flex flex-wrap gap-2 mb-4 text-xs">
+    <span class="px-3 py-1 rounded-full bg-amber-500/15 text-amber-300" x-text="'🟡 ' + total + ' texto(s) suspeito(s) para revisar'"></span>
+    <span class="px-3 py-1 rounded-full bg-zinc-800 text-zinc-400" x-text="pastas.length + ' pasta(s)'"></span>
+    <button @click="carregar()" title="Atualizar a lista de suspeitos"
+            class="px-3 py-1 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300">
+      <i class="fa-solid fa-rotate" :class="carregando ? 'fa-spin' : ''"></i> Atualizar
+    </button>
+  </div>
+
+  <!-- 🧹 Sanitizar tudo (antes do juiz) -->
+  <div class="mb-4 bg-zinc-900 rounded-2xl p-4 border border-emerald-600/30">
+    <div class="flex items-start justify-between gap-3 flex-wrap">
+      <div class="min-w-0">
+        <p class="text-sm font-bold text-emerald-300">🧹 Limpar tudo</p>
+        <p class="text-[11px] text-zinc-500 mt-0.5 leading-relaxed">
+          Roda <b>TODAS</b> as ferramentas de limpeza nos textos pendentes
+          <b>antes</b> do juiz: códigos estranhos (ANSI), letras quebradas
+          (mojibake), caracteres fora do português (ABNT), palavras grudadas,
+          emojis e espaços em branco. Só depois disso o juiz analisa.
+        </p>
+      </div>
+      <div class="flex gap-2 flex-wrap shrink-0">
+        <button @click="sanitizarTudo()" :disabled="sanitizando || total === 0"
+                title="Aplicar todas as ferramentas de limpeza nos textos pendentes"
+                class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-4 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+          <i class="fa-solid fa-broom" :class="sanitizando ? 'fa-spin' : ''"></i>
+          <span x-text="sanitizando ? 'Limpando...' : 'Sanitizar tudo'"></span>
+        </button>
+        <button @click="aprovarTodos()" :disabled="processando || total === 0"
+                title="Aprovar TODOS os textos de uma vez — vão direto para o treino, sem passar pelo juiz (pede confirmação)"
+                class="bg-emerald-500 hover:bg-emerald-400 text-emerald-950 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+          <i class="fa-solid fa-check-double" :class="processando ? 'fa-spin' : ''"></i>
+          Aprovar todos
+        </button>
+      </div>
+    </div>
+    <!-- 🔄 Transformar (TXT → JSONL → PARQUET) -->
+    <div class="mt-3 pt-3 border-t border-zinc-800 flex items-center gap-2 flex-wrap">
+      <span class="text-[10px] text-zinc-500">Transformar aprovados:</span>
+      <button @click="transformar('jsonl')" :disabled="transferindo || total === 0"
+              title="Converte os TXT aprovados para JSONL (processed/JSONL/rigel<data_hora>)"
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+        <i class="fa-solid fa-file-code" :class="transferindo === 'jsonl' ? 'fa-spin' : ''"></i>
+        Tudo em JSONL
+      </button>
+      <button @click="transformar('parquet')" :disabled="transferindo || total === 0"
+              title="Converte os JSONL para PARQUET (processed/PARQUET/rigel<data_hora>)"
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+        <i class="fa-solid fa-database" :class="transferindo === 'parquet' ? 'fa-spin' : ''"></i>
+        Tudo em PARQUET
+      </button>
+    </div>
+    <div x-show="transferindo || transfPct > 0" class="mt-2">
+      <div class="flex justify-between text-[10px] text-zinc-500 mb-1">
+        <span x-text="transfAtual || ''"></span>
+        <span class="font-bold text-sky-300" x-text="transfPct + '%'"></span>
+      </div>
+      <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-sky-500 to-indigo-500 transition-all duration-500"
+             :style="'width:' + (transfPct || 0) + '%'"></div>
+      </div>
+      <p class="text-[10px] text-zinc-500 mt-1" x-text="transfResumo || ''"></p>
+    </div>
+    <!-- Barra de progresso da limpeza -->
+    <div x-show="sanitizando || sanPct > 0" class="mt-3">
+      <div class="flex justify-between text-[10px] text-zinc-500 mb-1">
+        <span x-text="sanAtual || ''"></span>
+        <span class="font-bold text-emerald-300" x-text="sanPct + '%'"></span>
+      </div>
+      <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
+             :style="'width:' + (sanPct || 0) + '%'"></div>
+      </div>
+      <p class="text-[10px] text-zinc-500 mt-1" x-text="sanResumo || ''"></p>
+    </div>
+    <p x-show="sanMsg" class="text-[11px] mt-2 px-3 py-2 rounded-lg"
+       :class="sanMsgOk ? 'bg-emerald-600/10 text-emerald-300' : 'bg-red-600/10 text-red-300'"
+       x-text="sanMsg"></p>
+  </div>
+
+  <!-- ⚖️ Verificar com o Juiz (deepseek) -->
+  <div class="mb-4 bg-zinc-900 rounded-2xl p-4 border border-sky-600/30">
+    <div class="flex items-start justify-between gap-3 flex-wrap">
+      <div class="min-w-0">
+        <p class="text-sm font-bold text-sky-300">⚖️ Verificar com o Juiz</p>
+        <p class="text-[11px] text-zinc-500 mt-0.5 leading-relaxed">
+          O juiz (deepseek-r1:7b) lê todos os suspeitos e separa:
+          ✅ os bons vão para o treino, ❌ os sem sentido são arquivados,
+          🟡 só ficam para você os que ele confirmar como suspeitos.
+          <b class="text-amber-400">Pode demorar bastante em CPU.</b>
+        </p>
+      </div>
+      <button @click="iniciarJuiz()" :disabled="juizRodando || total === 0"
+              title="Rodar o juiz deepseek em todos os suspeitos pendentes"
+              class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 px-4 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed shrink-0">
+        <i class="fa-solid fa-scale-balanced" :class="juizRodando ? 'fa-spin' : ''"></i>
+        <span x-text="juizRodando ? 'Juiz analisando...' : '⚖️ Verificar todos'"></span>
+      </button>
+    </div>
+    <!-- Barra de progresso do juiz -->
+    <div x-show="juizRodando || juizPct > 0" class="mt-3">
+      <div class="flex justify-between text-[10px] text-zinc-500 mb-1">
+        <span x-text="juizAtual || ''"></span>
+        <span class="font-bold text-sky-300" x-text="juizPct + '%'"></span>
+      </div>
+      <div class="h-2 bg-zinc-800 rounded-full overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-sky-500 to-emerald-500 transition-all duration-500"
+             :style="'width:' + (juizPct || 0) + '%'"></div>
+      </div>
+      <p class="text-[10px] text-zinc-500 mt-1" x-text="juizResumo || ''"></p>
+    </div>
+    <!-- ⏸️ ▶️ ⏹️ Controle do juiz -->
+    <div x-show="juizRodando" class="mt-3 flex gap-2 flex-wrap">
+      <button @click="pausarJuiz()" x-show="!juizPausado"
+              title="Pausar o juiz (ele continua de onde parou ao retomar)"
+              class="bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5">
+        <i class="fa-solid fa-pause"></i> Pausar
+      </button>
+      <button @click="retomarJuiz()" x-show="juizPausado"
+              title="Retomar o juiz de onde ele parou"
+              class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5">
+        <i class="fa-solid fa-play"></i> Retomar
+      </button>
+      <button @click="pararJuiz()"
+              title="Parar o juiz agora (o que já foi feito fica salvo)"
+              class="bg-red-600/20 hover:bg-red-600/30 text-red-300 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5">
+        <i class="fa-solid fa-stop"></i> Parar
+      </button>
+    </div>
+    <p x-show="juizMsg" class="text-[11px] mt-2 px-3 py-2 rounded-lg"
+       :class="juizMsgOk ? 'bg-emerald-600/10 text-emerald-300' : 'bg-red-600/10 text-red-300'"
+       x-text="juizMsg"></p>
+  </div>
+
+  <!-- Seleção de pasta -->
+  <div x-show="pastas.length" class="flex flex-wrap gap-2 mb-4">
+    <template x-for="p in pastas" :key="p.pasta">
+      <button @click="selecionarPasta(p.pasta)"
+              :class="pastaSel === p.pasta ? 'bg-amber-600/30 text-amber-200 border-amber-500/50' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border-transparent'"
+              class="px-3 py-1.5 rounded-xl text-xs font-medium border"
+              :title="'Ver os ' + p.total + ' suspeitos de ' + p.pasta">
+        <span x-text="p.pasta"></span>
+        <span class="ml-1.5 text-amber-400 font-bold" x-text="'(' + p.total + ')'"></span>
+      </button>
+    </template>
+  </div>
+
+  <!-- Lista de arquivos suspeitos (paginada: 40 por vez) -->
+  <div x-show="itens.length" class="space-y-2">
+    <p class="text-[10px] text-zinc-600 mb-1" x-text="'Mostrando ' + itensVisiveis.length + ' de ' + itens.length + ' · ' + (itens.length - itensVisiveis.length) + ' ainda por revisar'"></p>
+    <template x-for="it in itensVisiveis" :key="it.caminho">
+      <div class="bg-zinc-900 rounded-2xl border border-amber-600/30 p-4">
+        <div class="flex items-start justify-between gap-3 flex-wrap">
+          <div class="min-w-0">
+            <p class="font-mono text-xs text-amber-300" x-text="it.arquivo"></p>
+            <p class="text-[10px] text-zinc-500 mt-0.5 truncate" x-text="it.caminho"></p>
+            <p class="text-[10px] text-zinc-600 mt-0.5" x-text="(it.existe ? 'arquivo disponível' : '⚠️ arquivo não encontrado') + (it.juiz ? ' · analisado pelo juiz' : '')"></p>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0 flex-wrap">
+            <button @click="verConteudo(it)" title="Ler o texto antes de decidir"
+                    class="bg-zinc-800 hover:bg-zinc-700 text-sky-300 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-book-open"></i> Ler
+            </button>
+            <button @click="verificarFatos(it)" :disabled="verificando === it.caminho"
+                    title="🔎 Verificar os fatos na internet (pega resposta fake/invenção do modelo)"
+                    class="bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 disabled:opacity-50">
+              <i class="fa-solid fa-magnifying-glass" :class="verificando === it.caminho ? 'fa-spin' : ''"></i>
+              <span x-text="verificando === it.caminho ? 'Buscando...' : 'Verificar fatos'"></span>
+            </button>
+            <button @click="aprovar(it)" :disabled="processando"
+                    title="✅ Aprovar: este texto vai para o treino"
+                    class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 disabled:opacity-50">
+              <i class="fa-solid fa-check"></i> Aprovar
+            </button>
+            <button @click="descartar(it)" :disabled="processando"
+                    title="❌ Descartar: este texto fica guardado fora do treino (não é apagado)"
+                    class="bg-red-600/20 hover:bg-red-600/30 text-red-300 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 disabled:opacity-50">
+              <i class="fa-solid fa-xmark"></i> Descartar
+            </button>
+          </div>
+          <!-- 🔎 Resultado da verificação de fatos -->
+          <div x-show="fatosResultado && fatosResultado.caminho === it.caminho" class="w-full mt-2">
+            <div class="bg-purple-950/30 border border-purple-600/30 rounded-lg p-2 text-[11px] leading-relaxed">
+              <p class="font-bold mb-1"
+                 :class="fatosResultado?.veredito_geral === 'confirmado' ? 'text-emerald-400' : (fatosResultado?.veredito_geral === 'sem_busca' || fatosResultado?.veredito_geral === 'sem_fatos' ? 'text-zinc-400' : 'text-amber-400')"
+                 x-text="'🔎 ' + rotuloVeredito(fatosResultado?.veredito_geral)"></p>
+              <p class="text-zinc-400" x-text="fatosResultado?.motivo || ''"></p>
+              <template x-for="(af, i) in (fatosResultado?.afirmacoes || [])" :key="i">
+                <div class="mt-1.5 pt-1.5 border-t border-purple-800/40">
+                  <p class="text-zinc-300" x-text="'• ' + (af.afirmacao || '')"></p>
+                  <p class="text-[10px] text-purple-300 mt-0.5"
+                     :class="af.veredito === 'confirmado' ? 'text-emerald-400' : (af.veredito === 'sem_busca' ? 'text-zinc-500' : 'text-amber-400')"
+                     x-text="'[' + af.veredito + '] ' + (af.titulo || af.motivo || '')"></p>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Mostrar mais (paginação simples) -->
+    <div x-show="itensVisiveis.length < itens.length" class="text-center pt-2">
+      <button @click="mostrarMais()"
+              class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-4 py-2 rounded-xl text-xs font-medium"
+              title="Mostrar mais 40 textos suspeitos">
+        <i class="fa-solid fa-angles-down"></i> Mostrar mais 40
+      </button>
+    </div>
+  </div>
+
+  <!-- Estado vazio -->
+  <div x-show="carregou && !itens.length && !pastas.length"
+       class="bg-zinc-900 rounded-2xl p-6 text-center">
+    <p class="text-emerald-400 text-3xl mb-2">✅</p>
+    <p class="text-zinc-300 font-bold">Nenhum texto suspeito!</p>
+    <p class="text-zinc-500 text-sm mt-1">Tudo que passou pela revisão de qualidade está aprovado — não há nada para você decidir.</p>
+  </div>
+
+  <!-- Mensagem de feedback -->
+  <div x-show="mensagem" class="mt-4 text-sm px-4 py-3 rounded-xl"
+       :class="mensagemOk ? 'bg-emerald-600/10 text-emerald-300' : 'bg-red-600/10 text-red-300'"
+       x-text="mensagem"></div>
+
+  <!-- 📖 Modal de leitura do texto -->
+  <div x-show="modalLeitura" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" @keydown.escape.window="modalLeitura=false">
+    <div class="absolute inset-0 bg-black/70" @click="modalLeitura=false"></div>
+    <div class="relative bg-zinc-900 border border-sky-600/40 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between px-5 py-3 border-b border-zinc-800 shrink-0">
+        <h3 class="text-sm font-bold text-sky-300 truncate" x-text="leitura.nome || ''"></h3>
+        <button @click="modalLeitura=false" title="Fechar leitura" aria-label="Fechar leitura"
+                class="text-zinc-500 hover:text-zinc-200 text-xl"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="overflow-auto p-5 text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap scrollbar-thin">
+        <template x-if="leitura.ok">
+          <div>
+            <p class="text-[10px] text-zinc-600 mb-2" x-text="leitura.palavras + ' palavras · ' + leitura.caracteres + ' caracteres' + (leitura.truncado ? ' (mostrando o começo)' : '')"></p>
+            <p x-text="leitura.texto"></p>
+          </div>
+        </template>
+        <template x-if="!leitura.ok">
+          <p class="text-red-400" x-text="leitura.erro || 'Não foi possível ler o arquivo.'"></p>
+        </template>
+      </div>
+      <div class="flex items-center justify-end gap-2 px-5 py-3 border-t border-zinc-800 shrink-0">
+        <button @click="modalLeitura=false" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-lg text-xs">Fechar</button>
+        <button @click="aprovar(leituraItem); modalLeitura=false" :disabled="processando"
+                class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 disabled:opacity-50">
+          <i class="fa-solid fa-check"></i> Aprovar
+        </button>
+        <button @click="descartar(leituraItem); modalLeitura=false" :disabled="processando"
+                class="bg-red-600/20 hover:bg-red-600/30 text-red-300 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 disabled:opacity-50">
+          <i class="fa-solid fa-xmark"></i> Descartar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function revisaoState() {
+  return {
+    pastas: [], itens: [], total: 0, pastaSel: '', carregou: false, carregando: false,
+    processando: false, mensagem: '', mensagemOk: true,
+    modalLeitura: false, leitura: {}, leituraItem: null,
+    juizRodando: false, juizPct: 0, juizAtual: '', juizResumo: '', juizMsg: '', juizMsgOk: true, juizPausado: false, _juizTimer: null,
+    sanitizando: false, sanPct: 0, sanAtual: '', sanResumo: '', sanMsg: '', sanMsgOk: true, _sanTimer: null,
+    transferindo: '', transfPct: 0, transfAtual: '', transfResumo: '', _transfTimer: null,
+    verificando: '', fatosResultado: null,
+    _porPagina: 40,
+    get itensVisiveis() { return this.itens.slice(0, this._porPagina); },
+    mostrarMais() { this._porPagina += 40; },
+    async carregar() {
+      this.carregando = true;
+      try {
+        const r = await fetch('/api/revisao/suspeitos');
+        const d = await r.json();
+        this.pastas = d.pastas || [];
+        this.total = d.total || 0;
+        if (this.pastaSel) {
+          const p = this.pastas.find(x => x.pasta === this.pastaSel);
+          this.itens = p ? p.itens : [];
+          this._porPagina = 40;
+        } else if (this.pastas.length) {
+          this.selecionarPasta(this.pastas[0].pasta);
+        } else {
+          this.itens = [];
+        }
+        this.carregou = true;
+      } catch(e) {
+        this.mensagem = '❌ Não consegui carregar a lista: ' + e.message;
+        this.mensagemOk = false;
+        this.carregou = true;
+      }
+      this.carregando = false;
+    },
+    selecionarPasta(nome) {
+      this.pastaSel = nome;
+      const p = this.pastas.find(x => x.pasta === nome);
+      this.itens = p ? p.itens : [];
+      this._porPagina = 40;
+    },
+    async verConteudo(it) {
+      try {
+        const r = await fetch('/api/revisao/conteudo?pasta=' + encodeURIComponent(this.pastaSel)
+                              + '&arquivo=' + encodeURIComponent(it.arquivo));
+        this.leitura = await r.json();
+        this.leituraItem = it;
+        this.modalLeitura = true;
+      } catch(e) {
+        this.mensagem = '❌ Não consegui ler o arquivo: ' + e.message;
+        this.mensagemOk = false;
+      }
+    },
+    async verificarFatos(it) {
+      if (this.verificando) return;
+      this.verificando = it.caminho;
+      this.fatosResultado = null;
+      try {
+        const r = await fetch('/api/revisao/verificar?pasta=' + encodeURIComponent(this.pastaSel)
+                              + '&arquivo=' + encodeURIComponent(it.arquivo));
+        const d = await r.json();
+        d.caminho = it.caminho;
+        this.fatosResultado = d;
+      } catch(e) {
+        this.fatosResultado = { caminho: it.caminho, ok: false, veredito_geral: 'erro',
+                                motivo: 'Erro: ' + e.message, afirmacoes: [] };
+      }
+      this.verificando = '';
+    },
+    rotuloVeredito(v) {
+      const map = { confirmado: '✅ Fatos confirmados na internet',
+                    nao_encontrado: '⚠️ Sem evidência na internet (cuidado: pode ser invenção)',
+                    sem_busca: '🔌 Não consegui buscar (sem internet?)',
+                    sem_fatos: 'ℹ️ Sem afirmações factuais claras para conferir',
+                    erro: '❌ Erro na verificação' };
+      return map[v] || v || '';
+    },
+    async aprovar(it) {
+      if (this.processando) return;
+      this.processando = true;
+      try {
+        const r = await fetch('/api/revisao/aprovar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({pasta: this.pastaSel, arquivo: it.arquivo})
+        });
+        const d = await r.json();
+        this.mensagem = d.ok ? ('✅ ' + d.mensagem) : ('❌ ' + (d.erro || 'falhou'));
+        this.mensagemOk = !!d.ok;
+        this.carregar();
+      } catch(e) {
+        this.mensagem = '❌ ' + e.message; this.mensagemOk = false;
+      }
+      this.processando = false;
+    },
+    async descartar(it) {
+      if (this.processando) return;
+      this.processando = true;
+      try {
+        const r = await fetch('/api/revisao/descartar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({pasta: this.pastaSel, arquivo: it.arquivo})
+        });
+        const d = await r.json();
+        this.mensagem = d.ok ? ('🗂️ ' + d.mensagem) : ('❌ ' + (d.erro || 'falhou'));
+        this.mensagemOk = !!d.ok;
+        this.carregar();
+      } catch(e) {
+        this.mensagem = '❌ ' + e.message; this.mensagemOk = false;
+      }
+      this.processando = false;
+    },
+    async iniciarJuiz() {
+      try {
+        // Roda pelo EXECUTOR (aparece no painel com barra + log + botão parar)
+        const r = await fetch('/api/executor/iniciar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ comando: 'juizar', nome: '⚖️ Juiz deepseek (revisão)' })
+        });
+        const d = await r.json();
+        this.juizMsg = d.ok ? '⚖️ Juiz iniciado! Acompanhe no painel Executor (barra + log ao vivo).' : ('❌ ' + (d.erro || 'falhou'));
+        this.juizMsgOk = !!d.ok;
+        if (d.ok) {
+          this.juizRodando = true;
+          this.juizPct = 0;
+          if (!this._juizTimer) this._juizTimer = setInterval(() => this.carregarJuizProgresso(), 3000);
+          this.carregarJuizProgresso();
+        }
+      } catch(e) {
+        this.juizMsg = '❌ ' + e.message; this.juizMsgOk = false;
+      }
+    },
+    async carregarJuizProgresso() {
+      try {
+        const r = await fetch('/api/revisao/juizar/progresso');
+        if (!r.ok) return;
+        const d = await r.json();
+        this.juizRodando = !!d.rodando;
+        this.juizPausado = !!d.pausado;
+        this.juizPct = d.pct || 0;
+        this.juizAtual = d.atual || '';
+        const partes = [];
+        if (d.aprovados != null) partes.push('✅ ' + d.aprovados + ' aprovados');
+        if (d.descartados != null) partes.push('❌ ' + d.descartados + ' lixo');
+        if (d.suspeitos != null) partes.push('🟡 ' + d.suspeitos + ' suspeitos');
+        this.juizResumo = partes.join(' · ');
+        if (!this.juizRodando && this._juizTimer) {
+          clearInterval(this._juizTimer);
+          this._juizTimer = null;
+          if (this.juizPct >= 100 || d.fim) {
+            this.juizMsg = '🏁 Juiz terminou! Veja o que sobrou.';
+            this.juizMsgOk = true;
+          }
+          this.carregar();
+        }
+      } catch(e) { /* silêncio */ }
+    },
+    // 🧹 Limpeza geral (todas as ferramentas antes do juiz)
+    async sanitizarTudo() {
+      try {
+        const r = await fetch('/api/revisao/sanitizar', { method: 'POST' });
+        const d = await r.json();
+        this.sanMsg = d.ok ? '🧹 Limpeza iniciada! Aplicando as ferramentas nos textos pendentes...' : ('❌ ' + (d.erro || 'falhou'));
+        this.sanMsgOk = !!d.ok;
+        if (d.ok) {
+          this.sanitizando = true;
+          this.sanPct = 0;
+          if (!this._sanTimer) this._sanTimer = setInterval(() => this.carregarSanitizarProgresso(), 2000);
+          this.carregarSanitizarProgresso();
+        }
+      } catch(e) {
+        this.sanMsg = '❌ ' + e.message; this.sanMsgOk = false;
+      }
+    },
+    async aprovarTodos() {
+      if (this.processando || !this.total) return;
+      const confirma = confirm('Tem certeza que quer aprovar TODOS os ' + this.total + ' textos de uma vez?\n\nEles vão DIRETO para o treino, SEM passar pelo juiz.\n\nClique OK para aprovar todos, ou Cancelar.');
+      if (!confirma) return;
+      this.processando = true;
+      try {
+        const r = await fetch('/api/revisao/aprovar-todos', { method: 'POST' });
+        const d = await r.json();
+        this.mensagem = d.ok ? ('✅ ' + d.mensagem) : ('❌ ' + (d.erro || 'falhou'));
+        this.mensagemOk = !!d.ok;
+        this.carregar();
+      } catch(e) {
+        this.mensagem = '❌ ' + e.message; this.mensagemOk = false;
+      }
+      this.processando = false;
+    },
+    async carregarSanitizarProgresso() {
+      try {
+        const r = await fetch('/api/revisao/sanitizar/progresso');
+        if (!r.ok) return;
+        const d = await r.json();
+        const rodando = !!d.rodando || (!d.fim && d.pct < 100 && d.pct > 0);
+        this.sanPct = d.pct || 0;
+        this.sanAtual = rodando ? (d.atual || '') : '';
+        const partes = [];
+        if (d.limpos != null) partes.push('🧹 ' + d.limpos + ' limpos');
+        if (d.ja_ok != null) partes.push('✅ ' + d.ja_ok + ' já estavam ok');
+        if (d.erros && d.erros > 0) partes.push('❌ ' + d.erros + ' erros');
+        this.sanResumo = partes.join(' · ');
+        if (rodando) {
+          this.sanitizando = true;
+          if (!this._sanTimer) this._sanTimer = setInterval(() => this.carregarSanitizarProgresso(), 2000);
+        } else {
+          this.sanitizando = false;
+          if (this._sanTimer) { clearInterval(this._sanTimer); this._sanTimer = null; }
+          // mostra o resumo da última execução (mesmo que tenha terminado antes do poll)
+          if (d.fim || d.pct >= 100) {
+            const limpos = d.limpos || 0, jaOk = d.ja_ok || 0, erros = d.erros || 0;
+            if (limpos > 0) {
+              this.sanMsg = '✅ Limpeza concluída: ' + limpos + ' texto(s) corrigido(s)' +
+                (d.ansi ? ' (códigos estranhos em ' + d.ansi + ')' : '') +
+                ' · ' + jaOk + ' já ok' + (erros ? ' · ' + erros + ' erro(s)' : '') + '.';
+            } else if (jaOk > 0) {
+              this.sanMsg = '✅ Todos os ' + (d.total || jaOk) + ' já estavam limpos.';
+            }
+            this.sanMsgOk = true;
+            this.carregar();
+          }
+        }
+      } catch(e) { /* silêncio */ }
+    },
+    // ⏸️ ▶️ ⏹️ Controle do juiz
+    async pausarJuiz() {
+      try {
+        await fetch('/api/revisao/juizar/pausar', { method: 'POST' });
+        this.juizPausado = true;
+        this.juizMsg = '⏸️ Juiz pausado. Clique em Retomar para continuar.';
+        this.juizMsgOk = true;
+      } catch(e) { /* silêncio */ }
+    },
+    async retomarJuiz() {
+      try {
+        await fetch('/api/revisao/juizar/retomar', { method: 'POST' });
+        this.juizPausado = false;
+        this.juizMsg = '▶️ Juiz retomado!';
+        this.juizMsgOk = true;
+      } catch(e) { /* silêncio */ }
+    },
+    async pararJuiz() {
+      try {
+        await fetch('/api/revisao/juizar/parar', { method: 'POST' });
+        this.juizMsg = '⏹️ Parando o juiz... (o que já foi feito fica salvo)';
+        this.juizMsgOk = true;
+        setTimeout(() => this.carregarJuizProgresso(), 2500);
+      } catch(e) { /* silêncio */ }
+    },
+    async transformar(tipo) {
+      try {
+        const r = await fetch('/api/revisao/transformar/' + tipo, { method: 'POST' });
+        const d = await r.json();
+        if (!d.ok) return;
+        this.transferindo = tipo;
+        this.transfPct = 0;
+        if (!this._transfTimer) this._transfTimer = setInterval(() => this.carregarTransformarProgresso(), 2500);
+        this.carregarTransformarProgresso();
+      } catch(e) { /* silêncio */ }
+    },
+    async carregarTransformarProgresso() {
+      try {
+        const r = await fetch('/api/revisao/transformar/progresso');
+        if (!r.ok) return;
+        const d = await r.json();
+        const rodando = !!d.rodando || (!d.fim && d.pct < 100 && d.pct > 0);
+        this.transfPct = d.pct || 0;
+        this.transfAtual = rodando ? (d.atual || '') : '';
+        const partes = [];
+        if (d.pastas != null) partes.push(d.pastas + ' pasta(s)');
+        if (d.arquivos != null) partes.push(d.arquivos + ' arquivos');
+        if (d.exemplos != null && d.exemplos > 0) partes.push(d.exemplos + ' exemplos');
+        this.transfResumo = partes.join(' · ');
+        if (rodando) {
+          this.transferindo = d.tipo || this.transferindo;
+          if (!this._transfTimer) this._transfTimer = setInterval(() => this.carregarTransformarProgresso(), 2500);
+        } else {
+          this.transferindo = '';
+          if (this._transfTimer) { clearInterval(this._transfTimer); this._transfTimer = null; }
+          if (d.fim || d.pct >= 100) this.carregar();
+        }
+      } catch(e) { /* silêncio */ }
+    },
+    init() {
+      this.carregar();
+      this.carregarJuizProgresso();
+      this.carregarSanitizarProgresso();
+      this.carregarTransformarProgresso();
+    }
+  };
+}
+</script>
+{% endblock %}

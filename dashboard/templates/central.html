@@ -1,0 +1,592 @@
+{% extends "base.html" %}
+{% block title %}Central{% endblock %}
+{% block content %}
+<div x-data="centralState()" x-cloak>
+  <!-- Loading inicial -->
+  <div x-show="!carregou" class="flex items-center justify-center py-20">
+    <div class="text-center">
+      <i class="fa-solid fa-spinner fa-spin text-4xl text-emerald-400 mb-4"></i>
+      <p class="text-zinc-500">Organizando o sistema para você...</p>
+    </div>
+  </div>
+
+  <div x-show="carregou">
+    <!-- Cabeçalho -->
+    <div class="flex items-center justify-between mb-6">
+      <div class="min-w-0">
+        <h2 class="text-2xl md:text-4xl font-bold">🏠 Central do RigelSLM</h2>
+        <p class="text-zinc-500 mt-1 text-sm" x-text="'🔄 ' + (statusTime || '—') + ' · ' + statusMsg()"></p>
+      </div>
+      <button @click="pollAll()" title="Atualizar tudo agora"
+              class="text-zinc-500 hover:text-emerald-400 text-xl shrink-0 ml-2 transition-transform active:scale-90">
+        <i class="fa-solid fa-rotate" :class="{'fa-spin': loading}"></i>
+      </button>
+    </div>
+
+    <!-- ============================================================
+         PIPELINE: 4 BLOCOS EM ORDEM (o que importa, sem bagunça)
+         ============================================================ -->
+
+    <!-- 📥 1. COLETAR — de onde vêm os textos -->
+    <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-6 border border-zinc-800">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="text-xl">📥</span>
+        <div class="min-w-0">
+          <h3 class="font-bold text-base">1. Coletar textos</h3>
+          <p class="text-[11px] text-zinc-500">Buscar textos na internet (sites, livros, notícias, downloads) para o Rigel aprender.</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+        <a href="/rss" title="Ler notícias e resumos de sites cadastrados" class="bg-zinc-800/60 hover:bg-zinc-700/60 rounded-xl p-3 transition-colors">
+          <p class="text-[10px] text-zinc-500">📰 Notícias (RSS)</p>
+          <p class="text-lg font-bold" x-text="rssStatus || '—'"></p>
+          <p class="text-[10px] text-zinc-600">abrir →</p>
+        </a>
+        <a href="/scrap" title="Extrair dados de sites da internet (WWW) por URL" class="bg-zinc-800/60 hover:bg-zinc-700/60 rounded-xl p-3 transition-colors">
+          <p class="text-[10px] text-zinc-500">🌐 Extrair dados da WWW</p>
+          <p class="text-lg font-bold" x-text="scrapPendente !== null ? (scrapPendente + ' pendente(s)') : '—'"></p>
+          <p class="text-[10px] text-zinc-600">abrir →</p>
+        </a>
+        <a href="/pdfs" title="Baixar livros e arquivos PDF" class="bg-zinc-800/60 hover:bg-zinc-700/60 rounded-xl p-3 transition-colors">
+          <p class="text-[10px] text-zinc-500">📚 Livros / PDFs</p>
+          <p class="text-lg font-bold" x-text="pdfsTexto"></p>
+          <p class="text-[10px] text-zinc-600" x-text="pdfsResumo ? 'clique para ver a pasta de livros' : 'abrir →'"></p>
+        </a>
+        <a href="/datasets" title="Baixar conjuntos de dados prontos" class="bg-zinc-800/60 hover:bg-zinc-700/60 rounded-xl p-3 transition-colors">
+          <p class="text-[10px] text-zinc-500">📦 Conjuntos prontos</p>
+          <p class="text-lg font-bold">abrir</p>
+          <p class="text-[10px] text-zinc-600">Hugging Face →</p>
+        </a>
+      </div>
+    </div>
+
+    <!-- 🧼 2. TRATAR — limpar e revisar (pendências com botão EXECUTAR) -->
+    <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-6 border border-zinc-800">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="text-xl">🧼</span>
+        <div class="min-w-0">
+          <h3 class="font-bold text-base">2. Tratar e revisar textos</h3>
+          <p class="text-[11px] text-zinc-500">Limpar textos com letras erradas, separar os bons e descartar os ruins. É aqui que o sistema cuida da qualidade.</p>
+        </div>
+        <span class="ml-auto text-[10px] px-2 py-1 rounded-full shrink-0"
+              :class="pendenciasTratar.length ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'"
+              x-text="pendenciasTratar.length ? (pendenciasTratar.length + ' pendente(s)') : 'tudo em dia ✅'"></span>
+      </div>
+
+      <!-- Lista de pendências com botão de ação (só as do setor TRATAR) -->
+      <div class="space-y-2 mt-3" x-show="pendenciasTratar.length">
+        <template x-for="p in pendenciasTratar" :key="p.id">
+          <div class="rounded-xl border p-3 flex flex-col md:flex-row md:items-center gap-2"
+               :class="p.prioridade === 'ALTA' ? 'bg-red-950/40 border-red-500/60' : (p.prioridade === 'MEDIA' ? 'bg-amber-950/30 border-amber-500/50' : 'bg-zinc-900 border-zinc-700')">
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-sm" :class="p.prioridade === 'ALTA' ? 'text-red-400' : (p.prioridade === 'MEDIA' ? 'text-amber-300' : 'text-zinc-300')" x-text="p.titulo"></p>
+              <p class="text-xs text-zinc-400 mt-0.5" x-text="p.detalhe"></p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button @click="p.acao_tipo === 'executar' ? executarPendencia(p) : navegarPendencia(p)"
+                      :disabled="iniciando"
+                      :title="p.acao_tipo === 'executar' ? ('Executa agora: ' + (p.acao_label||'')) : ('Vai para: ' + (p.acao_url||''))"
+                      class="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all disabled:opacity-50"
+                      :class="p.prioridade === 'ALTA' ? 'bg-red-500/30 hover:bg-red-500/50 text-red-200' : (p.prioridade === 'MEDIA' ? 'bg-amber-500/30 hover:bg-amber-500/50 text-amber-200' : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200')">
+                <i class="fa-solid" :class="p.acao_tipo === 'executar' ? 'fa-play' : 'fa-arrow-right'"></i>
+                <span x-text="p.acao_label"></span>
+              </button>
+              <span class="text-[10px] px-2 py-1 rounded-full shrink-0 font-semibold"
+                    :class="p.prioridade === 'ALTA' ? 'bg-red-500/20 text-red-300' : (p.prioridade === 'MEDIA' ? 'bg-amber-500/20 text-amber-300' : 'bg-zinc-700 text-zinc-400')"
+                    x-text="p.prioridade"></span>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Tudo em dia -->
+      <div x-show="!pendenciasTratar.length" class="mt-3 text-sm text-emerald-300 flex items-center gap-2">
+        <i class="fa-solid fa-circle-check"></i>
+        <span>Tudo em dia! Não há nada esperando tratamento agora.</span>
+      </div>
+
+      <!-- 💉 CARTEIRA DE QUALIDADE: o que cada pasta já passou (pronto vs cru) -->
+      <div class="mt-3 bg-zinc-800/40 border border-zinc-700/50 rounded-xl p-3" x-show="qualidade?.total > 0">
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+          <p class="text-[11px] font-semibold text-zinc-300">💉 Carteira de qualidade dos dados</p>
+          <div class="flex gap-2 text-[10px]">
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300" x-text="'✅ ' + (qualidade?.prontas||0) + ' prontos'"></span>
+            <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300" x-text="'🔄 ' + (qualidade?.parciais||0) + ' parciais'"></span>
+            <span class="px-2 py-0.5 rounded-full bg-red-500/15 text-red-300" x-text="'🥩 ' + (qualidade?.cruas||0) + ' crus'"></span>
+          </div>
+        </div>
+        <p class="text-[10px] text-zinc-500 mb-2 leading-relaxed">
+          Material <b class="text-emerald-300">pronto</b> passou por sanitização, verificação, ajuizamento e promoção. Material <b class="text-red-300">cru</b> entrou sem nenhum tratamento — <b>não vai para o treino</b> até ser vacinado.
+        </p>
+        <div class="space-y-1 max-h-40 overflow-auto scrollbar-thin">
+          <!-- Legenda das vacinas -->
+          <p class="text-[10px] text-zinc-600 pb-1 flex items-center gap-2 flex-wrap">
+            <span>Vacinas:</span>
+            <template x-for="e in etapasUI" :key="e.chave">
+              <span class="inline-flex items-center gap-0.5" :title="e.nome"><span x-text="e.icone"></span><span x-text="e.nome"></span></span>
+            </template>
+          </p>
+          <template x-for="q in (qualidade?.itens || []).slice(0, 12)" :key="q.pasta">
+            <div class="flex items-center justify-between gap-2 text-[11px] py-1 border-b border-zinc-800/60 last:border-0">
+              <div class="min-w-0">
+                <p class="truncate text-zinc-300 font-medium" x-text="q.pasta"></p>
+                <p class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                  <template x-for="e in etapasUI" :key="e.chave">
+                    <span class="text-[10px] inline-flex items-center gap-0.5 cursor-help"
+                          :title="etapaOk(q, e.chave) ? ('✅ Já feita: ' + e.nome + (q.etapas?.[e.chave] ? ' (' + String(q.etapas[e.chave]).slice(5,16) + ')' : '')) : ('⏳ Falta: ' + e.nome)"
+                          :class="etapaOk(q, e.chave) ? 'text-emerald-400' : 'text-zinc-600'">
+                      <span x-text="etapaOk(q, e.chave) ? '✅' : '⏳'"></span>
+                      <span x-text="e.icone"></span>
+                    </span>
+                  </template>
+                </p>
+              </div>
+              <span class="shrink-0" :class="q.situacao==='pronta' ? 'text-emerald-300' : (q.situacao==='crua' ? 'text-red-300' : 'text-amber-300')" x-text="q.label"></span>
+            </div>
+          </template>
+          <p x-show="(qualidade?.itens||[]).length > 12" class="text-[10px] text-zinc-600">… e mais <span x-text="((qualidade?.itens||[]).length-12)"></span> pasta(s) — veja no Treino Local.</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mt-3">
+        <a href="/tratamento" title="Abrir a página de tratamento de textos" class="bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5">
+          <i class="fa-solid fa-broom"></i> Tratar textos
+        </a>
+        <a href="/executor" title="Ver todas as tarefas do sistema e seus resultados" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5">
+          <i class="fa-solid fa-robot"></i> Ver tarefas
+        </a>
+        <p class="text-[10px] text-zinc-600 self-center" x-show="ultimaMsg" x-text="ultimaMsg"></p>
+      </div>
+    </div>
+
+    <!-- 🧠 3. TREINAR — ensinar o modelo -->
+    <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-6 border border-zinc-800">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="text-xl">🧠</span>
+        <div class="min-w-0">
+          <h3 class="font-bold text-base">3. Treinar o modelo</h3>
+          <p class="text-[11px] text-zinc-500">Ensinar o Rigel com os textos já tratados. O treino de verdade acontece no Google Colab (fica pronto mais rápido).</p>
+        </div>
+        <span class="ml-auto text-[10px] px-2 py-1 rounded-full shrink-0"
+              :class="treinando ? 'bg-emerald-500/20 text-emerald-300 animate-pulse' : 'bg-zinc-800 text-zinc-400'"
+              x-text="treinando ? 'treinando agora...' : (modeloExiste ? 'modelo pronto' : 'sem modelo')"></span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+        <div class="bg-zinc-800/60 rounded-xl p-3">
+          <p class="text-[10px] text-zinc-500">🧠 Nível do modelo</p>
+          <p class="text-lg font-bold" :class="maturidadePct >= 60 ? 'text-emerald-400' : (maturidadePct >= 30 ? 'text-amber-400' : 'text-red-400')" x-text="maturidadePct !== null ? (maturidadePct + '%') : '—'"></p>
+          <div class="mt-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-amber-500 to-emerald-500 transition-all" :style="'width:' + (maturidadePct||0) + '%'"></div>
+          </div>
+        </div>
+        <div class="bg-zinc-800/60 rounded-xl p-3">
+          <p class="text-[10px] text-zinc-500">📚 Textos prontos p/ treino</p>
+          <p class="text-lg font-bold" x-text="pacoteColab !== null ? (pacoteColab + ' exemplos') : '—'"></p>
+          <p class="text-[10px] text-zinc-600">no pacote do Colab</p>
+          <a href="/carteira" title="Ver as pastas onde os textos prontos estão — com botão para abrir no Explorer e copiar para o Google Drive"
+             class="text-[10px] text-sky-300 hover:text-sky-200 underline inline-flex items-center gap-1 mt-1">
+            <i class="fa-solid fa-folder-open"></i> ver pastas prontas
+          </a>
+        </div>
+        <div class="bg-zinc-800/60 rounded-xl p-3">
+          <p class="text-[10px] text-zinc-500">🎯 Estado do treino</p>
+          <p class="text-sm font-bold" :class="treinoEtapa==='treinando' ? 'text-emerald-400' : 'text-zinc-300'" x-text="treinoResumo"></p>
+          <p class="text-[10px] text-zinc-600 truncate" x-text="treinoMensagem || 'sem treino agora'"></p>
+        </div>
+      </div>
+
+      <!-- 📚 ONDE ESTÁ O MATERIAL PARA TREINAR (pronto vs não serve) -->
+      <div class="mt-3 rounded-xl border border-zinc-800 bg-zinc-900/60 p-3">
+        <div class="flex items-center justify-between mb-1">
+          <p class="text-xs font-bold text-zinc-300">📚 Onde está o material para treinar</p>
+          <button @click="carregarSftProntos(true)" title="Atualizar a lista de pastas de material de treino (refaz a verificação)"
+                  class="text-zinc-500 hover:text-emerald-400 text-sm transition-transform active:scale-90 shrink-0 ml-2">
+            <i class="fa-solid fa-rotate" :class="{'fa-spin': sftCarregando}"></i>
+          </button>
+        </div>
+        <p class="text-[11px] text-zinc-500 mb-2">O treinador de conversas só aceita o formato "mensagens" (pergunta e resposta). As pastas em verde estão nesse formato e podem ir para o treino; as em laranja não servem para conversas (são texto corrido ou outro formato).</p>
+
+        <!-- Resposta direta: está no formato certo? -->
+        <div x-show="sftTudoPronto" class="text-[12px] px-3 py-2 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 mb-2 font-semibold">
+          ✅ Tudo pronto: <span x-text="prontosSft.length"></span> pasta(s) de conversa já estão no formato correto para treinar.
+        </div>
+        <div x-show="!sftTudoPronto && !sftCarregando && !sftErro && (prontosSft.length || naoServemSft.length)" class="text-[12px] px-3 py-2 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/40 mb-2 font-semibold">
+          ⚠️ <span x-text="naoServemSft.length"></span> pasta(s) ainda NÃO estão no formato correto e precisam de conversão antes do treino (<span x-text="prontosSft.length"></span> já estão prontas). Veja a lista abaixo.
+        </div>
+
+        <div x-show="sftErro" class="text-[11px] px-2 py-1.5 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 mb-2" x-text="sftErro"></div>
+        <div x-show="sftCarregando" class="text-[11px] text-zinc-500"><i class="fa-solid fa-spinner fa-spin"></i> verificando as pastas...</div>
+        <div x-show="!sftCarregando && !sftErro && !prontosSft.length && !naoServemSft.length" class="text-[11px] text-zinc-500">Nenhuma pasta encontrada ainda. Clique no botão de atualizar.</div>
+
+        <div x-show="prontosSft.length">
+          <p class="text-[11px] font-semibold text-emerald-400 mb-1">✅ Prontas para treinar conversas (<span x-text="prontosSft.length"></span> pasta(s))</p>
+          <div class="flex flex-wrap gap-1.5 mb-3">
+            <template x-for="p in prontosSft" :key="p.pasta">
+              <span class="text-[10px] px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+                    :title="p.caminho + ' — ' + p.validos + ' de ' + p.linhas_amostradas + ' linhas no formato certo (' + p.percentual + '%)'">
+                <i class="fa-solid fa-folder-open"></i> <span x-text="p.pasta"></span> <span x-text="p.percentual + '%'"></span>
+              </span>
+            </template>
+          </div>
+        </div>
+
+        <div x-show="naoServemSft.length">
+          <p class="text-[11px] font-semibold text-amber-400 mb-1">⚠️ Não servem para treinar conversas (<span x-text="naoServemSft.length"></span> pasta(s))</p>
+          <div class="space-y-1">
+            <template x-for="p in naoServemSft" :key="p.pasta">
+              <div class="flex items-start gap-2 text-[11px] text-zinc-400" :title="p.caminho">
+                <i class="fa-regular fa-circle-xmark mt-0.5 text-zinc-600"></i>
+                <span><span class="text-zinc-300" x-text="p.pasta"></span> — <span x-text="p.motivo"></span></span>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pendências do setor TREINAR (kanban: cada pendência no seu setor) -->
+      <div class="space-y-2 mt-3" x-show="pendenciasTreinar.length">
+        <template x-for="p in pendenciasTreinar" :key="p.id">
+          <div class="rounded-xl border p-3 flex flex-col md:flex-row md:items-center gap-2"
+               :class="p.prioridade === 'ALTA' ? 'bg-red-950/40 border-red-500/60' : (p.prioridade === 'MEDIA' ? 'bg-amber-950/30 border-amber-500/50' : 'bg-zinc-900 border-zinc-700')">
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-sm" :class="p.prioridade === 'ALTA' ? 'text-red-400' : (p.prioridade === 'MEDIA' ? 'text-amber-300' : 'text-zinc-300')" x-text="p.titulo"></p>
+              <p class="text-xs text-zinc-400 mt-0.5" x-text="p.detalhe"></p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button @click="p.acao_tipo === 'executar' ? executarPendencia(p) : navegarPendencia(p)"
+                      :disabled="iniciando"
+                      :title="p.acao_tipo === 'executar' ? ('Executa agora: ' + (p.acao_label||'')) : ('Vai para: ' + (p.acao_url||''))"
+                      class="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all disabled:opacity-50"
+                      :class="p.prioridade === 'ALTA' ? 'bg-red-500/30 hover:bg-red-500/50 text-red-200' : (p.prioridade === 'MEDIA' ? 'bg-amber-500/30 hover:bg-amber-500/50 text-amber-200' : 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200')">
+                <i class="fa-solid" :class="p.acao_tipo === 'executar' ? 'fa-play' : 'fa-arrow-right'"></i>
+                <span x-text="p.acao_label"></span>
+              </button>
+              <span class="text-[10px] px-2 py-1 rounded-full shrink-0 font-semibold"
+                    :class="p.prioridade === 'ALTA' ? 'bg-red-500/20 text-red-300' : (p.prioridade === 'MEDIA' ? 'bg-amber-500/20 text-amber-300' : 'bg-zinc-700 text-zinc-400')"
+                    x-text="p.prioridade"></span>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mt-3">
+        <a href="/treino_colab" title="Ver o plano de treino no Google Colab" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5">
+          <i class="fa-brands fa-google"></i> Plano de treino (Colab)
+        </a>
+        <a href="/treino_local" title="Treinar neste computador (mais lento — só para testes)" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5">
+          <i class="fa-solid fa-dumbbell"></i> Testar treino aqui
+        </a>
+      </div>
+    </div>
+
+    <!-- 💬 4. USAR — conversar e exportar -->
+    <div class="bg-zinc-900 rounded-2xl p-4 md:p-5 mb-6 border border-zinc-800">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="text-xl">💬</span>
+        <div class="min-w-0">
+          <h3 class="font-bold text-base">4. Usar o Rigel</h3>
+          <p class="text-[11px] text-zinc-500">Conversar com o modelo, exportar para outros formatos e ver como ele está.</p>
+        </div>
+        <span class="ml-auto text-[10px] px-2 py-1 rounded-full shrink-0"
+              :class="ollamaOnline ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'"
+              x-text="ollamaOnline ? 'modelo online' : 'modelo offline'"></span>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+        <a href="/chat" title="Conversar com o Rigel" class="bg-zinc-800/60 hover:bg-zinc-700/60 rounded-xl p-3 transition-colors">
+          <p class="text-[10px] text-zinc-500">💬 Conversar</p>
+          <p class="text-sm font-bold" x-text="modelos.length ? (modelos.length + ' modelo(s)') : 'abrir chat'"></p>
+          <p class="text-[10px] text-zinc-600">ir →</p>
+        </a>
+        <a href="/converter" title="Exportar o modelo para o formato GGUF" class="bg-zinc-800/60 hover:bg-zinc-700/60 rounded-xl p-3 transition-colors">
+          <p class="text-[10px] text-zinc-500">📦 Exportar (GGUF)</p>
+          <p class="text-sm font-bold">abrir</p>
+          <p class="text-[10px] text-zinc-600">para usar em apps →</p>
+        </a>
+        <a href="/debate" title="Criar debates e podcasts com o modelo" class="bg-zinc-800/60 hover:bg-zinc-700/60 rounded-xl p-3 transition-colors">
+          <p class="text-[10px] text-zinc-500">🎙️ Debates / Podcasts</p>
+          <p class="text-sm font-bold">abrir</p>
+          <p class="text-[10px] text-zinc-600">criar conteúdo →</p>
+        </a>
+        <a href="/gerar_local" title="Gerar textos novos automaticamente" class="bg-zinc-800/60 hover:bg-zinc-700/60 rounded-xl p-3 transition-colors">
+          <p class="text-[10px] text-zinc-500">⚙️ Gerar textos</p>
+          <p class="text-sm font-bold" x-text="filaAguardando !== null ? (filaAguardando + ' na fila') : 'abrir'"></p>
+          <p class="text-[10px] text-zinc-600">automático →</p>
+        </a>
+      </div>
+    </div>
+
+    <!-- Barra de saúde do sistema (CPU/RAM/disco) + 📰 Boletim -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div class="bg-zinc-900 rounded-2xl p-4 border border-zinc-800" title="Uso do processador">
+        <p class="text-zinc-500 text-xs">⚡ Processador</p>
+        <p class="text-2xl font-bold" :class="cpuPct > 90 ? 'text-red-400' : 'text-emerald-400'" x-text="cpuPct + '%'"></p>
+        <p class="text-[10px] text-zinc-600" x-text="cpuCores + ' núcleos'"></p>
+      </div>
+      <div class="bg-zinc-900 rounded-2xl p-4 border border-zinc-800" title="Uso da memória">
+        <p class="text-zinc-500 text-xs">💾 Memória</p>
+        <p class="text-2xl font-bold" :class="ramPct > 85 ? 'text-red-400' : 'text-emerald-400'" x-text="ramPct + '%'"></p>
+        <p class="text-[10px] text-zinc-600" x-text="ramInfo"></p>
+      </div>
+      <div class="bg-zinc-900 rounded-2xl p-4 border border-zinc-800" title="Espaço no disco">
+        <p class="text-zinc-500 text-xs">💽 Disco</p>
+        <p class="text-2xl font-bold" :class="diskPct > 90 ? 'text-red-400' : 'text-emerald-400'" x-text="diskPct + '%'"></p>
+        <p class="text-[10px] text-zinc-600" x-text="processedFiles !== null ? (processedFiles.toLocaleString() + ' arquivos processados') : ''"></p>
+      </div>
+      <!-- 📰 Boletim do Rigel — indicador discreto com bolinha piscando -->
+      <button @click="abrirBoletim()"
+              :title="boletimDica || 'Ver o boletim do dia (o que aconteceu: treino, geração, erros e saúde)'"
+              class="bg-zinc-900 rounded-2xl p-4 border border-zinc-800 hover:border-sky-500/60 transition-colors text-left">
+        <div class="flex items-center gap-2">
+          <span class="text-zinc-500 text-xs">📰 Boletim</span>
+          <span class="w-2.5 h-2.5 rounded-full nav-atv"
+                :class="boletimSinalErro ? 'bg-red-400 text-red-400' : 'bg-emerald-400 text-emerald-400'"></span>
+        </div>
+        <p class="text-[10px] text-zinc-600 mt-1 truncate" x-text="boletimResumo || 'carregando...'"></p>
+      </button>
+    </div>
+
+    <!-- 📰 Boletim do Rigel — painel expansível (dropdown na própria página) -->
+    <div x-show="boletimAberto" x-cloak class="mb-6">
+      <div class="bg-zinc-900 rounded-2xl border border-sky-600/30 overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-zinc-800">
+          <h3 class="text-sm font-bold text-sky-300" x-text="boletimTitulo || '📰 Boletim do Rigel'"></h3>
+          <button @click="boletimAberto = false" title="Fechar boletim" aria-label="Fechar boletim"
+                  class="text-zinc-500 hover:text-zinc-200 text-lg">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="p-5 space-y-1.5 text-sm text-zinc-300 leading-relaxed max-h-96 overflow-auto scrollbar-thin">
+          <template x-for="(linha, i) in boletimLinhas" :key="i">
+            <p class="font-mono text-[12.5px] whitespace-pre-wrap"
+               :class="linha.startsWith('──') ? 'text-sky-400 font-bold mt-3' : (linha.includes('⚠️') || linha.includes('🔴') ? 'text-red-400' : (linha.includes('🟢') ? 'text-emerald-400' : 'text-zinc-300'))"
+               x-text="linha"></p>
+          </template>
+          <p x-show="!boletimLinhas.length" class="text-zinc-500">Carregando boletim...</p>
+        </div>
+        <div class="px-5 py-3 border-t border-zinc-800 text-[10px] text-zinc-600">
+          💡 Também disponível por linha de comando: <code class="text-zinc-400">python scripts/boletim_rigel.py --salvar</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- Link para a visão antiga (nada se perde) -->
+    <p class="text-center text-[10px] text-zinc-600 mb-8">
+      Precisa de mais detalhes? <a href="/visao_geral" class="text-sky-400 hover:underline" title="Abrir a visão detalhada antiga do sistema">ver visão detalhada</a> ·
+      <a href="/logs" class="text-sky-400 hover:underline" title="Ver os registros do sistema">registros</a>
+    </p>
+  </div>
+</div>
+
+<script>
+function centralState() {
+  return {
+    carregou: false, loading: false, statusTime: '', ultimaMsg: '', iniciando: false,
+    // Coletar
+    rssStatus: null, scrapPendente: null, pdfsResumo: null,
+    // Tratar
+    pendencias: [], qualidade: null,
+    // Treinar
+    maturidadePct: null, modeloExiste: false, treinando: false, treinoEtapa: 'idle',
+    treinoMensagem: '', pacoteColab: null, sftProntos: null, sftCarregando: false, sftErro: '',
+    // Usar
+    ollamaOnline: false, modelos: [], filaAguardando: null,
+    // Saúde
+    cpuPct: 0, cpuCores: '?', ramPct: 0, ramInfo: '', diskPct: 0, processedFiles: null,
+    // 📰 Boletim do Rigel
+    boletimResumo: '', boletimHora: '', boletimDica: '', boletimSinalErro: false, boletimSinalGerando: false, boletimPendente: false,
+    boletimAberto: false, boletimLinhas: [], boletimTitulo: '',
+
+    get pendenciasAtivas() { return this.pendencias.filter(p => !p.feito); },
+    // 🏭 KANBAN: cada pendência pertence a um setor do pipeline (etapa).
+    get pendenciasTratar() { return this.pendencias.filter(p => !p.feito && p.etapa === 'tratar'); },
+    get pendenciasTreinar() { return this.pendencias.filter(p => !p.feito && p.etapa === 'treinar'); },
+    // 💉 Vacinas da carteira de qualidade (etapas em ordem do pipeline)
+    etapasUI: [
+      { chave: 'sanitizado', icone: '🧼', nome: 'Limpeza PT-BR' },
+      { chave: 'verificado_encoding', icone: '🔤', nome: 'Encoding verificado' },
+      { chave: 'ajuizado', icone: '⚖️', nome: 'Revisão de qualidade' },
+      { chave: 'promovido', icone: '🚀', nome: 'Promovido p/ treino' },
+    ],
+    etapaOk(q, chave) { return !!((q && q.etapas) ? q.etapas[chave] : false); },
+    get pdfsTexto() {
+      const r = this.pdfsResumo;
+      if (!r) return '—';
+      const partes = [];
+      if (r.aguardando) partes.push(r.aguardando + ' aguardando');
+      if (r.tratados) partes.push(r.tratados + ' já tratado(s)');
+      return partes.length ? partes.join(' · ') : 'nenhum ainda';
+    },
+    get treinoResumo() {
+      return this.treinoEtapa === 'treinando' ? '🟢 Rodando' :
+             this.treinoEtapa === 'concluido' ? '✅ Concluído' :
+             this.treinoEtapa === 'erro' ? '❌ Erro' : '⏸️ Parado';
+    },
+    get prontosSft() {
+      const itens = (this.sftProntos && this.sftProntos.itens) || [];
+      return itens.filter(i => i.status === 'pronto' || i.status === 'misto');
+    },
+    get naoServemSft() {
+      const itens = (this.sftProntos && this.sftProntos.itens) || [];
+      return itens.filter(i => i.status === 'nao_serve' || i.status === 'vazio');
+    },
+    get sftTudoPronto() {
+      return !this.sftErro && !this.sftCarregando && this.prontosSft.length > 0 && this.naoServemSft.length === 0;
+    },
+    statusMsg() {
+      const n = this.pendenciasAtivas.length;
+      if (n) return n + ' coisa(s) esperando você';
+      return 'tudo em dia ✅';
+    },
+
+    async executarPendencia(p) {
+      if (this.iniciando) return;
+      this.iniciando = true;
+      try {
+        const r = await fetch('/api/executor/iniciar', {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ comando: p.acao_comando || '', origem: p.acao_origem || '', nome: p.acao_label || 'pendência' })
+        });
+        const d = await r.json();
+        this.ultimaMsg = d.ok ? ('▶ ' + (p.acao_label||'') + ' iniciado!') : ('❌ ' + (d.erro || 'falhou'));
+        this.pollAll();
+      } catch(e) { this.ultimaMsg = '❌ ' + e.message; }
+      finally { this.iniciando = false; }
+    },
+    navegarPendencia(p) {
+      if (p.acao_url) window.location = p.acao_url;
+    },
+
+    async pollPendencias() {
+      try {
+        const r = await fetch('/api/pendencias');
+        const d = await r.json();
+        this.pendencias = d.pendencias || [];
+      } catch(e) { /* silêncio */ }
+      try {
+        const r = await fetch('/api/qualidade');
+        const d = await r.json();
+        this.qualidade = d.ok ? d : null;
+      } catch(e) { /* silêncio */ }
+    },
+    async pollColetar() {
+      try {
+        const r = await fetch('/api/rss/status'); if (r.ok) { const d = await r.json(); this.rssStatus = d.total_gerados ?? d.feeds_cadastrados ?? 0; }
+      } catch(e) {}
+      try {
+        const r = await fetch('/api/scrap/listar'); if (r.ok) { const d = await r.json(); this.scrapPendente = (d.itens || d.pastas || []).length || 0; }
+      } catch(e) {}
+      try {
+        const r = await fetch('/api/pdfs'); if (r.ok) { const d = await r.json(); this.pdfsResumo = d.resumo || null; }
+      } catch(e) {}
+    },
+    async pollTreinar() {
+      try {
+        const r = await fetch('/api/pacote-colab');
+        if (r.ok) { const d = await r.json(); this.pacoteColab = (d.exemplos ?? null); }
+      } catch(e) {}
+      await this.carregarSftProntos();
+    },
+    async carregarSftProntos(forcar = false) {
+      if (this.sftCarregando && !forcar) return;
+      this.sftCarregando = true;
+      this.sftErro = '';
+      try {
+        const r = await fetch('/api/dados/sft-prontos' + (forcar ? '?forcar=1' : ''));
+        if (r.ok) { this.sftProntos = await r.json(); }
+        else { this.sftErro = 'Não consegui carregar a lista de material (resposta ' + r.status + '). Clique em atualizar para tentar de novo.'; }
+      } catch(e) { this.sftErro = 'Falha ao carregar a lista de material. Verifique se o painel está funcionando.'; }
+      finally { this.sftCarregando = false; }
+    },
+    async pollUsar() {
+      try {
+        const r = await fetch('/api/ollama/modelos');
+        if (r.ok) { const d = await r.json(); this.ollamaOnline = !!d.online; this.modelos = d.modelos || []; }
+      } catch(e) {}
+      try {
+        const r = await fetch('/api/local-generate/fila');
+        if (r.ok) { const d = await r.json(); this.filaAguardando = d.aguardando ?? (d.resumo ? d.resumo.aguardando : null); }
+      } catch(e) {}
+    },
+    async carregarBoletim() {
+      try {
+        const r = await fetch('/api/boletim/resumo');
+        if (r.ok) {
+          const d = await r.json();
+          const pedacos = [d.treino, d.geracao, d.saude].filter(x => x);
+          this.boletimResumo = (pedacos[0] || '') + (pedacos[1] ? ' · ' + pedacos[1] : '');
+          if (this.boletimResumo.length > 90) this.boletimResumo = this.boletimResumo.slice(0, 90) + '…';
+          const sinais = d.sinais || {};
+          this.boletimSinalErro = !!sinais.tem_erro;
+          const pend = d.pendentes || 0;
+          this.boletimPendente = pend > 0;
+          this.boletimDica = (sinais.tem_erro ? '🔴 Algo deu errado — clique para ver o que foi. '
+                              : '🟢 Está tudo certo — clique para ver o boletim do dia. ')
+                           + (sinais.gerando ? '🟢 Gerando textos agora. ' : '')
+                           + (pend ? `${pend} pendência(s) em aberto. ` : '');
+          this.boletimHora = d.gerado_em ? new Date(d.gerado_em).toLocaleTimeString() : '';
+        }
+      } catch(e) { console.warn('[CENTRAL] boletim:', e); }
+    },
+    async abrirBoletim() {
+      // Se já está aberto, apenas fecha (toggle)
+      if (this.boletimAberto) { this.boletimAberto = false; return; }
+      try {
+        const r = await fetch('/api/boletim');
+        if (!r.ok) return;
+        const d = await r.json();
+        const secoes = d.secoes || {};
+        const linhas = [];
+        const rotulos = [
+          ['treino', '📚 Treino'],
+          ['geracao', '📝 Geração'],
+          ['erros', '🔧 Avisos'],
+          ['saude', '🖥️ Saúde'],
+          ['pendencias', '✅ Pendências'],
+          ['pastas', '🗂️ Pastas de treino'],
+        ];
+        for (const [chave, rotulo] of rotulos) {
+          const conteudo = (secoes[chave] || []).filter(l => l && l.trim());
+          if (conteudo.length) {
+            linhas.push('── ' + rotulo + ' ──');
+            conteudo.forEach(l => linhas.push(l));
+          }
+        }
+        this.boletimLinhas = linhas;
+        this.boletimTitulo = '📰 Boletim do Rigel — ' + (d.gerado_em ? new Date(d.gerado_em).toLocaleString() : 'agora');
+        this.boletimAberto = true;
+      } catch(e) { console.warn('[CENTRAL] abrir boletim:', e); }
+    },
+
+    async pollAll() {
+      this.loading = true;
+      try {
+        const r = await fetch('/api/system/details');
+        this.carregou = true;
+        if (r.ok) {
+          const d = await r.json();
+          this.cpuPct = d.cpu?.percent ?? 0;
+          this.cpuCores = d.cpu?.cores ?? '?';
+          this.ramPct = d.memory?.percent ?? 0;
+          this.ramInfo = (d.memory?.used_gb || 0) + ' de ' + (d.memory?.total_gb || 0) + ' GB usados';
+          this.diskPct = d.disk ?? 0;
+          this.processedFiles = d.processed_files ?? null;
+          this.modeloExiste = !!d.model_exists;
+          this.maturidadePct = d.maturidade?.percentual ?? null;
+          this.treinando = !!d.treino_info?.rodando;
+          this.treinoEtapa = d.treino_info?.etapa || 'idle';
+          this.treinoMensagem = d.treino_info?.mensagem || '';
+          this.statusTime = d.timestamp ? new Date(d.timestamp).toLocaleTimeString() : '';
+        }
+      } catch(e) { console.warn('[CENTRAL] status:', e); }
+      await Promise.allSettled([this.pollPendencias(), this.pollColetar(), this.pollTreinar(), this.pollUsar(), this.carregarBoletim()]);
+      this.loading = false;
+    },
+
+    init() {
+      this.pollAll();
+      setInterval(() => this.pollAll(), 15000);
+    }
+  };
+}
+</script>
+{% endblock %}

@@ -5,12 +5,14 @@ convert.py - Conversão .pt → GGUF para o Dashboard RigelSLM
 Versão: 1.0.0 | Data: 31/07/2026 | Arquivos de treino: 1.089
 """
 from fastapi import APIRouter, BackgroundTasks
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse, Response
 from pydantic import BaseModel
 from pathlib import Path
 import subprocess
 import json
+import socket
 from datetime import datetime
+from urllib.parse import quote, unquote
 import threading
 
 from dashboard.services.runner import stream_subprocess_to_log
@@ -39,6 +41,69 @@ DESCRICOES_MODELOS = {
                             "Serve para retomar um treino interrompido — NÃO converter.",
 }
 RECOMENDADOS_MODELOS = {"modelo_melhor.pt"}
+
+
+def _ip_rede_local() -> str:
+    """IP da máquina na rede local (para o celular baixar o GGUF via QR)."""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(1)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
+
+def _caminho_gguf_seguro(nome: str) -> Path | None:
+    """Resolve um nome de GGUF garantindo que está dentro de gguf/ (anti path traversal)."""
+    nome = unquote(nome).replace("\\", "/").split("/")[-1]
+    if not nome.lower().endswith(".gguf"):
+        return None
+    caminho = (GGUF_DIR / nome).resolve()
+    base = GGUF_DIR.resolve()
+    if str(caminho) != str(base) and not str(caminho).startswith(str(base) + chr(92)):
+        return None
+    return caminho
+
+
+@router.get("/download/{nome}")
+async def download_gguf(nome: str):
+    """📥 Baixa um GGUF da pasta gguf/ (funciona no CELULAR pela mesma rede)."""
+    caminho = _caminho_gguf_seguro(nome)
+    if caminho is None:
+        return JSONResponse({"ok": False, "erro": "Só arquivos .gguf da pasta gguf/."},
+                            status_code=400)
+    if not caminho.is_file():
+        return JSONResponse({"ok": False, "erro": "GGUF não encontrado."},
+                            status_code=404)
+    return FileResponse(path=str(caminho), media_type="application/octet-stream",
+                        filename=caminho.name)
+
+
+@router.get("/qr/{nome}")
+async def qr_gguf(nome: str):
+    """📱 Gera o QR code do download do GGUF (o celular escaneia e baixa)."""
+    caminho = _caminho_gguf_seguro(nome)
+    if caminho is None:
+        return JSONResponse({"ok": False, "erro": "Só arquivos .gguf da pasta gguf/."},
+                            status_code=400)
+    if not caminho.is_file():
+        return JSONResponse({"ok": False, "erro": "GGUF não encontrado."},
+                            status_code=404)
+    url = f"http://{_ip_rede_local()}:8000/api/convert/download/{quote(caminho.name)}"
+    try:
+        from io import BytesIO
+        import qrcode
+        img = qrcode.make(url, box_size=9, border=2)
+        buf = BytesIO()
+        img.save(buf, format="PNG")
+        return Response(content=buf.getvalue(), media_type="image/png",
+                        headers={"Cache-Control": "no-store"})
+    except Exception as e:
+        return JSONResponse({"ok": False, "erro": f"QR indisponível: {e}"},
+                            status_code=500)
 
 
 def _e_checkpoint(nome: str) -> bool:
@@ -116,7 +181,8 @@ async def convert_status():
         for f in GGUF_DIR.glob("*.gguf"):
             ggufs.append({
                 "nome": f.name,
-                "tamanho_mb": round(f.stat().st_size / (1024 * 1024), 1)
+                "tamanho_mb": round(f.stat().st_size / (1024 * 1024), 1),
+                "url": f"/api/convert/download/{quote(f.name)}",
             })
 
     return {
@@ -127,6 +193,9 @@ async def convert_status():
         "projeto_path": str(BASE_DIR.resolve()),
         "pasta_gguf": str(GGUF_DIR.resolve()),
         "tipos_rapidos": TIPOS_RAPIDOS,
+        "ip_rede": _ip_rede_local(),
+        "porta": 8000,
+        "url_base": f"http://{_ip_rede_local()}:8000",
         "timestamp": datetime.now().isoformat()
     }
 

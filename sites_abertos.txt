@@ -1,0 +1,48 @@
+# ============================================================================
+# SITES DE PUBLICAÇÃO ABERTA (blogs, portais, bibliotecas digitais) — PT-BR
+# Adicione ou remova quantos quiser (um por linha). Linhas com # são ignoradas.
+# Uso: o scraper trata o conteúdo AO IMPORTAR — remove backlinks, navegação,
+#       propagandas e blocos de links (o texto de treino sai LIMPO).
+# Dica: --profundidade 2 para compêndios navegáveis (ex.: wikidot).
+# ⚠️ Somente fontes brasileiras / português do Brasil.
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# UNIVERSIA BRASIL – portal de notícias, artigos e atualidade (BR)
+# ----------------------------------------------------------------------------
+https://www.universia.net/br/actualidad
+
+# ----------------------------------------------------------------------------
+# BIBLIOTECA ÁTILA ALMEIDA (UEPB) – biblioteca universitária da Paraíba
+# ----------------------------------------------------------------------------
+https://bibliotecaatilaalmeida.uepb.edu.br/
+
+# ----------------------------------------------------------------------------
+# ARQUIVO PÚBLICO DO ESTADO DE SÃO PAULO – acervo digital histórico
+# ❌ REMOVIDO 15/08: não forneceu nenhum PDF (baixou só sobre.txt/organograma.txt)
+# ----------------------------------------------------------------------------
+# https://www.arquivoestado.sp.gov.br/apesp
+
+# ----------------------------------------------------------------------------
+# BIBLIOTECA DIGITAL UNESP – obras, teses e publicações da UNESP
+# ❌ REMOVIDO 15/08: não forneceu nenhum PDF (só search.txt)
+# ----------------------------------------------------------------------------
+# https://bibdig.biblioteca.unesp.br/home
+
+# ----------------------------------------------------------------------------
+# BIBLIOTECA DIGITAL UNICAMP – teses, dissertações e obras em PDF
+# ----------------------------------------------------------------------------
+https://www.bibliotecadigital.unicamp.br/bd/
+
+# ----------------------------------------------------------------------------
+# BIB-CI (WIKIDOT) – compêndio navegável: dicionários, livros, papers e
+#   publicações. Use --profundidade 2 para navegar em subpáginas.
+# ❌ REMOVIDO 15/08: não forneceu nenhum PDF (40 arquivos baixados, 0 pdf)
+# ----------------------------------------------------------------------------
+# http://bib-ci.wikidot.com/
+
+# ----------------------------------------------------------------------------
+# OPEN LIBRARY – DUMPS (especial: NÃO é página; são arquivos grandes para
+#   download manual/baixar depois). O scraper de páginas não se aplica aqui.
+# ----------------------------------------------------------------------------
+https://openlibrary.org/developers/dumps

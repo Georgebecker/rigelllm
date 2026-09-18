@@ -114,3 +114,7 @@ pvcache/                 # Pasta de cache do .pvc
 ollama/
 # NOTA: O Ollama normalmente armazena modelos em C:\Users\user\.ollama\models
 # ou na variável OLLAMA_MODELS, então essa pasta provavelmente está vazia.
+# ------------------------------------------------------------
+# 11. Binarios do llama.cpp (baixar separado; 45 MB) - NAO versionar
+# ------------------------------------------------------------
+llama/

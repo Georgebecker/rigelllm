@@ -177,13 +177,14 @@ async def gerar_dialogos(
     req: DialogosV1Request,
     background_tasks: BackgroundTasks,
 ):
-    """Gera diálogos sintéticos (dialogos.py v1)."""
-    quantidade = req.quantidade
-    cmd = ["python", "dialogos.py", "--quantidade", str(quantidade)]
-    _log_comando(f"Gerando dialogos v1: {' '.join(cmd)}")
-    log_path = LOGS_DIR / "dialogos.log"
-    background_tasks.add_task(stream_subprocess_to_log, cmd, BASE_DIR, log_path)
-    return {"status": "started", "message": f"Geração de {quantidade} diálogos (v1) iniciada"}
+    """Gera diálogos sintéticos (dialogos.py v1).
+
+    🚫 DESABILITADO em 13/08/2026 (regra do usuário): geração via API DeepSeek
+    NÃO roda mais. Código preservado; retorna erro claro sem executar nada."""
+    _log_comando("🚫 [DESABILITADO] Tentativa de dialogos v1 (via API) bloqueada.")
+    return {"status": "error",
+            "message": "🚫 Diálogos v1 (geração via API DeepSeek) está DESABILITADO — "
+                       "use os modelos locais (Ollama) na página /gerar_local."}
 
 
 @router.post("/dialogos2")
@@ -191,22 +192,35 @@ async def gerar_dialogos2(
     req: DialogosRequest,
     background_tasks: BackgroundTasks,
 ):
-    """Gera diálogos sintéticos (dialogos2.py v2 com múltiplos tipos)."""
-    quantidade = req.quantidade
-    tipo = req.tipo
-    formato = req.formato if req.formato in ("txt", "jsonl") else "txt"
-    cmd = ["python", "dialogos2.py", "--quantidade", str(quantidade)]
-    if tipo and tipo != "auto":
-        cmd.extend(["--tipo", tipo])
-    if formato == "jsonl":
-        cmd.extend(["--formato", "jsonl"])
-        if req.pasta_jsonl:
-            cmd.extend(["--pasta-jsonl", req.pasta_jsonl])
-    _log_comando(f"Gerando dialogos v2 ({formato}): {' '.join(cmd)}")
-    log_path = LOGS_DIR / "dialogos.log"
+    """Gera diálogos sintéticos (dialogos2.py v2 com múltiplos tipos).
+
+    � REATIVADO em 15/08/2026 a pedido do usuário, com confirmação
+    OBRIGATÓRIA na tela (digitar CONFIRMO). Geração via API DeepSeek
+    (requer chave configurada no .env)."""
+    # Confere a chave ANTES de rodar (aviso cedo em vez de falha tarde)
+    try:
+        import sys as _sys
+        _sys.path.insert(0, str(BASE_DIR))
+        from config import client as _client
+        if not getattr(_client, "api_key", None) or _client.api_key == "deepseek-aqui":
+            return {"status": "error",
+                    "message": "❌ Chave da API DeepSeek não configurada (.env). Configure antes de gerar via API."}
+    except Exception:
+        pass  # o próprio script cuida do erro
+
+    cmd = ["python", "dialogos2.py",
+           "--quantidade", str(req.quantidade or 500),
+           "--tipo", req.tipo or "auto",
+           "--modelo", "deepseek",
+           "--formato", req.formato or "txt"]
+    if req.pasta_jsonl:
+        cmd += ["--pasta-jsonl", req.pasta_jsonl]
+    _log_comando("✅ [REATIVADO] Diálogos v2 (geração via API DeepSeek) — iniciado após confirmação CONFIRMO.")
+    log_path = LOGS_DIR / "scripts.log"
     background_tasks.add_task(stream_subprocess_to_log, cmd, BASE_DIR, log_path)
     return {"status": "started",
-            "message": f"Geração de {quantidade} diálogos (v2) em {formato} iniciada"}
+            "message": "✅ Diálogos v2 iniciado (via API DeepSeek). Acompanhe em logs/scripts.log.",
+            "comando": ' '.join(cmd)}
 
 
 @router.post("/gerar-api")

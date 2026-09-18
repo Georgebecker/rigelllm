@@ -1,0 +1,485 @@
+{
+  "pastas": {
+    "livros": {
+      "etapas": {
+        "ajuizado": "2026-08-15T13:34:31",
+        "sanitizado": "2026-08-15T14:30:25",
+        "promovido": "2026-08-15T17:52:23",
+        "verificado_encoding": "2026-08-15T14:53:28",
+        "duplicado_de": "2026-08-15T17:52:23"
+      },
+      "criado_em": "2026-08-15T13:34:31.438553",
+      "aprovados": 494,
+      "suspeitos": 299,
+      "lixos": 0,
+      "pronto_treino": true,
+      "fonte": "correcao_registro",
+      "validos": 5,
+      "invalidos": 0,
+      "datasets": "livros_sanitizado, livros_sanitizado_sanitizado, livros_sanitizado_sanitizado_sanitizado"
+    },
+    "chat_salvos": {
+      "etapas": {
+        "promovido": "2026-08-15T17:52:46"
+      },
+      "criado_em": "2026-08-15T17:52:46.326735",
+      "validos": 8,
+      "invalidos": 8,
+      "pronto_treino": false
+    },
+    "pergunta_resposta": {
+      "etapas": {
+        "ajuizado": "2026-08-17T09:01:14"
+      },
+      "criado_em": "2026-08-16T08:08:27.780847",
+      "aprovados": 693,
+      "suspeitos": 412,
+      "lixos": 0,
+      "pronto_treino": false
+    },
+    "saudacao": {
+      "etapas": {
+        "ajuizado": "2026-08-17T09:01:14"
+      },
+      "criado_em": "2026-08-16T17:41:42.530620",
+      "aprovados": 50,
+      "suspeitos": 0,
+      "lixos": 0,
+      "pronto_treino": false
+    },
+    "resumo": {
+      "etapas": {
+        "ajuizado": "2026-08-17T09:01:14"
+      },
+      "criado_em": "2026-08-16T19:10:24.732164",
+      "aprovados": 23,
+      "suspeitos": 27,
+      "lixos": 0,
+      "pronto_treino": false
+    },
+    "explicacao": {
+      "etapas": {
+        "ajuizado": "2026-08-17T09:01:12"
+      },
+      "criado_em": "2026-08-16T21:08:27.797857",
+      "aprovados": 19,
+      "suspeitos": 22,
+      "lixos": 0,
+      "pronto_treino": false
+    },
+    "api_gerados": {
+      "etapas": {
+        "ajuizado": "2026-08-16T23:12:01",
+        "sanitizado": "2026-08-19T21:53:10",
+        "verificado_encoding": "2026-08-19T21:53:10",
+        "promovido": "2026-08-19T21:53:10"
+      },
+      "criado_em": "2026-08-16T23:09:51.571602",
+      "aprovados": 1,
+      "suspeitos": 0,
+      "lixos": 0,
+      "pronto_treino": true
+    },
+    "completos": {
+      "etapas": {
+        "ajuizado": "2026-08-17T04:14:51",
+        "sanitizado": "2026-08-19T21:53:10",
+        "verificado_encoding": "2026-08-19T21:53:10",
+        "promovido": "2026-08-19T21:53:10"
+      },
+      "criado_em": "2026-08-16T23:11:12.595378",
+      "aprovados": 25,
+      "suspeitos": 33,
+      "lixos": 0,
+      "pronto_treino": true
+    },
+    "curtos": {
+      "etapas": {
+        "ajuizado": "2026-08-17T09:01:04",
+        "sanitizado": "2026-08-19T21:53:10",
+        "verificado_encoding": "2026-08-19T21:53:10",
+        "promovido": "2026-08-19T21:53:10"
+      },
+      "criado_em": "2026-08-16T23:11:12.683224",
+      "aprovados": 125,
+      "suspeitos": 2,
+      "lixos": 0,
+      "pronto_treino": true
+    },
+    "debates": {
+      "etapas": {
+        "ajuizado": "2026-08-17T09:01:04",
+        "sanitizado": "2026-08-19T21:53:10",
+        "verificado_encoding": "2026-08-19T21:53:10",
+        "promovido": "2026-08-19T21:53:10"
+      },
+      "criado_em": "2026-08-16T23:11:12.700737",
+      "aprovados": 1,
+      "suspeitos": 1,
+      "lixos": 0,
+      "pronto_treino": true
+    },
+    "Dicionário": {
+      "etapas": {
+        "ajuizado": "2026-08-17T09:01:04",
+        "sanitizado": "2026-08-19T21:53:10",
+        "verificado_encoding": "2026-08-19T21:53:10",
+        "promovido": "2026-08-19T21:53:10"
+      },
+      "criado_em": "2026-08-16T23:11:12.815659",
+      "aprovados": 102,
+      "suspeitos": 2,
+      "lixos": 0,
+      "pronto_treino": true
+    },
+    "gerados_local": {
+      "etapas": {
+        "ajuizado": "2026-08-17T09:01:07",
+        "sanitizado": "2026-08-19T21:53:10",
+        "verificado_encoding": "2026-08-19T21:53:10",
+        "promovido": "2026-08-19T21:53:10"
+      },
+      "criado_em": "2026-08-16T23:11:15.638840",
+      "aprovados": 490,
+      "suspeitos": 666,
+      "lixos": 8,
+      "pronto_treino": true
+    },
+    "longos": {
+      "etapas": {
+        "ajuizado": "2026-08-17T09:01:07",
+        "sanitizado": "2026-08-19T21:53:10",
+        "verificado_encoding": "2026-08-19T21:53:10",
+        "promovido": "2026-08-19T21:53:10"
+      },
+      "criado_em": "2026-08-16T23:11:15.803280",
+      "aprovados": 196,
+      "suspeitos": 1,
+      "lixos": 0,
+      "pronto_treino": true
+    },
+    "massa_final": {
+      "etapas": {
+        "ajuizado": "2026-08-17T09:01:11",
+        "sanitizado": "2026-08-19T21:53:10",
+        "verificado_encoding": "2026-08-19T21:53:10",
+        "promovido": "2026-08-19T21:53:10"
+      },
+      "criado_em": "2026-08-16T23:11:18.697526",
+      "aprovados": 785,
+      "suspeitos": 461,
+      "lixos": 0,
+      "pronto_treino": true
+    },
+    "txt_livros": {
+      "etapas": {
+        "ajuizado": "2026-08-17T09:01:12",
+        "sanitizado": "2026-08-19T21:53:10",
+        "verificado_encoding": "2026-08-19T21:53:10",
+        "promovido": "2026-08-19T21:53:10"
+      },
+      "criado_em": "2026-08-16T23:11:20.237545",
+      "aprovados": 1,
+      "suspeitos": 3,
+      "lixos": 1,
+      "pronto_treino": true
+    },
+    "desclassificados": {
+      "etapas": {
+        "ajuizado": "2026-08-19T01:33:15"
+      },
+      "criado_em": "2026-08-19T01:33:15.747785",
+      "aprovados": 0,
+      "suspeitos": 3,
+      "lixos": 0,
+      "pronto_treino": false
+    },
+    "chat_salvos_sanitizado_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T06:09:13",
+        "verificado_encoding": "2026-08-20T06:09:13"
+      },
+      "criado_em": "2026-08-20T06:09:13.944625",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\chat_salvos_sanitizado",
+      "pronto_treino": false
+    },
+    "cnmoro_sanitizado_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T06:19:07",
+        "verificado_encoding": "2026-08-20T06:19:07",
+        "ajuizado": "2026-08-20T06:45:45",
+        "promovido": "2026-08-20T06:46:12"
+      },
+      "criado_em": "2026-08-20T06:19:07.637011",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\cnmoro_sanitizado",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 300000,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\cnmoro_sanitizado_tratado",
+      "arquivos": 150
+    },
+    "pt_wikipedia_org_wiki_rio_de_janeiro_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T08:12:20",
+        "verificado_encoding": "2026-08-20T08:12:20",
+        "ajuizado": "2026-08-20T08:12:25",
+        "promovido": "2026-08-20T08:12:29"
+      },
+      "criado_em": "2026-08-20T08:12:20.597622",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\parquet\\scrap\\pt_wikipedia_org_wiki_rio_de_janeiro",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 1,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\pt_wikipedia_org_wiki_rio_de_janeiro_tratado",
+      "arquivos": 1
+    },
+    "rigeljsonl98_sanitizado_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T08:12:38",
+        "verificado_encoding": "2026-08-20T08:12:38",
+        "ajuizado": "2026-08-20T08:12:45",
+        "promovido": "2026-08-20T08:12:50"
+      },
+      "criado_em": "2026-08-20T08:12:38.085689",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl98_sanitizado",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 4818,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl98_sanitizado_tratado",
+      "arquivos": 5
+    },
+    "BrunoN-Dev_ultra-alpaca-ptbr_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T08:24:14",
+        "verificado_encoding": "2026-08-20T08:24:14",
+        "ajuizado": "2026-08-20T08:27:59",
+        "promovido": "2026-08-20T08:44:18"
+      },
+      "criado_em": "2026-08-20T08:24:14.820905",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\gerados\\jsonl\\BrunoN-Dev_ultra-alpaca-ptbr",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 469407,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\BrunoN-Dev_ultra-alpaca-ptbr_tratado",
+      "arquivos": 1
+    },
+    "BrunoN-Dev_ultra-alpaca-ptbr": {
+      "etapas": {
+        "sanitizado": "2026-08-21T06:04:59",
+        "verificado_encoding": "2026-08-21T06:04:59",
+        "promovido": "2026-08-21T06:04:59"
+      },
+      "criado_em": "2026-08-20T08:48:00.644620",
+      "pronto_treino": false
+    },
+    "cnmoro_sanitizado_tratado_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T09:00:21",
+        "verificado_encoding": "2026-08-20T09:00:21",
+        "ajuizado": "2026-08-20T09:02:51",
+        "promovido": "2026-08-20T09:03:15"
+      },
+      "criado_em": "2026-08-20T09:00:21.746975",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\cnmoro_sanitizado_tratado",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 300000,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\cnmoro_sanitizado_tratado_tratado",
+      "arquivos": 150
+    },
+    "rigeljsonl_20260816_2316_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T09:06:19",
+        "verificado_encoding": "2026-08-20T09:06:19",
+        "ajuizado": "2026-08-20T09:07:43",
+        "promovido": "2026-08-20T09:07:47"
+      },
+      "criado_em": "2026-08-20T09:06:19.570763",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\gerados\\jsonl\\rigeljsonl_20260816_2316",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 45000,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl_20260816_2316_tratado",
+      "arquivos": 45
+    },
+    "massa_final_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T09:09:29",
+        "verificado_encoding": "2026-08-20T09:09:29",
+        "ajuizado": "2026-08-20T09:09:18",
+        "promovido": "2026-08-20T09:09:23"
+      },
+      "criado_em": "2026-08-20T09:09:15.517360",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\gerados\\massa_final",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 287,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\massa_final_tratado",
+      "arquivos": 27
+    },
+    "rigeljsonl100_sanitizado_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T09:10:09",
+        "verificado_encoding": "2026-08-20T09:10:09",
+        "ajuizado": "2026-08-20T09:10:15",
+        "promovido": "2026-08-20T09:10:22"
+      },
+      "criado_em": "2026-08-20T09:10:09.948469",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl100_sanitizado",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 4677,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl100_sanitizado_tratado",
+      "arquivos": 5
+    },
+    "rigeljsonl101_sanitizado_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T09:10:35",
+        "verificado_encoding": "2026-08-20T09:10:35",
+        "ajuizado": "2026-08-20T09:10:39",
+        "promovido": "2026-08-20T09:10:46"
+      },
+      "criado_em": "2026-08-20T09:10:35.662920",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl101_sanitizado",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 4696,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl101_sanitizado_tratado",
+      "arquivos": 5
+    },
+    "rigeljsonl102_sanitizado_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T09:10:56",
+        "verificado_encoding": "2026-08-20T09:10:56",
+        "ajuizado": "2026-08-20T09:11:02",
+        "promovido": "2026-08-20T09:11:05"
+      },
+      "criado_em": "2026-08-20T09:10:56.183076",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl102_sanitizado",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 4867,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl102_sanitizado_tratado",
+      "arquivos": 5
+    },
+    "rigeljsonl103_sanitizado_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T09:11:14",
+        "verificado_encoding": "2026-08-20T09:11:14",
+        "ajuizado": "2026-08-20T09:11:19",
+        "promovido": "2026-08-20T09:11:26"
+      },
+      "criado_em": "2026-08-20T09:11:14.335306",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl103_sanitizado",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 4687,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl103_sanitizado_tratado",
+      "arquivos": 5
+    },
+    "rigeljsonl104_sanitizado_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T09:11:45",
+        "verificado_encoding": "2026-08-20T09:11:45",
+        "ajuizado": "2026-08-20T09:11:48",
+        "promovido": "2026-08-20T09:11:54"
+      },
+      "criado_em": "2026-08-20T09:11:45.493738",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl104_sanitizado",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 4766,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl104_sanitizado_tratado",
+      "arquivos": 5
+    },
+    "rigeljsonl106_sanitizado_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T09:12:08",
+        "verificado_encoding": "2026-08-20T09:12:08",
+        "ajuizado": "2026-08-20T09:12:13"
+      },
+      "criado_em": "2026-08-20T09:12:08.657589",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl106_sanitizado",
+      "pronto_treino": false,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 4967,
+      "invalidos": 0
+    },
+    "rigeljsonl107_sanitizado_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T09:12:25",
+        "verificado_encoding": "2026-08-20T09:12:25",
+        "ajuizado": "2026-08-20T09:12:31",
+        "promovido": "2026-08-20T09:12:38"
+      },
+      "criado_em": "2026-08-20T09:12:25.221399",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl107_sanitizado",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 4972,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl107_sanitizado_tratado",
+      "arquivos": 5
+    },
+    "rigeljsonl108_sanitizado_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T09:12:49",
+        "verificado_encoding": "2026-08-20T09:12:49",
+        "ajuizado": "2026-08-20T09:12:59",
+        "promovido": "2026-08-20T09:13:03"
+      },
+      "criado_em": "2026-08-20T09:12:49.615386",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl108_sanitizado",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 4964,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\rigeljsonl108_sanitizado_tratado",
+      "arquivos": 5
+    },
+    "BrunoN-Dev_ultra-alpaca-ptbr_sanitizado_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-20T09:15:26",
+        "verificado_encoding": "2026-08-20T09:15:26",
+        "ajuizado": "2026-08-20T11:03:39",
+        "promovido": "2026-08-20T11:09:42"
+      },
+      "criado_em": "2026-08-20T09:15:26.175011",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\BrunoN-Dev_ultra-alpaca-ptbr_sanitizado",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 468754,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\BrunoN-Dev_ultra-alpaca-ptbr_sanitizado_tratado",
+      "arquivos": 235
+    },
+    "dominguesm_brwac_tratado": {
+      "etapas": {
+        "sanitizado": "2026-08-21T07:12:10",
+        "verificado_encoding": "2026-08-21T07:12:10",
+        "ajuizado": "2026-08-21T11:34:11",
+        "promovido": "2026-08-21T17:06:02"
+      },
+      "criado_em": "2026-08-21T07:12:10.824368",
+      "origem": "D:\\Projetos\\rigelllm\\dados\\gerados\\jsonl\\dominguesm_brwac",
+      "pronto_treino": true,
+      "relatorio": "D:\\Projetos\\rigelllm\\logs\\revisao_tratado.json",
+      "validos": 3530786,
+      "invalidos": 0,
+      "destino": "D:\\Projetos\\rigelllm\\dados\\processed\\jsonl\\dominguesm_brwac_tratado",
+      "arquivos": 1
+    }
+  }
+}
