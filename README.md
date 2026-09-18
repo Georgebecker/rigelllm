@@ -57,6 +57,8 @@ No fim, para acelerar de verdade, o autor **apelou para o Google Colab** (GPU co
 - **Use o VS Code como companheiro de aprendizado** — editor gratuito, com terminal integrado, depuração, controle de versão e IA de apoio (GitHub Copilot) para escrever e revisar código. Site oficial: <https://code.visualstudio.com/>
 - **Para experimentar com IA sem gastar muito, comece pela API da DeepSeek** — uma das opções de API mais acessíveis para quem está aprendendo (foi ela que ajudou na geração de dados sintéticos deste projeto). Plataforma: <https://platform.deepseek.com/> — preços: <https://api-docs.deepseek.com/quick_start/pricing>
 
+Mais sobre o autor: <https://ghbecker.com.br>
+
 ---
 
 ## �🧠 Arquitetura do Modelo
