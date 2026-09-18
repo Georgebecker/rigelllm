@@ -44,6 +44,14 @@ Este repositório é uma **prova de conceito pessoal** movida por uma coisa: **b
 
 **Estado honesto:** o modelo ainda está em evolução (subtreinado). A prova de conceito não terminou em um produto final — terminou em **conhecimento documentado**: cada erro, causa e correção está registrado nos problemas enfrentados, no changelog e nos módulos do projeto.
 
+### A realidade do treino em CPU (leia antes de tentar)
+
+Treinar um modelo do zero na própria máquina exige **muitos núcleos de CPU, bastante memória RAM e disco SSD** (HD mecânico sofre). E mesmo com uma máquina razoável o processo é **massante**: não é impossível, mas é lento.
+
+O que este projeto tinha à disposição: **~32 GB de RAM, 36 núcleos de CPU, SSD de 223 GB e nenhuma GPU aproveitável**. Mesmo assim, o ritmo real de treino ficou em torno de **274 tokens/s** — cerca de **2 arquivos de 1.000 exemplos a cada 2 horas**. Treinar o acervo inteiro em CPU levaria semanas.
+
+No fim, para acelerar de verdade, o autor **apelou para o Google Colab** (GPU com uso gratuito limitado). A recomendação que fica: **aprenda localmente com lotes pequenos** e rode as rodadas maiores no Colab — <https://colab.research.google.com/>
+
 ### Para quem quer trilhar o mesmo caminho (conselhos)
 
 - **Use o VS Code como companheiro de aprendizado** — editor gratuito, com terminal integrado, depuração, controle de versão e IA de apoio (GitHub Copilot) para escrever e revisar código. Site oficial: <https://code.visualstudio.com/>

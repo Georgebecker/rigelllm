@@ -19,6 +19,10 @@ Este projeto é uma **prova de conceito pessoal** cuja intenção é a **busca p
 - **Use o VS Code** — editor gratuito, com terminal integrado, depuração, controle de versão e IA de apoio (GitHub Copilot) para escrever e revisar código: <https://code.visualstudio.com/>
 - **Comece por uma API barata** — a **API da DeepSeek** é uma das opções mais acessíveis para quem está aprendendo (foi ela que ajudou na geração de dados deste projeto): <https://platform.deepseek.com/> — preços: <https://api-docs.deepseek.com/quick_start/pricing>
 
+### A realidade do treino em CPU (aviso honesto)
+
+Treinar na própria máquina pede **muitos núcleos de CPU, bastante RAM e disco SSD** — e mesmo com uma máquina razoável (o caso deste projeto: **~32 GB de RAM, 36 núcleos, SSD de 223 GB, sem GPU aproveitável**) o processo é **massante**: o ritmo ficou em torno de **274 tokens/s**, ou cerca de **2 arquivos de 1.000 exemplos a cada 2 horas** de treino. **Não é impossível** — dá para aprender treinando lotes pequenos com paciência — mas no fim o autor apelou para o **Google Colab** (GPU com uso gratuito limitado) para acelerar: <https://colab.research.google.com/>
+
 ---
 
 ## 📖 Glossário (para entender o que este guia diz)
